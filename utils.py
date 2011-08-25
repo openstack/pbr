@@ -20,16 +20,9 @@ System-level utilities and helper functions.
 """
 
 import datetime
-import inspect
-import logging
-import os
-import random
-import subprocess
-import socket
 import sys
 
-from glance.common import exception
-from glance.common.exception import ProcessExecutionError
+from openstack.common import exception
 
 
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%SZ"

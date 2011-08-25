@@ -65,7 +65,7 @@ def add_common_options(parser):
     :param parser: optparse.OptionParser
     """
     help_text = "The following configuration options are common to "\
-                "all glance programs."
+                "this app's programs."
 
     group = optparse.OptionGroup(parser, "Common Options", help_text)
     group.add_option('-v', '--verbose', default=False, dest="verbose",
@@ -178,7 +178,7 @@ def setup_logging(options, conf):
     root_logger.addHandler(handler)
 
 
-def find_config_file(app_name, options, args):
+def find_config_file(app_name, options, args, app_config_dir_name=None):
     """
     Return the first config file found for an application.
 
@@ -187,13 +187,14 @@ def find_config_file(app_name, options, args):
     * If args[0] is a file, use that
     * Search for $app.conf in standard directories:
         * .
-        * ~.glance/
+        * ~.app_config_dir_name/
         * ~
-        * /etc/glance
+        * /etc/app_config_dir_name
         * /etc
 
     :retval Full path to config file, or None if no config file found
     """
+    app_config_dir_name = app_config_dir_name or app_name
 
     fix_path = lambda p: os.path.abspath(os.path.expanduser(p))
     if options.get('config_file'):
@@ -205,9 +206,9 @@ def find_config_file(app_name, options, args):
 
     # Handle standard directory search for $app_name.conf
     config_file_dirs = [fix_path(os.getcwd()),
-                        fix_path(os.path.join('~', '.glance')),
+                        fix_path(os.path.join('~', '.' + app_config_dir_name)),
                         fix_path('~'),
-                        '/etc/glance/',
+                        os.path.join('/etc', app_config_dir_name),
                         '/etc']
 
     for cfg_dir in config_file_dirs:
@@ -216,7 +217,7 @@ def find_config_file(app_name, options, args):
             return cfg_file
 
 
-def load_paste_config(app_name, options, args):
+def load_paste_config(app_name, options, args, app_config_dir_name=None):
     """
     Looks for a config file to use for an app and returns the
     config file path and a configuration mapping from a paste config file.
@@ -226,9 +227,9 @@ def load_paste_config(app_name, options, args):
     * If args[0] is a file, use that
     * Search for $app_name.conf in standard directories:
         * .
-        * ~.glance/
+        * ~.app_config_dir_name/
         * ~
-        * /etc/glance
+        * /etc/app_config_dir_name
         * /etc
 
     :param app_name: Name of the application to load config for, or None.
@@ -241,7 +242,7 @@ def load_paste_config(app_name, options, args):
     :raises RuntimeError when config file cannot be located or there was a
             problem loading the configuration file.
     """
-    conf_file = find_config_file(app_name, options, args)
+    conf_file = find_config_file(app_name, options, args, app_config_dir_name)
     if not conf_file:
         raise RuntimeError("Unable to locate any configuration file. "
                             "Cannot load application %s" % app_name)
@@ -253,7 +254,7 @@ def load_paste_config(app_name, options, args):
                            % (conf_file, e))
 
 
-def load_paste_app(app_name, options, args):
+def load_paste_app(app_name, options, args, app_config_dir_name=None):
     """
     Builds and returns a WSGI app from a paste config file.
 
@@ -262,9 +263,9 @@ def load_paste_app(app_name, options, args):
     * If args[0] is a file, use that
     * Search for $app_name.conf in standard directories:
         * .
-        * ~.glance/
+        * ~.app_config_dir_name/
         * ~
-        * /etc/glance
+        * /etc/app_config_dir_name
         * /etc
 
     :param app_name: Name of the application to load
@@ -274,7 +275,8 @@ def load_paste_app(app_name, options, args):
     :raises RuntimeError when config file cannot be located or application
             cannot be loaded from config file
     """
-    conf_file, conf = load_paste_config(app_name, options, args)
+    conf_file, conf = load_paste_config(app_name, options,
+                                        args, app_config_dir_name)
 
     try:
         # Setup logging early, supplying both the CLI options and the
