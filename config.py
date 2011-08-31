@@ -178,7 +178,7 @@ def setup_logging(options, conf):
     root_logger.addHandler(handler)
 
 
-def find_config_file(app_name, options, args, app_config_dir_name=None):
+def find_config_file(app_name, options, args, config_dir=None):
     """
     Return the first config file found for an application.
 
@@ -187,14 +187,14 @@ def find_config_file(app_name, options, args, app_config_dir_name=None):
     * If args[0] is a file, use that
     * Search for $app.conf in standard directories:
         * .
-        * ~.app_config_dir_name/
+        * ~.config_dir/
         * ~
-        * /etc/app_config_dir_name
+        * /etc/config_dir
         * /etc
 
     :retval Full path to config file, or None if no config file found
     """
-    app_config_dir_name = app_config_dir_name or app_name
+    config_dir = config_dir or app_name
 
     fix_path = lambda p: os.path.abspath(os.path.expanduser(p))
     if options.get('config_file'):
@@ -206,9 +206,9 @@ def find_config_file(app_name, options, args, app_config_dir_name=None):
 
     # Handle standard directory search for $app_name.conf
     config_file_dirs = [fix_path(os.getcwd()),
-                        fix_path(os.path.join('~', '.' + app_config_dir_name)),
+                        fix_path(os.path.join('~', '.' + config_dir)),
                         fix_path('~'),
-                        os.path.join('/etc', app_config_dir_name),
+                        os.path.join('/etc', config_dir),
                         '/etc']
 
     for cfg_dir in config_file_dirs:
@@ -217,7 +217,7 @@ def find_config_file(app_name, options, args, app_config_dir_name=None):
             return cfg_file
 
 
-def load_paste_config(app_name, options, args, app_config_dir_name=None):
+def load_paste_config(app_name, options, args, config_dir=None):
     """
     Looks for a config file to use for an app and returns the
     config file path and a configuration mapping from a paste config file.
@@ -227,9 +227,9 @@ def load_paste_config(app_name, options, args, app_config_dir_name=None):
     * If args[0] is a file, use that
     * Search for $app_name.conf in standard directories:
         * .
-        * ~.app_config_dir_name/
+        * ~.config_dir/
         * ~
-        * /etc/app_config_dir_name
+        * /etc/config_dir
         * /etc
 
     :param app_name: Name of the application to load config for, or None.
@@ -242,7 +242,7 @@ def load_paste_config(app_name, options, args, app_config_dir_name=None):
     :raises RuntimeError when config file cannot be located or there was a
             problem loading the configuration file.
     """
-    conf_file = find_config_file(app_name, options, args, app_config_dir_name)
+    conf_file = find_config_file(app_name, options, args, config_dir)
     if not conf_file:
         raise RuntimeError("Unable to locate any configuration file. "
                             "Cannot load application %s" % app_name)
@@ -254,7 +254,7 @@ def load_paste_config(app_name, options, args, app_config_dir_name=None):
                            % (conf_file, e))
 
 
-def load_paste_app(app_name, options, args, app_config_dir_name=None):
+def load_paste_app(app_name, options, args, config_dir=None):
     """
     Builds and returns a WSGI app from a paste config file.
 
@@ -263,9 +263,9 @@ def load_paste_app(app_name, options, args, app_config_dir_name=None):
     * If args[0] is a file, use that
     * Search for $app_name.conf in standard directories:
         * .
-        * ~.app_config_dir_name/
+        * ~.config_dir/
         * ~
-        * /etc/app_config_dir_name
+        * /etc/config_dir
         * /etc
 
     :param app_name: Name of the application to load
@@ -276,7 +276,7 @@ def load_paste_app(app_name, options, args, app_config_dir_name=None):
             cannot be loaded from config file
     """
     conf_file, conf = load_paste_config(app_name, options,
-                                        args, app_config_dir_name)
+                                        args, config_dir)
 
     try:
         # Setup logging early, supplying both the CLI options and the
