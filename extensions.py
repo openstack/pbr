@@ -247,21 +247,20 @@ class ExtensionMiddleware(wsgi.Middleware):
         mapper = routes.Mapper()
 
         # extended resources
-        for resource in ext_mgr.get_resources():
-            LOG.debug(_('Extended resource: %s'),
-                        resource.collection)
-
-            kargs = dict(
-                controller=wsgi.Resource(
-                    resource.controller, resource.deserializer,
-                    resource.serializer),
-                collection=resource.collection_actions,
-                member=resource.member_actions)
-
-            if resource.parent:
-                kargs['parent_resource'] = resource.parent
-
-            mapper.resource(resource.collection, resource.collection, **kargs)
+        for resource_ext in ext_mgr.get_resources():
+            LOG.debug(_('Extended resource: %s'), resource_ext.collection)
+            controller_resource = wsgi.Resource(resource_ext.controller,
+                                                resource_ext.deserializer,
+                                                resource_ext.serializer)
+            self._map_custom_collection_actions(resource_ext, mapper,
+                                                controller_resource)
+            kargs = dict(controller=controller_resource,
+                         collection=resource_ext.collection_actions,
+                         member=resource_ext.member_actions)
+            if resource_ext.parent:
+                kargs['parent_resource'] = resource_ext.parent
+            mapper.resource(resource_ext.collection,
+                            resource_ext.collection, **kargs)
 
         # extended actions
         action_resources = self._action_ext_resources(application, ext_mgr,
@@ -283,6 +282,25 @@ class ExtensionMiddleware(wsgi.Middleware):
                                                           mapper)
 
         super(ExtensionMiddleware, self).__init__(application)
+
+    def _map_custom_collection_actions(self, resource_ext, mapper,
+                                       controller_resource):
+        for action, method in resource_ext.collection_actions.iteritems():
+            parent = resource_ext.parent
+            conditions = dict(method=[method])
+            path = "/%s/%s" % (resource_ext.collection, action)
+
+            path_prefix = ""
+            if parent:
+                path_prefix = "/%s/{%s_id}" % (parent["collection_name"],
+                                               parent["member_name"])
+
+            with mapper.submapper(controller=controller_resource,
+                                  action=action,
+                                  path_prefix=path_prefix,
+                                  conditions=conditions) as submap:
+                submap.connect(path)
+                submap.connect("%s.:(format)" % path)
 
     @webob.dec.wsgify(RequestClass=wsgi.Request)
     def __call__(self, req):
