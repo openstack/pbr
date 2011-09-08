@@ -27,8 +27,9 @@ from lxml import etree
 from openstack.common import exception
 from openstack.common import wsgi
 
-
 LOG = logging.getLogger('extensions')
+DEFAULT_XMLNS = "http://docs.openstack.org/"
+XMLNS_ATOM = "http://www.w3.org/2005/Atom"
 
 
 class ExtensionDescriptor(object):
@@ -166,6 +167,9 @@ class ExtensionsResource(wsgi.Resource):
 
     def __init__(self, extension_manager):
         self.extension_manager = extension_manager
+        body_serializers = {'application/xml': ExtensionsXMLSerializer()}
+        serializer = wsgi.ResponseSerializer(body_serializers=body_serializers)
+        super(ExtensionsResource, self).__init__(self, None, serializer)
 
     def _translate(self, ext):
         ext_data = {}
@@ -342,8 +346,11 @@ class ExtensionManager(object):
     def get_resources(self):
         """Returns a list of ResourceExtension objects."""
         resources = []
-        resources.append(ResourceExtension('extensions',
-                                            ExtensionsResource(self)))
+        extension_resource = ExtensionsResource(self)
+        res_ext = ResourceExtension('extensions',
+                                    extension_resource,
+                                    serializer=extension_resource.serializer)
+        resources.append(res_ext)
         for alias, ext in self.extensions.iteritems():
             try:
                 resources.extend(ext.get_resources())
@@ -486,7 +493,7 @@ class ResourceExtension(object):
 
 class ExtensionsXMLSerializer(wsgi.XMLDictSerializer):
 
-#    NSMAP = {None: xmlutil.XMLNS_V11, 'atom': xmlutil.XMLNS_ATOM}
+    NSMAP = {None: DEFAULT_XMLNS, 'atom': XMLNS_ATOM}
 
     def show(self, ext_dict):
         ext = etree.Element('extension', nsmap=self.NSMAP)
@@ -511,7 +518,7 @@ class ExtensionsXMLSerializer(wsgi.XMLDictSerializer):
         desc.text = ext_dict['description']
         ext_elem.append(desc)
         for link in ext_dict.get('links', []):
-            elem = etree.SubElement(ext_elem, '{%s}link' % xmlutil.XMLNS_ATOM)
+            elem = etree.SubElement(ext_elem, '{%s}link' % XMLNS_ATOM)
             elem.set('rel', link['rel'])
             elem.set('href', link['href'])
             elem.set('type', link['type'])
