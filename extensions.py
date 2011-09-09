@@ -206,6 +206,13 @@ class ExtensionsResource(wsgi.Resource):
 class ExtensionMiddleware(wsgi.Middleware):
     """Extensions middleware for WSGI."""
 
+    @classmethod
+    def factory(cls, global_config, **local_config):
+        """Paste factory."""
+        def _factory(app):
+            return cls(app, global_config, **local_config)
+        return _factory
+
     def _action_ext_resources(self, application, ext_mgr, mapper):
         """Return a dict of ActionExtensionResource-s by collection."""
         action_resources = {}
@@ -245,9 +252,9 @@ class ExtensionMiddleware(wsgi.Middleware):
 
         return request_ext_resources
 
-    def __init__(self, application, ext_mgr):
-        self.ext_mgr = ext_mgr
-
+    def __init__(self, application, config, ext_mgr=None):
+        ext_mgr = ext_mgr or ExtensionManager(
+                                 config['api_extensions_path'])
         mapper = routes.Mapper()
 
         # extended resources
@@ -493,15 +500,16 @@ class ResourceExtension(object):
 
 class ExtensionsXMLSerializer(wsgi.XMLDictSerializer):
 
-    NSMAP = {None: DEFAULT_XMLNS, 'atom': XMLNS_ATOM}
+    def __init__(self):
+        self.nsmap = {None: DEFAULT_XMLNS, 'atom': XMLNS_ATOM}
 
     def show(self, ext_dict):
-        ext = etree.Element('extension', nsmap=self.NSMAP)
+        ext = etree.Element('extension', nsmap=self.nsmap)
         self._populate_ext(ext, ext_dict['extension'])
         return self._to_xml(ext)
 
     def index(self, exts_dict):
-        exts = etree.Element('extensions', nsmap=self.NSMAP)
+        exts = etree.Element('extensions', nsmap=self.nsmap)
         for ext_dict in exts_dict['extensions']:
             ext = etree.SubElement(exts, 'extension')
             self._populate_ext(ext, ext_dict)
