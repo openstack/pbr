@@ -19,13 +19,11 @@
 Routines for configuring Openstack Projects
 """
 
-import ConfigParser
 import logging
 import logging.config
 import logging.handlers
 import optparse
 import os
-import re
 import sys
 
 from paste import deploy
