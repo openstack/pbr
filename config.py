@@ -176,6 +176,13 @@ def setup_logging(options, conf):
     root_logger.addHandler(handler)
 
 
+def fix_path(path):
+    """
+    Return the full absolute path
+    """
+    return os.path.abspath(os.path.expanduser(path))
+
+
 def find_config_file(app_name, options, args, config_dir=None):
     """
     Return the first config file found for an application.
@@ -194,7 +201,6 @@ def find_config_file(app_name, options, args, config_dir=None):
     """
     config_dir = config_dir or app_name
 
-    fix_path = lambda p: os.path.abspath(os.path.expanduser(p))
     if options.get('config_file'):
         if os.path.exists(options['config_file']):
             return fix_path(options['config_file'])
