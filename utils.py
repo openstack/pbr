@@ -60,9 +60,9 @@ def bool_from_string(subject):
 
     Useful for JSON-decoded stuff and config file parsing
     """
-    if type(subject) == type(bool):
+    if isinstance(subject, types.BooleanType):
         return subject
-    if hasattr(subject, 'startswith'):  # str or unicode...
+    if isinstance(subject, types.StringTypes):
         if subject.strip().lower() in ('true', 'on', '1'):
             return True
     return False
