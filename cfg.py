@@ -193,6 +193,22 @@ Option values may reference other values using PEP 292 string substitution:
     ]
 
 Note that interpolation can be avoided by using '$$'.
+
+For command line utilities that dispatch to other command line utilities, the
+disable_interspersed_args() method is available. If this this method is called,
+then parsing e.g.
+
+  script --verbose cmd --debug /tmp/mything
+
+will no longer return:
+
+  ['cmd', '/tmp/mything']
+
+as the leftover arguments, but will instead return:
+
+  ['cmd', '--debug', '/tmp/mything']
+
+i.e. argument parsing is stopped at the first non-option argument.
 """
 
 import sys
@@ -874,6 +890,31 @@ class ConfigOpts(object):
         """
         opt_info = self._get_opt_info(name, group)
         opt_info['default'] = default
+
+    def disable_interspersed_args(self):
+        """Set parsing to stop on the first non-option.
+
+        If this this method is called, then parsing e.g.
+
+          script --verbose cmd --debug /tmp/mything
+
+        will no longer return:
+
+          ['cmd', '/tmp/mything']
+
+        as the leftover arguments, but will instead return:
+
+          ['cmd', '--debug', '/tmp/mything']
+
+        i.e. argument parsing is stopped at the first non-option argument.
+        """
+        self._oparser.disable_interspersed_args()
+
+    def enable_interspersed_args(self):
+        """Set parsing to not stop on the first non-option.
+
+        This it the default behaviour."""
+        self._oparser.enable_interspersed_args()
 
     def log_opt_values(self, logger, lvl):
         """Log the value of all registered opts.
