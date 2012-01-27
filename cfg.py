@@ -211,12 +211,13 @@ as the leftover arguments, but will instead return:
 i.e. argument parsing is stopped at the first non-option argument.
 """
 
-import sys
+import collections
 import ConfigParser
 import copy
 import optparse
 import os
 import string
+import sys
 
 
 class Error(Exception):
@@ -692,7 +693,7 @@ class OptGroup(object):
         return self._optparse_group
 
 
-class ConfigOpts(object):
+class ConfigOpts(collections.Mapping, object):
 
     """
     Config options which may be set on the command line or in config files.
@@ -786,6 +787,23 @@ class ConfigOpts(object):
         :raises: NoSuchOptError,ConfigFileValueError,TemplateSubstitutionError
         """
         return self._substitute(self._get(name))
+
+    def __getitem__(self, key):
+        """Look up an option value and perform string substitution."""
+        return self.__getattr__(key)
+
+    def __contains__(self, key):
+        """Return True if key is the name of a registered opt or group."""
+        return key in self._opts or key in self._groups
+
+    def __iter__(self):
+        """Iterate over all registered opt and group names."""
+        for key in self._opts.keys() + self._groups.keys():
+            yield key
+
+    def __len__(self):
+        """Return the number of options and option groups."""
+        return len(self._opts) + len(self._groups)
 
     def reset(self):
         """Reset the state of the object to before it was called."""
@@ -936,7 +954,7 @@ class ConfigOpts(object):
             logger.log(lvl, "%-30s = %s", opt_name, getattr(self, opt_name))
 
         for group_name in self._groups:
-            group_attr = self.GroupAttr(self, group_name)
+            group_attr = self.GroupAttr(self, self._get_group(group_name))
             for opt_name in sorted(self._groups[group_name]._opts):
                 logger.log(lvl, "%-30s = %s",
                            "%s.%s" % (group_name, opt_name),
@@ -952,16 +970,13 @@ class ConfigOpts(object):
         """Look up an option value.
 
         :param name: the opt name (or 'dest', more precisely)
-        :param group: an option OptGroup
+        :param group: an OptGroup
         :returns: the option value, or a GroupAttr object
         :raises: NoSuchOptError, NoSuchGroupError, ConfigFileValueError,
                  TemplateSubstitutionError
         """
         if group is None and name in self._groups:
-            return self.GroupAttr(self, name)
-
-        if group is not None:
-            group = self._get_group(group)
+            return self.GroupAttr(self, self._get_group(name))
 
         info = self._get_opt_info(name, group)
         default, opt, override = map(lambda k: info[k], sorted(info.keys()))
@@ -1063,17 +1078,18 @@ class ConfigOpts(object):
             not_read_ok = filter(lambda f: f not in read_ok, config_files)
             raise ConfigFilesNotFoundError(not_read_ok)
 
-    class GroupAttr(object):
+    class GroupAttr(collections.Mapping, object):
 
         """
-        A helper class representing the option values of a group as attributes.
+        A helper class representing the option values of a group as a mapping
+        and attributes.
         """
 
         def __init__(self, conf, group):
             """Construct a GroupAttr object.
 
             :param conf: a ConfigOpts object
-            :param group: a group name or OptGroup object
+            :param group: an OptGroup object
             """
             self.conf = conf
             self.group = group
@@ -1081,6 +1097,23 @@ class ConfigOpts(object):
         def __getattr__(self, name):
             """Look up an option value and perform template substitution."""
             return self.conf._substitute(self.conf._get(name, self.group))
+
+        def __getitem__(self, key):
+            """Look up an option value and perform string substitution."""
+            return self.__getattr__(key)
+
+        def __contains__(self, key):
+            """Return True if key is the name of a registered opt or group."""
+            return key in self.group._opts
+
+        def __iter__(self):
+            """Iterate over all registered opt and group names."""
+            for key in self.group._opts.keys():
+                yield key
+
+        def __len__(self):
+            """Return the number of options and option groups."""
+            return len(self.group._opts)
 
     class StrSubWrapper(object):
 
