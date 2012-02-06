@@ -172,24 +172,6 @@ def parse_isotime(timestr):
     return datetime.datetime.strptime(timestr, TIME_FORMAT)
 
 
-def parse_mailmap(mailmap='.mailmap'):
-    mapping = {}
-    if os.path.exists(mailmap):
-        fp = open(mailmap, 'r')
-        for l in fp:
-            l = l.strip()
-            if not l.startswith('#') and ' ' in l:
-                canonical_email, alias = l.split(' ')
-                mapping[alias] = canonical_email
-    return mapping
-
-
-def str_dict_replace(s, mapping):
-    for s1, s2 in mapping.iteritems():
-        s = s.replace(s1, s2)
-    return s
-
-
 def utcnow():
     """Overridable version of utils.utcnow."""
     if utcnow.override_time:
