@@ -36,10 +36,13 @@ def parse_mailmap(mailmap='.mailmap'):
     return mapping
 
 
-def str_dict_replace(s, mapping):
-    for s1, s2 in mapping.iteritems():
-        s = s.replace(s1, s2)
-    return s
+def canonicalize_emails(changelog, mapping):
+    """ Takes in a string and an email alias mapping and replaces all
+        instances of the aliases in the string with their real email
+    """
+    for alias, email in mapping.iteritems():
+        changelog = changelog.replace(alias, email)
+    return changelog
 
 
 # Get requirements from the first file that exists
@@ -112,3 +115,13 @@ version_info = {
     'revno': %s
 }
 """ % (branch_nick, revid, revno))
+
+
+def write_git_changelog():
+    """ Write a changelog based on the git changelog """
+    if os.path.isdir('.git'):
+        git_log_cmd = 'git log --stat'
+        changelog = _run_shell_command(git_log_cmd)
+        mailmap = parse_mailmap()
+        with open("ChangeLog", "w") as changelog_file:
+            changelog_file.write(canonicalize_emails(changelog, mailmap))
