@@ -25,7 +25,6 @@ import os
 import random
 import shlex
 import sys
-import types
 
 from eventlet import greenthread
 from eventlet.green import subprocess
@@ -60,9 +59,9 @@ def bool_from_string(subject):
 
     Useful for JSON-decoded stuff and config file parsing
     """
-    if isinstance(subject, types.BooleanType):
+    if isinstance(subject, bool):
         return subject
-    if isinstance(subject, types.StringTypes):
+    if isinstance(subject, basestring):
         if subject.strip().lower() in ('true', 'on', '1'):
             return True
     return False
@@ -120,8 +119,9 @@ def execute(*cmd, **kwargs):
             _returncode = obj.returncode  # pylint: disable=E1101
             if _returncode:
                 LOG.debug(_('Result was %s') % _returncode)
-                if type(check_exit_code) == types.IntType \
-                        and _returncode != check_exit_code:
+                if (isinstance(check_exit_code, int) and
+                    not isinstance(check_exit_code, bool) and
+                    _returncode != check_exit_code):
                     (stdout, stderr) = result
                     raise exception.ProcessExecutionError(
                             exit_code=_returncode,

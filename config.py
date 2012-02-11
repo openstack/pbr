@@ -62,8 +62,8 @@ def add_common_options(parser):
 
     :param parser: optparse.OptionParser
     """
-    help_text = "The following configuration options are common to "\
-                "this app's programs."
+    help_text = ("The following configuration options are common to "
+                 "this app's programs.")
 
     group = optparse.OptionGroup(parser, "Common Options", help_text)
     group.add_option('-v', '--verbose', default=False, dest="verbose",
@@ -88,8 +88,8 @@ def add_log_options(parser):
 
     :param parser: optparse.OptionParser
     """
-    help_text = "The following configuration options are specific to logging "\
-                "functionality for this program."
+    help_text = ("The following configuration options are specific to "
+                 "logging functionality for this program.")
 
     group = optparse.OptionGroup(parser, "Logging Options", help_text)
     group.add_option('--log-config', default=None, metavar="PATH",
@@ -133,10 +133,10 @@ def setup_logging(options, conf):
 
     # If either the CLI option or the conf value
     # is True, we set to True
-    debug = options.get('debug') or \
-            get_option(conf, 'debug', type='bool', default=False)
-    verbose = options.get('verbose') or \
-            get_option(conf, 'verbose', type='bool', default=False)
+    debug = (options.get('debug') or
+             get_option(conf, 'debug', type='bool', default=False))
+    verbose = (options.get('verbose') or
+               get_option(conf, 'verbose', type='bool', default=False))
     root_logger = logging.root
     if debug:
         root_logger.setLevel(logging.DEBUG)
@@ -157,8 +157,8 @@ def setup_logging(options, conf):
     if not logfile:
         logfile = conf.get('log_file')
 
-    use_syslog = options.get('use_syslog') or \
-                get_option(conf, 'use_syslog', type='bool', default=False)
+    use_syslog = (options.get('use_syslog') or
+                  get_option(conf, 'use_syslog', type='bool', default=False))
 
     if use_syslog:
         handler = logging.handlers.SysLogHandler(address='/dev/log')
@@ -289,10 +289,10 @@ def load_paste_app(app_name, options, args, config_dir=None):
 
         # We only update the conf dict for the verbose and debug
         # flags. Everything else must be set up in the conf file...
-        debug = options.get('debug') or \
-                get_option(conf, 'debug', type='bool', default=False)
-        verbose = options.get('verbose') or \
-                get_option(conf, 'verbose', type='bool', default=False)
+        debug = (options.get('debug') or
+                 get_option(conf, 'debug', type='bool', default=False))
+        verbose = (options.get('verbose') or
+                   get_option(conf, 'verbose', type='bool', default=False))
         conf['debug'] = debug
         conf['verbose'] = verbose
 
