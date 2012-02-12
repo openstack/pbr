@@ -688,7 +688,7 @@ class OptGroup(object):
         return self._optparse_group
 
 
-class ConfigOpts(collections.Mapping, object):
+class ConfigOpts(collections.Mapping):
 
     """
     Config options which may be set on the command line or in config files.
@@ -1073,7 +1073,7 @@ class ConfigOpts(collections.Mapping, object):
             not_read_ok = filter(lambda f: f not in read_ok, config_files)
             raise ConfigFilesNotFoundError(not_read_ok)
 
-    class GroupAttr(collections.Mapping, object):
+    class GroupAttr(collections.Mapping):
 
         """
         A helper class representing the option values of a group as a mapping
