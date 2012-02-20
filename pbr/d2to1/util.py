@@ -233,8 +233,13 @@ def cfg_to_args(path='setup.cfg'):
 
         kwargs[arg] = in_cfg_value
 
-    kwargs['ext_modules'] = get_extension_modules(config)
-    kwargs['entry_points'] = get_entry_points(config)
+    ext_modules = get_extension_modules(config)
+    if ext_modules:
+        kwargs['ext_modules'] = ext_modules
+
+    entry_points = get_entry_points(config)
+    if entry_points:
+        kwargs['entry_points'] = entry_points
 
     wrap_commands(kwargs)
     return kwargs
