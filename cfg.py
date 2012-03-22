@@ -207,6 +207,16 @@ as the leftover arguments, but will instead return::
   ['cmd', '--debug', '/tmp/mything']
 
 i.e. argument parsing is stopped at the first non-option argument.
+
+Options may be declared as secret so that their values are not leaked into
+log files:
+
+     opts = [
+        cfg.StrOpt('s3_store_access_key', secret=True),
+        cfg.StrOpt('s3_store_secret_key', secret=True),
+        ...
+     ]
+
 """
 
 import collections
@@ -399,8 +409,8 @@ class Opt(object):
         an string explaining how the options value is used
     """
 
-    def __init__(self, name, dest=None, short=None,
-                 default=None, metavar=None, help=None):
+    def __init__(self, name, dest=None, short=None, default=None,
+                 metavar=None, help=None, secret=False):
         """Construct an Opt object.
 
         The only required parameter is the option's name. However, it is
@@ -412,6 +422,7 @@ class Opt(object):
         :param default: the default value of the option
         :param metavar: the option argument to show in --help
         :param help: an explanation of how the option is used
+        :param secret: true iff the value should be obfuscated in log output
         """
         self.name = name
         if dest is None:
@@ -422,6 +433,7 @@ class Opt(object):
         self.default = default
         self.metavar = metavar
         self.help = help
+        self.secret = secret
 
     def _get_from_config_parser(self, cparser, section):
         """Retrieves the option value from a ConfigParser object.
@@ -948,15 +960,22 @@ class ConfigOpts(collections.Mapping):
         logger.log(lvl, "config files: %s", self.config_file)
         logger.log(lvl, "=" * 80)
 
+        def _sanitize(opt, value):
+            """Obfuscate values of options declared secret"""
+            return value if not opt.secret else '*' * len(str(value))
+
         for opt_name in sorted(self._opts):
-            logger.log(lvl, "%-30s = %s", opt_name, getattr(self, opt_name))
+            opt = self._get_opt_info(opt_name)['opt']
+            logger.log(lvl, "%-30s = %s", opt_name,
+                       _sanitize(opt, getattr(self, opt_name)))
 
         for group_name in self._groups:
             group_attr = self.GroupAttr(self, self._get_group(group_name))
             for opt_name in sorted(self._groups[group_name]._opts):
+                opt = self._get_opt_info(opt_name, group_name)['opt']
                 logger.log(lvl, "%-30s = %s",
                            "%s.%s" % (group_name, opt_name),
-                           getattr(group_attr, opt_name))
+                           _sanitize(opt, getattr(group_attr, opt_name)))
 
         logger.log(lvl, "*" * 80)
 
