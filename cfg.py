@@ -226,7 +226,7 @@ import os
 import string
 import sys
 
-import iniparser
+from openstack.common import iniparser
 
 
 class Error(Exception):
