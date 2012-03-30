@@ -55,7 +55,7 @@ def bool_from_string(subject):
     Interpret a string as a boolean.
 
     Any string value in:
-        ('True', 'true', 'On', 'on', '1')
+        ('True', 'true', 'On', 'on', 'Yes', 'yes', '1')
     is interpreted as a boolean True.
 
     Useful for JSON-decoded stuff and config file parsing
@@ -63,7 +63,7 @@ def bool_from_string(subject):
     if isinstance(subject, bool):
         return subject
     if isinstance(subject, basestring):
-        if subject.strip().lower() in ('true', 'on', '1'):
+        if subject.strip().lower() in ('true', 'on', 'yes', '1'):
             return True
     return False
 
