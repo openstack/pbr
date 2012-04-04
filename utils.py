@@ -158,27 +158,3 @@ def import_object(import_str):
         return sys.modules[import_str]
     except ImportError:
         return import_class(import_str)
-
-
-def auth_str_equal(provided, known):
-    """Constant-time string comparison.
-
-    :params provided: the first string
-    :params known: the second string
-
-    :return: True if the strings are equal.
-
-    This function takes two strings and compares them.  It is intended to be
-    used when doing a comparison for authentication purposes to help guard
-    against timing attacks.  When using the function for this purpose, always
-    provide the user-provided password as the first argument.  The time this
-    function will take is always a factor of the length of this string.
-    """
-    result = 0
-    p_len = len(provided)
-    k_len = len(known)
-    for i in xrange(p_len):
-        a = ord(provided[i]) if i < p_len else 0
-        b = ord(known[i]) if i < k_len else 0
-        result |= a ^ b
-    return (p_len == k_len) & (result == 0)
