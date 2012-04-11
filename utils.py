@@ -19,7 +19,6 @@
 System-level utilities and helper functions.
 """
 
-import datetime
 import logging
 import os
 import random
@@ -28,12 +27,10 @@ import sys
 
 from eventlet import greenthread
 from eventlet.green import subprocess
-import iso8601
 
 from openstack.common import exception
 
 
-TIME_FORMAT = "%Y-%m-%dT%H:%M:%S"
 LOG = logging.getLogger(__name__)
 
 
@@ -161,52 +158,6 @@ def import_object(import_str):
         return sys.modules[import_str]
     except ImportError:
         return import_class(import_str)
-
-
-def isotime(at=None):
-    """Stringify time in ISO 8601 format"""
-    if not at:
-        at = datetime.datetime.utcnow()
-    str = at.strftime(TIME_FORMAT)
-    tz = at.tzinfo.tzname(None) if at.tzinfo else 'UTC'
-    str += ('Z' if tz == 'UTC' else tz)
-    return str
-
-
-def parse_isotime(timestr):
-    """Parse time from ISO 8601 format"""
-    try:
-        return iso8601.parse_date(timestr)
-    except iso8601.ParseError as e:
-        raise ValueError(e.message)
-    except TypeError as e:
-        raise ValueError(e.message)
-
-
-def normalize_time(timestamp):
-    """Normalize time in arbitrary timezone to UTC"""
-    offset = timestamp.utcoffset()
-    return timestamp.replace(tzinfo=None) - offset if offset else timestamp
-
-
-def utcnow():
-    """Overridable version of utils.utcnow."""
-    if utcnow.override_time:
-        return utcnow.override_time
-    return datetime.datetime.utcnow()
-
-
-utcnow.override_time = None
-
-
-def set_time_override(override_time=datetime.datetime.utcnow()):
-    """Override utils.utcnow to return a constant time."""
-    utcnow.override_time = override_time
-
-
-def clear_time_override():
-    """Remove the overridden time."""
-    utcnow.override_time = None
 
 
 def auth_str_equal(provided, known):
