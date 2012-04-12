@@ -118,10 +118,23 @@ version_info = {
 
 
 def write_git_changelog():
-    """ Write a changelog based on the git changelog """
+    """Write a changelog based on the git changelog"""
     if os.path.isdir('.git'):
         git_log_cmd = 'git log --stat'
         changelog = _run_shell_command(git_log_cmd)
         mailmap = parse_mailmap()
         with open("ChangeLog", "w") as changelog_file:
             changelog_file.write(canonicalize_emails(changelog, mailmap))
+
+
+def generate_authors():
+    """Create AUTHORS file using git commits"""
+    jenkins_email = 'jenkins@review.openstack.org'
+    if os.path.isdir('.git'):
+        # don't include jenkins email address in AUTHORS file
+        git_log_cmd = "git log --format='%aN <%aE>' | sort -u | " \
+                      "grep -v " + jenkins_email
+        changelog = _run_shell_command(git_log_cmd)
+        mailmap = parse_mailmap()
+        with open("AUTHORS", "w") as authors_file:
+            authors_file.write(canonicalize_emails(changelog, mailmap))
