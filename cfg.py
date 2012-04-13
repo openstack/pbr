@@ -221,6 +221,7 @@ log files:
 
 import collections
 import copy
+import functools
 import optparse
 import os
 import string
@@ -828,7 +829,33 @@ class ConfigOpts(collections.Mapping):
                         help='Path to a config file to use. Multiple config '
                              'files can be specified, with values in later '
                              'files taking precedence. The default files used '
-                             'are: %s' % (self.default_config_files, )))
+                             'are: %s' % (self.default_config_files, )),
+            clear_cache=False)
+
+        self.__cache = {}
+
+    def __clear_cache(f):
+        @functools.wraps(f)
+        def __inner(self, *args, **kwargs):
+            if kwargs.pop('clear_cache', True):
+                self.__cache.clear()
+            return f(self, *args, **kwargs)
+
+        return __inner
+
+    def __remove_from_cache(self, group, name):
+        if isinstance(group, OptGroup):
+            group_name = group.name
+        else:
+            group_name = group
+        try:
+            del self.__cache[(group_name, name)]
+        except KeyError:
+            pass
+        try:
+            del self.__cache[(None, group_name, name)]
+        except KeyError:
+            pass
 
     def __call__(self, args=None):
         """Parse command line arguments and config files.
@@ -864,7 +891,7 @@ class ConfigOpts(collections.Mapping):
         :returns: the option value (after string subsititution) or a GroupAttr
         :raises: NoSuchOptError,ConfigFileValueError,TemplateSubstitutionError
         """
-        return self._substitute(self._get(name))
+        return self._get(name, substitute=True)
 
     def __getitem__(self, key):
         """Look up an option value and perform string substitution."""
@@ -888,7 +915,9 @@ class ConfigOpts(collections.Mapping):
         self._args = None
         self._cli_values = None
         self._cparser = None
+        self.__cache.clear()
 
+    @__clear_cache
     def register_opt(self, opt, group=None):
         """Register an option schema.
 
@@ -911,11 +940,13 @@ class ConfigOpts(collections.Mapping):
 
         return True
 
+    @__clear_cache
     def register_opts(self, opts, group=None):
         """Register multiple option schemas at once."""
         for opt in opts:
-            self.register_opt(opt, group)
+            self.register_opt(opt, group, clear_cache=False)
 
+    @__clear_cache
     def register_cli_opt(self, opt, group=None):
         """Register a CLI option schema.
 
@@ -931,7 +962,7 @@ class ConfigOpts(collections.Mapping):
         if self._args is not None:
             raise ArgsAlreadyParsedError("cannot register CLI option")
 
-        if not self.register_opt(opt, group):
+        if not self.register_opt(opt, group, clear_cache=False):
             return False
 
         if group is not None:
@@ -941,10 +972,11 @@ class ConfigOpts(collections.Mapping):
 
         return True
 
+    @__clear_cache
     def register_cli_opts(self, opts, group=None):
         """Register multiple CLI option schemas at once."""
         for opt in opts:
-            self.register_cli_opt(opt, group)
+            self.register_cli_opt(opt, group, clear_cache=False)
 
     def register_group(self, group):
         """Register an option group.
@@ -970,6 +1002,7 @@ class ConfigOpts(collections.Mapping):
         :param group: an option OptGroup object or group name
         :raises: NoSuchOptError, NoSuchGroupError
         """
+        self.__remove_from_cache(group, name)
         opt_info = self._get_opt_info(name, group)
         opt_info['override'] = override
 
@@ -984,6 +1017,7 @@ class ConfigOpts(collections.Mapping):
         :param group: an option OptGroup object or group name
         :raises: NoSuchOptError, NoSuchGroupError
         """
+        self.__remove_from_cache(group, name)
         opt_info = self._get_opt_info(name, group)
         opt_info['default'] = default
 
@@ -1055,7 +1089,26 @@ class ConfigOpts(collections.Mapping):
         """Print the help message for the current program."""
         self._oparser.print_help(file)
 
-    def _get(self, name, group=None):
+    def _get(self, name, group=None, substitute=False):
+        if isinstance(group, OptGroup):
+            group_name = group.name
+        else:
+            group_name = group
+        if substitute:
+            key = (None, group_name, name)
+        else:
+            key = (group_name, name)
+        try:
+            return self.__cache[key]
+        except KeyError:
+            if substitute:
+                value = self._substitute(self._get(name, group))
+            else:
+                value = self._do_get(name, group)
+            self.__cache[key] = value
+            return value
+
+    def _do_get(self, name, group=None):
         """Look up an option value.
 
         :param name: the opt name (or 'dest', more precisely)
@@ -1196,7 +1249,7 @@ class ConfigOpts(collections.Mapping):
 
         def __getattr__(self, name):
             """Look up an option value and perform template substitution."""
-            return self.conf._substitute(self.conf._get(name, self.group))
+            return self.conf._get(name, self.group, substitute=True)
 
         def __getitem__(self, key):
             """Look up an option value and perform string substitution."""
