@@ -822,6 +822,8 @@ class ConfigOpts(collections.Mapping):
                                               usage=self.usage)
         self._cparser = None
 
+        self.__cache = {}
+
         self.register_cli_opt(
             MultiStrOpt('config-file',
                         default=self.default_config_files,
@@ -829,10 +831,7 @@ class ConfigOpts(collections.Mapping):
                         help='Path to a config file to use. Multiple config '
                              'files can be specified, with values in later '
                              'files taking precedence. The default files used '
-                             'are: %s' % (self.default_config_files, )),
-            clear_cache=False)
-
-        self.__cache = {}
+                             'are: %s' % (self.default_config_files, )))
 
     def __clear_cache(f):
         @functools.wraps(f)
@@ -842,20 +841,6 @@ class ConfigOpts(collections.Mapping):
             return f(self, *args, **kwargs)
 
         return __inner
-
-    def __remove_from_cache(self, group, name):
-        if isinstance(group, OptGroup):
-            group_name = group.name
-        else:
-            group_name = group
-        try:
-            del self.__cache[(group_name, name)]
-        except KeyError:
-            pass
-        try:
-            del self.__cache[(None, group_name, name)]
-        except KeyError:
-            pass
 
     def __call__(self, args=None):
         """Parse command line arguments and config files.
@@ -891,7 +876,7 @@ class ConfigOpts(collections.Mapping):
         :returns: the option value (after string subsititution) or a GroupAttr
         :raises: NoSuchOptError,ConfigFileValueError,TemplateSubstitutionError
         """
-        return self._get(name, substitute=True)
+        return self._get(name)
 
     def __getitem__(self, key):
         """Look up an option value and perform string substitution."""
@@ -910,12 +895,12 @@ class ConfigOpts(collections.Mapping):
         """Return the number of options and option groups."""
         return len(self._opts) + len(self._groups)
 
+    @__clear_cache
     def reset(self):
         """Reset the state of the object to before it was called."""
         self._args = None
         self._cli_values = None
         self._cparser = None
-        self.__cache.clear()
 
     @__clear_cache
     def register_opt(self, opt, group=None):
@@ -991,6 +976,7 @@ class ConfigOpts(collections.Mapping):
 
         self._groups[group.name] = copy.copy(group)
 
+    @__clear_cache
     def set_override(self, name, override, group=None):
         """Override an opt value.
 
@@ -1002,10 +988,10 @@ class ConfigOpts(collections.Mapping):
         :param group: an option OptGroup object or group name
         :raises: NoSuchOptError, NoSuchGroupError
         """
-        self.__remove_from_cache(group, name)
         opt_info = self._get_opt_info(name, group)
         opt_info['override'] = override
 
+    @__clear_cache
     def set_default(self, name, default, group=None):
         """Override an opt's default value.
 
@@ -1017,7 +1003,6 @@ class ConfigOpts(collections.Mapping):
         :param group: an option OptGroup object or group name
         :raises: NoSuchOptError, NoSuchGroupError
         """
-        self.__remove_from_cache(group, name)
         opt_info = self._get_opt_info(name, group)
         opt_info['default'] = default
 
@@ -1089,22 +1074,15 @@ class ConfigOpts(collections.Mapping):
         """Print the help message for the current program."""
         self._oparser.print_help(file)
 
-    def _get(self, name, group=None, substitute=False):
+    def _get(self, name, group=None):
         if isinstance(group, OptGroup):
-            group_name = group.name
+            key = (group.name, name)
         else:
-            group_name = group
-        if substitute:
-            key = (None, group_name, name)
-        else:
-            key = (group_name, name)
+            key = (group, name)
         try:
             return self.__cache[key]
         except KeyError:
-            if substitute:
-                value = self._substitute(self._get(name, group))
-            else:
-                value = self._do_get(name, group)
+            value = self._substitute(self._do_get(name, group))
             self.__cache[key] = value
             return value
 
@@ -1249,7 +1227,7 @@ class ConfigOpts(collections.Mapping):
 
         def __getattr__(self, name):
             """Look up an option value and perform template substitution."""
-            return self.conf._get(name, self.group, substitute=True)
+            return self.conf._get(name, self.group)
 
         def __getitem__(self, key):
             """Look up an option value and perform string substitution."""
