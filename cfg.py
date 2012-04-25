@@ -319,11 +319,12 @@ class ConfigFileValueError(Error):
     pass
 
 
-def find_config_files(project=None, prog=None):
+def find_config_files(project=None, prog=None, extension='.conf'):
     """Return a list of default configuration files.
 
     :param project: an optional project name
     :param prog: the program name, defaulting to the basename of sys.argv[0]
+    :param extension: the type of the config file
 
     We default to two config files: [${project}.conf, ${prog}.conf]
 
@@ -356,16 +357,16 @@ def find_config_files(project=None, prog=None):
         ]
     cfg_dirs = filter(bool, cfg_dirs)
 
-    def search_dirs(dirs, basename):
+    def search_dirs(dirs, basename, extension):
         for d in dirs:
-            path = os.path.join(d, basename)
+            path = os.path.join(d, '%s%s' % (basename, extension))
             if os.path.exists(path):
                 return path
 
     config_files = []
     if project:
-        config_files.append(search_dirs(cfg_dirs, '%s.conf' % project))
-    config_files.append(search_dirs(cfg_dirs, '%s.conf' % prog))
+        config_files.append(search_dirs(cfg_dirs, project, extension))
+    config_files.append(search_dirs(cfg_dirs, prog, extension))
 
     return filter(bool, config_files)
 
