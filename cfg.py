@@ -149,6 +149,14 @@ Options can be registered as belonging to a group::
         conf.register_opt(rabbit_host_opt, group=rabbit_group)
         conf.register_opt(rabbit_port_opt, group='rabbit')
 
+If it no group attributes are required other than the group name, the group
+need not be explicitly registered e.g.
+
+    def register_rabbit_opts(conf):
+        # The group will automatically be created, equivalent calling::
+        #   conf.register_group(OptGroup(name='rabbit'))
+        conf.register_opt(rabbit_port_opt, group='rabbit')
+
 If no group is specified, options belong to the 'DEFAULT' section of config
 files::
 
@@ -1000,7 +1008,7 @@ class ConfigOpts(collections.Mapping):
         :raises: DuplicateOptError
         """
         if group is not None:
-            return self._get_group(group)._register_opt(opt)
+            return self._get_group(group, autocreate=True)._register_opt(opt)
 
         if _is_opt_registered(self._opts, opt):
             return False
@@ -1035,7 +1043,7 @@ class ConfigOpts(collections.Mapping):
             return False
 
         if group is not None:
-            group = self._get_group(group)
+            group = self._get_group(group, autocreate=True)
 
         opt._add_to_cli(self._oparser, group)
 
@@ -1264,7 +1272,7 @@ class ConfigOpts(collections.Mapping):
         else:
             return value
 
-    def _get_group(self, group_or_name):
+    def _get_group(self, group_or_name, autocreate=False):
         """Looks up a OptGroup object.
 
         Helper function to return an OptGroup given a parameter which can
@@ -1275,15 +1283,17 @@ class ConfigOpts(collections.Mapping):
         the API have access to.
 
         :param group_or_name: the group's name or the OptGroup object itself
+        :param autocreate: whether to auto-create the group if it's not found
         :raises: NoSuchGroupError
         """
-        if isinstance(group_or_name, OptGroup):
-            group_name = group_or_name.name
-        else:
-            group_name = group_or_name
+        group = group_or_name if isinstance(group_or_name, OptGroup) else None
+        group_name = group.name if group else group_or_name
 
         if not group_name in self._groups:
-            raise NoSuchGroupError(group_name)
+            if not group is None or not autocreate:
+                raise NoSuchGroupError(group_name)
+
+            self.register_group(OptGroup(name=group_name))
 
         return self._groups[group_name]
 
