@@ -213,6 +213,9 @@ as the leftover arguments, but will instead return::
 
 i.e. argument parsing is stopped at the first non-option argument.
 
+Options may be declared as required so that an error is raised if the user
+does not supply a value for the option.
+
 Options may be declared as secret so that their values are not leaked into
 log files:
 
@@ -289,6 +292,21 @@ class DuplicateOptError(Error):
 
     def __str__(self):
         return "duplicate option: %s" % self.opt_name
+
+
+class RequiredOptError(Error):
+    """Raised if an option is required but no value is supplied by the user."""
+
+    def __init__(self, opt_name, group=None):
+        self.opt_name = opt_name
+        self.group = group
+
+    def __str__(self):
+        if self.group is None:
+            return "value required for option: %s" % self.opt_name
+        else:
+            return "value required for option: %s.%s" % (self.group.name,
+                                                         self.opt_name)
 
 
 class TemplateSubstitutionError(Error):
@@ -452,7 +470,7 @@ class Opt(object):
     multi = False
 
     def __init__(self, name, dest=None, short=None, default=None,
-                 metavar=None, help=None, secret=False):
+                 metavar=None, help=None, secret=False, required=False):
         """Construct an Opt object.
 
         The only required parameter is the option's name. However, it is
@@ -465,6 +483,7 @@ class Opt(object):
         :param metavar: the option argument to show in --help
         :param help: an explanation of how the option is used
         :param secret: true iff the value should be obfuscated in log output
+        :param required: true iff a value must be supplied for this option
         """
         self.name = name
         if dest is None:
@@ -476,6 +495,7 @@ class Opt(object):
         self.metavar = metavar
         self.help = help
         self.secret = secret
+        self.required = required
 
     def _get_from_config_parser(self, cparser, section):
         """Retrieves the option value from a MultiConfigParser object.
@@ -909,7 +929,8 @@ class ConfigOpts(collections.Mapping):
 
         :params args: command line arguments (defaults to sys.argv[1:])
         :returns: the list of arguments left over after parsing options
-        :raises: SystemExit, ConfigFilesNotFoundError, ConfigFileParseError
+        :raises: SystemExit, ConfigFilesNotFoundError, ConfigFileParseError,
+                 RequiredOptError
         """
         self.reset()
 
@@ -927,6 +948,8 @@ class ConfigOpts(collections.Mapping):
         from_dir = _list_config_dir() if self.config_dir else []
 
         self._parse_config_files(from_file + from_dir)
+
+        self._check_required_opts()
 
         return args
 
@@ -1297,6 +1320,28 @@ class ConfigOpts(collections.Mapping):
         if read_ok != config_files:
             not_read_ok = filter(lambda f: f not in read_ok, config_files)
             raise ConfigFilesNotFoundError(not_read_ok)
+
+    def _do_check_required_opts(self, opts, group=None):
+        for info in opts.values():
+            default, opt, override = [info[k] for k in sorted(info.keys())]
+
+            if opt.required:
+                if (default is not None or
+                    override is not None):
+                    continue
+
+                if self._get(opt.name, group) is None:
+                    raise RequiredOptError(opt.name, group)
+
+    def _check_required_opts(self):
+        """Check that all opts marked as required have values specified.
+
+        :raises: RequiredOptError
+        """
+        self._do_check_required_opts(self._opts)
+
+        for group in self._groups.values():
+            self._do_check_required_opts(group._opts, group)
 
     class GroupAttr(collections.Mapping):
 
