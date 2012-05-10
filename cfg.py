@@ -1188,7 +1188,7 @@ class ConfigOpts(collections.Mapping):
             return self.GroupAttr(self, self._get_group(name))
 
         info = self._get_opt_info(name, group)
-        default, opt, override = map(lambda k: info[k], sorted(info.keys()))
+        default, opt, override = [info[k] for k in sorted(info.keys())]
 
         if override is not None:
             return override
