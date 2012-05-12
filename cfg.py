@@ -940,7 +940,7 @@ class ConfigOpts(collections.Mapping):
         :raises: SystemExit, ConfigFilesNotFoundError, ConfigFileParseError,
                  RequiredOptError
         """
-        self.reset()
+        self.clear()
 
         self._args = args
 
@@ -987,11 +987,16 @@ class ConfigOpts(collections.Mapping):
         """Return the number of options and option groups."""
         return len(self._opts) + len(self._groups)
 
-    @__clear_cache
     def reset(self):
-        """Reset the state of the object to before it was called."""
+        """Clear the object state and unset overrides and defaults."""
+        self._unset_defaults_and_overrides()
+        self.clear()
+
+    @__clear_cache
+    def clear(self):
+        """Clear the state of the object to before it was called."""
         self._args = None
-        self._cli_values = None
+        self._cli_values = {}
         self._cparser = None
 
     @__clear_cache
@@ -1097,6 +1102,17 @@ class ConfigOpts(collections.Mapping):
         """
         opt_info = self._get_opt_info(name, group)
         opt_info['default'] = default
+
+    def _unset_defaults_and_overrides(self):
+        """Unset any default or override on all options."""
+        def unset(opts):
+            for info in opts.values():
+                info['default'] = None
+                info['override'] = None
+
+        unset(self._opts)
+        for group in self._groups.values():
+            unset(group._opts)
 
     def disable_interspersed_args(self):
         """Set parsing to stop on the first non-option.
