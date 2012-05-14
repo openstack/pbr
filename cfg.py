@@ -237,8 +237,8 @@ log files:
 
 import collections
 import copy
-import glob
 import functools
+import glob
 import optparse
 import os
 import string
