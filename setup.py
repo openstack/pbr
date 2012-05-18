@@ -33,8 +33,8 @@ def parse_mailmap(mailmap='.mailmap'):
         for l in fp:
             l = l.strip()
             if not l.startswith('#') and ' ' in l:
-                canonical_email, alias = [x for x in l.split(' ') \
-                                         if x.startswith('<')]
+                canonical_email, alias = [x for x in l.split(' ')
+                                          if x.startswith('<')]
                 mapping[alias] = canonical_email
     return mapping
 
@@ -137,8 +137,8 @@ def generate_authors():
     new_authors = 'AUTHORS'
     if os.path.isdir('.git'):
         # don't include jenkins email address in AUTHORS file
-        git_log_cmd = "git log --format='%aN <%aE>' | sort -u | " \
-                      "grep -v " + jenkins_email
+        git_log_cmd = ("git log --format='%aN <%aE>' | sort -u | "
+                       "grep -v " + jenkins_email)
         changelog = _run_shell_command(git_log_cmd)
         mailmap = parse_mailmap()
         with open(new_authors, 'w') as new_authors_fh:
