@@ -233,6 +233,22 @@ log files:
         ...
      ]
 
+This module also contains a global instance of the CommonConfigOpts class
+in order to support a common usage pattern in OpenStack:
+
+  from openstack.common import cfg
+
+  opts = [
+    cfg.StrOpt('bind_host' default='0.0.0.0'),
+    cfg.IntOpt('bind_port', default=9292),
+  ]
+
+  CONF = cfg.CONF
+  CONF.register_opts(opts)
+
+  def start(server, app):
+      server.start(app, CONF.bind_port, CONF.bind_host)
+
 """
 
 import collections
@@ -1540,3 +1556,6 @@ class CommonConfigOpts(ConfigOpts):
         super(CommonConfigOpts, self).__init__()
         self.register_cli_opts(self.common_cli_opts)
         self.register_cli_opts(self.logging_cli_opts)
+
+
+CONF = CommonConfigOpts()
