@@ -1128,16 +1128,24 @@ class ConfigOpts(collections.Mapping):
         opt_info = self._get_opt_info(name, group)
         opt_info['default'] = default
 
+    def _all_opt_infos(self):
+        """A generator function for iteration opt infos."""
+        for info in self._opts.values():
+            yield info, None
+        for group in self._groups.values():
+            for info in group._opts.values():
+                yield info, group
+
+    def _all_opts(self):
+        """A generator function for iteration opts."""
+        for info, group in self._all_opt_infos():
+            yield info['opt'], group
+
     def _unset_defaults_and_overrides(self):
         """Unset any default or override on all options."""
-        def unset(opts):
-            for info in opts.values():
-                info['default'] = None
-                info['override'] = None
-
-        unset(self._opts)
-        for group in self._groups.values():
-            unset(group._opts)
+        for info, group in self._all_opt_infos():
+            info['default'] = None
+            info['override'] = None
 
     def disable_interspersed_args(self):
         """Set parsing to stop on the first non-option.
@@ -1378,8 +1386,12 @@ class ConfigOpts(collections.Mapping):
             not_read_ok = filter(lambda f: f not in read_ok, config_files)
             raise ConfigFilesNotFoundError(not_read_ok)
 
-    def _do_check_required_opts(self, opts, group=None):
-        for info in opts.values():
+    def _check_required_opts(self):
+        """Check that all opts marked as required have values specified.
+
+        :raises: RequiredOptError
+        """
+        for info, group in self._all_opt_infos():
             default, opt, override = [info[k] for k in sorted(info.keys())]
 
             if opt.required:
@@ -1389,16 +1401,6 @@ class ConfigOpts(collections.Mapping):
 
                 if self._get(opt.name, group) is None:
                     raise RequiredOptError(opt.name, group)
-
-    def _check_required_opts(self):
-        """Check that all opts marked as required have values specified.
-
-        :raises: RequiredOptError
-        """
-        self._do_check_required_opts(self._opts)
-
-        for group in self._groups.values():
-            self._do_check_required_opts(group._opts, group)
 
     def _parse_cli_opts(self, args):
         """Parse command line options.
@@ -1413,14 +1415,8 @@ class ConfigOpts(collections.Mapping):
         """
         self._args = args
 
-        def add_to_cli(opts, group=None):
-            for opt in opts.values():
-                opt['opt']._add_to_cli(self._oparser, group)
-
-        add_to_cli(self._opts)
-
-        for group in self._groups.values():
-            add_to_cli(group._opts, group)
+        for opt, group in self._all_opts():
+            opt._add_to_cli(self._oparser, group)
 
         values, leftovers = self._oparser.parse_args(args)
 
