@@ -95,7 +95,7 @@ and --config-dir::
 
     class ConfigOpts(object):
 
-        def __init__(self, ...):
+        def __call__(self, ...):
 
             opts = [
                 MultiStrOpt('config-file',
@@ -768,12 +768,24 @@ class OptGroup(object):
 
         return True
 
+    def _unregister_opt(self, opt):
+        """Remove an opt from this group.
+
+        :param opt: an Opt object
+        """
+        if opt.dest in self._opts:
+            del self._opts[opt.dest]
+
     def _get_optparse_group(self, parser):
         """Build an optparse.OptionGroup for this group."""
         if self._optparse_group is None:
             self._optparse_group = optparse.OptionGroup(parser, self.title,
                                                         self.help)
         return self._optparse_group
+
+    def _clear(self):
+        """Clear this group's option parsing state."""
+        self._optparse_group = None
 
 
 class ParseError(iniparser.ParseError):
@@ -849,57 +861,41 @@ class ConfigOpts(collections.Mapping):
     the values of options.
     """
 
-    def __init__(self,
-                 project=None,
-                 prog=None,
-                 version=None,
-                 usage=None,
-                 default_config_files=None):
-        """Construct a ConfigOpts object.
+    def __init__(self):
+        """Construct a ConfigOpts object."""
+        self._opts = {}  # dict of dicts of (opt:, override:, default:)
+        self._groups = {}
 
-        Automatically registers the --config-file option with either a supplied
-        list of default config files, or a list from find_config_files().
+        self._args = None
+        self._oparser = None
+        self._cparser = None
+        self._cli_values = {}
+        self.__cache = {}
+        self._config_opts = []
+        self._disable_interspersed_args = False
 
-        :param project: the toplevel project name, used to locate config files
-        :param prog: the name of the program (defaults to sys.argv[0] basename)
-        :param version: the program version (for --version)
-        :param usage: a usage string (%prog will be expanded)
-        :param default_config_files: config files to use by default
-        """
+    def _setup(self, project, prog, version, usage, default_config_files):
+        """Initialize a ConfigOpts object for option parsing."""
         if prog is None:
             prog = os.path.basename(sys.argv[0])
 
         if default_config_files is None:
             default_config_files = find_config_files(project, prog)
 
-        self.project = project
-        self.prog = prog
-        self.version = version
-        self.usage = usage
-        self.default_config_files = default_config_files
+        self._oparser = optparse.OptionParser(prog=prog,
+                                              version=version,
+                                              usage=usage)
+        if self._disable_interspersed_args:
+            self._oparser.disable_interspersed_args()
 
-        self._opts = {}  # dict of dicts of (opt:, override:, default:)
-        self._groups = {}
-
-        self._args = None
-        self._cli_values = {}
-
-        self._oparser = optparse.OptionParser(prog=self.prog,
-                                              version=self.version,
-                                              usage=self.usage)
-        self._cparser = None
-
-        self.__cache = {}
-
-        opts = [
+        self._config_opts = [
              MultiStrOpt('config-file',
-                         default=self.default_config_files,
+                         default=default_config_files,
                          metavar='PATH',
                          help='Path to a config file to use. Multiple config '
                               'files can be specified, with values in later '
                               'files taking precedence. The default files '
-                              ' used are: %s' %
-                              (self.default_config_files, )),
+                              ' used are: %s' % (default_config_files, )),
             StrOpt('config-dir',
                    metavar='DIR',
                    help='Path to a config directory to pull *.conf '
@@ -910,7 +906,13 @@ class ConfigOpts(collections.Mapping):
                         'hence over-ridden options in the directory take '
                         'precedence.'),
             ]
-        self.register_cli_opts(opts)
+        self.register_cli_opts(self._config_opts)
+
+        self.project = project
+        self.prog = prog
+        self.version = version
+        self.usage = usage
+        self.default_config_files = default_config_files
 
     def __clear_cache(f):
         @functools.wraps(f)
@@ -921,7 +923,13 @@ class ConfigOpts(collections.Mapping):
 
         return __inner
 
-    def __call__(self, args=None):
+    def __call__(self,
+                 args=None,
+                 project=None,
+                 prog=None,
+                 version=None,
+                 usage=None,
+                 default_config_files=None):
         """Parse command line arguments and config files.
 
         Calling a ConfigOpts object causes the supplied command line arguments
@@ -931,35 +939,34 @@ class ConfigOpts(collections.Mapping):
         The object may be called multiple times, each time causing the previous
         set of values to be overwritten.
 
+        Automatically registers the --config-file option with either a supplied
+        list of default config files, or a list from find_config_files().
+
         If the --config-dir option is set, any *.conf files from this
         directory are pulled in, after all the file(s) specified by the
         --config-file option.
 
-        :params args: command line arguments (defaults to sys.argv[1:])
+        :param args: command line arguments (defaults to sys.argv[1:])
+        :param project: the toplevel project name, used to locate config files
+        :param prog: the name of the program (defaults to sys.argv[0] basename)
+        :param version: the program version (for --version)
+        :param usage: a usage string (%prog will be expanded)
+        :param default_config_files: config files to use by default
         :returns: the list of arguments left over after parsing options
         :raises: SystemExit, ConfigFilesNotFoundError, ConfigFileParseError,
-                 RequiredOptError
+                 RequiredOptError, DuplicateOptError
         """
         self.clear()
 
-        self._args = args
+        self._setup(project, prog, version, usage, default_config_files)
 
-        (values, args) = self._oparser.parse_args(self._args)
+        self._cli_values, leftovers = self._parse_cli_opts(args)
 
-        self._cli_values = vars(values)
-
-        def _list_config_dir():
-            return sorted(glob.glob(os.path.join(self.config_dir, '*.conf')))
-
-        from_file = list(self.config_file)
-
-        from_dir = _list_config_dir() if self.config_dir else []
-
-        self._parse_config_files(from_file + from_dir)
+        self._parse_config_files()
 
         self._check_required_opts()
 
-        return args
+        return leftovers
 
     def __getattr__(self, name):
         """Look up an option value and perform string substitution.
@@ -996,8 +1003,12 @@ class ConfigOpts(collections.Mapping):
     def clear(self):
         """Clear the state of the object to before it was called."""
         self._args = None
-        self._cli_values = {}
+        self._cli_values.clear()
+        self._oparser = None
         self._cparser = None
+        self.unregister_opts(self._config_opts)
+        for group in self._groups.values():
+            group._clear()
 
     @__clear_cache
     def register_opt(self, opt, group=None):
@@ -1044,15 +1055,7 @@ class ConfigOpts(collections.Mapping):
         if self._args is not None:
             raise ArgsAlreadyParsedError("cannot register CLI option")
 
-        if not self.register_opt(opt, group, clear_cache=False):
-            return False
-
-        if group is not None:
-            group = self._get_group(group, autocreate=True)
-
-        opt._add_to_cli(self._oparser, group)
-
-        return True
+        return self.register_opt(opt, group, clear_cache=False)
 
     @__clear_cache
     def register_cli_opts(self, opts, group=None):
@@ -1072,6 +1075,28 @@ class ConfigOpts(collections.Mapping):
             return
 
         self._groups[group.name] = copy.copy(group)
+
+    @__clear_cache
+    def unregister_opt(self, opt, group=None):
+        """Unregister an option.
+
+        :param opt: an Opt object
+        :param group: an optional OptGroup object or group name
+        :raises: ArgsAlreadyParsedError, NoSuchGroupError
+        """
+        if self._args is not None:
+            raise ArgsAlreadyParsedError("reset before unregistering options")
+
+        if group is not None:
+            self._get_group(group)._unregister_opt(opt)
+        elif opt.dest in self._opts:
+            del self._opts[opt.dest]
+
+    @__clear_cache
+    def unregister_opts(self, opts, group=None):
+        """Unregister multiple CLI option schemas at once."""
+        for opt in opts:
+            self.unregister_opt(opt, group, clear_cache=False)
 
     @__clear_cache
     def set_override(self, name, override, group=None):
@@ -1131,13 +1156,13 @@ class ConfigOpts(collections.Mapping):
 
         i.e. argument parsing is stopped at the first non-option argument.
         """
-        self._oparser.disable_interspersed_args()
+        self._disable_interspersed_args = True
 
     def enable_interspersed_args(self):
         """Set parsing to not stop on the first non-option.
 
         This it the default behaviour."""
-        self._oparser.enable_interspersed_args()
+        self._disable_interspersed_args = False
 
     def find_file(self, name):
         """Locate a file located alongside the config files.
@@ -1331,11 +1356,17 @@ class ConfigOpts(collections.Mapping):
 
         return opts[opt_name]
 
-    def _parse_config_files(self, config_files):
-        """Parse the supplied configuration files.
+    def _parse_config_files(self):
+        """Parse the config files from --config-file and --config-dir.
 
         :raises: ConfigFilesNotFoundError, ConfigFileParseError
         """
+        config_files = list(self.config_file)
+
+        if self.config_dir:
+            config_dir_glob = os.path.join(self.config_dir, '*.conf')
+            config_files += sorted(glob.glob(config_dir_glob))
+
         self._cparser = MultiConfigParser()
 
         try:
@@ -1368,6 +1399,32 @@ class ConfigOpts(collections.Mapping):
 
         for group in self._groups.values():
             self._do_check_required_opts(group._opts, group)
+
+    def _parse_cli_opts(self, args):
+        """Parse command line options.
+
+        Initializes the command line option parser and parses the supplied
+        command line arguments.
+
+        :param args: the command line arguments
+        :returns: a dict of parsed option values
+        :raises: SystemExit, DuplicateOptError
+
+        """
+        self._args = args
+
+        def add_to_cli(opts, group=None):
+            for opt in opts.values():
+                opt['opt']._add_to_cli(self._oparser, group)
+
+        add_to_cli(self._opts)
+
+        for group in self._groups.values():
+            add_to_cli(group._opts, group)
+
+        values, leftovers = self._oparser.parse_args(args)
+
+        return vars(values), leftovers
 
     class GroupAttr(collections.Mapping):
 
@@ -1483,7 +1540,7 @@ class CommonConfigOpts(ConfigOpts):
                help='syslog facility to receive log lines')
         ]
 
-    def __init__(self, **kwargs):
-        super(CommonConfigOpts, self).__init__(**kwargs)
+    def __init__(self):
+        super(CommonConfigOpts, self).__init__()
         self.register_cli_opts(self.common_cli_opts)
         self.register_cli_opts(self.logging_cli_opts)
