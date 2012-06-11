@@ -522,7 +522,7 @@ class Opt(object):
         self.help = help
         self.secret = secret
         self.required = required
-        if deprecated_name != None:
+        if deprecated_name is not None:
             self.deprecated_name = deprecated_name.replace('-', '_')
         else:
             self.deprecated_name = None
@@ -541,7 +541,7 @@ class Opt(object):
 
     def _cparser_get_with_deprecated(self, cparser, section):
         """If cannot find option as dest try deprecated_name alias."""
-        if self.deprecated_name != None:
+        if self.deprecated_name is not None:
             return cparser.get(section, [self.dest, self.deprecated_name])
         return cparser.get(section, [self.dest])
 
@@ -755,7 +755,7 @@ class MultiStrOpt(Opt):
 
     def _cparser_get_with_deprecated(self, cparser, section):
         """If cannot find option as dest try deprecated_name alias."""
-        if self.deprecated_name != None:
+        if self.deprecated_name is not None:
             return cparser.get(section, [self.dest, self.deprecated_name],
                                multi=True)
         return cparser.get(section, [self.dest], multi=True)
