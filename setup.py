@@ -164,11 +164,26 @@ def generate_authors():
                 with open(old_authors, "r") as old_authors_fh:
                     new_authors_fh.write('\n' + old_authors_fh.read())
 
+_rst_template = """%(heading)s
+%(underline)s
+
+.. automodule:: %(module)s
+  :members:
+  :undoc-members:
+  :show-inheritance:
+"""
+
 
 def get_cmdclass():
     """Return dict of commands to run from setup.py."""
 
     cmdclass = dict()
+
+    def _find_modules(arg, dirname, files):
+        for filename in files:
+            if filename.endswith('.py') and filename != '__init__.py':
+                arg["%s.%s" % (dirname.replace('/', '.'),
+                               filename[:-3])] = True
 
     class LocalSDist(sdist.sdist):
         """Builds the ChangeLog and Authors files from VC first."""
@@ -188,10 +203,47 @@ def get_cmdclass():
         from sphinx.setup_command import BuildDoc
 
         class LocalBuildDoc(BuildDoc):
+            def generate_autoindex(self):
+                print "**Autodocumenting from %s" % os.path.abspath(os.curdir)
+                modules = {}
+                option_dict = self.distribution.get_option_dict('build_sphinx')
+                source_dir = os.path.join(option_dict['source_dir'][1], 'api')
+                if not os.path.exists(source_dir):
+                    os.makedirs(source_dir)
+                for pkg in self.distribution.packages:
+                    if '.' not in pkg:
+                        os.path.walk(pkg, _find_modules, modules)
+                module_list = modules.keys()
+                module_list.sort()
+                autoindex_filename = os.path.join(source_dir, 'autoindex.rst')
+                with open(autoindex_filename, 'w') as autoindex:
+                    autoindex.write(""".. toctree::
+   :maxdepth: 1
+
+""")
+                    for module in module_list:
+                        output_filename = os.path.join(source_dir,
+                                                       "%s.rst" % module)
+                        heading = "The :mod:`%s` Module" % module
+                        underline = "=" * len(heading)
+                        values = dict(module=module, heading=heading,
+                                      underline=underline)
+
+                        print "Generating %s" % output_filename
+                        with open(output_filename, 'w') as output_file:
+                            output_file.write(_rst_template % values)
+                        autoindex.write("   %s.rst\n" % module)
+
             def run(self):
+                if not os.getenv('SPHINX_DEBUG'):
+                    self.generate_autoindex()
+
                 for builder in ['html', 'man']:
                     self.builder = builder
                     self.finalize_options()
+                    self.project = self.distribution.get_name()
+                    self.version = self.distribution.get_version()
+                    self.release = self.distribution.get_version()
                     BuildDoc.run(self)
         cmdclass['build_sphinx'] = LocalBuildDoc
     except ImportError:
