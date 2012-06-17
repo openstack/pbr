@@ -391,7 +391,7 @@ def _get_config_dirs(project=None):
         fix_path('~'),
         os.path.join('/etc', project) if project else None,
         '/etc'
-        ]
+    ]
 
     return filter(bool, cfg_dirs)
 
@@ -559,10 +559,10 @@ class Opt(object):
         kwargs = self._get_optparse_kwargs(group)
         prefix = self._get_optparse_prefix('', group)
         self._add_to_optparse(container, self.name, self.short, kwargs, prefix,
-                self.deprecated_name)
+                              self.deprecated_name)
 
     def _add_to_optparse(self, container, name, short, kwargs, prefix='',
-            deprecated_name=None):
+                         deprecated_name=None):
         """Add an option to an optparse parser or group.
 
         :param container: an optparse.OptionContainer object
@@ -607,11 +607,9 @@ class Opt(object):
         dest = self.dest
         if group is not None:
             dest = group.name + '_' + dest
-        kwargs.update({
-                'dest': dest,
-                'metavar': self.metavar,
-                'help': self.help,
-                })
+        kwargs.update({'dest': dest,
+                       'metavar': self.metavar,
+                       'help': self.help, })
         return kwargs
 
     def _get_optparse_prefix(self, prefix, group):
@@ -676,7 +674,7 @@ class BoolOpt(Opt):
         prefix = self._get_optparse_prefix('no', group)
         kwargs["help"] = "The inverse of --" + self.name
         self._add_to_optparse(container, self.name, None, kwargs, prefix,
-                self.deprecated_name)
+                              self.deprecated_name)
 
     def _get_optparse_kwargs(self, group, action='store_true', **kwargs):
         """Extends the base optparse keyword dict for boolean options."""
@@ -946,13 +944,13 @@ class ConfigOpts(collections.Mapping):
             self._oparser.disable_interspersed_args()
 
         self._config_opts = [
-             MultiStrOpt('config-file',
-                         default=default_config_files,
-                         metavar='PATH',
-                         help='Path to a config file to use. Multiple config '
-                              'files can be specified, with values in later '
-                              'files taking precedence. The default files '
-                              ' used are: %s' % (default_config_files, )),
+            MultiStrOpt('config-file',
+                        default=default_config_files,
+                        metavar='PATH',
+                        help='Path to a config file to use. Multiple config '
+                             'files can be specified, with values in later '
+                             'files taking precedence. The default files '
+                             ' used are: %s' % (default_config_files, )),
             StrOpt('config-dir',
                    metavar='DIR',
                    help='Path to a config directory to pull *.conf '
@@ -962,7 +960,7 @@ class ConfigOpts(collections.Mapping):
                         'the file(s), if any, specified via --config-file, '
                         'hence over-ridden options in the directory take '
                         'precedence.'),
-            ]
+        ]
         self.register_cli_opts(self._config_opts)
 
         self.project = project
@@ -1452,8 +1450,7 @@ class ConfigOpts(collections.Mapping):
             default, opt, override = [info[k] for k in sorted(info.keys())]
 
             if opt.required:
-                if (default is not None or
-                    override is not None):
+                if (default is not None or override is not None):
                     continue
 
                 if self._get(opt.name, group) is None:
@@ -1557,7 +1554,7 @@ class CommonConfigOpts(ConfigOpts):
                 short='v',
                 default=False,
                 help='Print more verbose output'),
-        ]
+    ]
 
     logging_cli_opts = [
         StrOpt('log-config',
@@ -1591,7 +1588,7 @@ class CommonConfigOpts(ConfigOpts):
         StrOpt('syslog-log-facility',
                default='LOG_USER',
                help='syslog facility to receive log lines')
-        ]
+    ]
 
     def __init__(self):
         super(CommonConfigOpts, self).__init__()
