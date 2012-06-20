@@ -22,6 +22,7 @@ Utilities with minimum-depends for use in setup.py
 import os
 import re
 import subprocess
+import sys
 
 from setuptools.command import sdist
 
@@ -75,6 +76,10 @@ def parse_requirements(requirements_files=['requirements.txt',
                                 line))
         # -f lines are for index locations, and don't get used here
         elif re.match(r'\s*-f\s+', line):
+            pass
+        # argparse is part of the standard library starting with 2.7
+        # adding it to the requirements list screws distro installs
+        elif line == 'argparse' and sys.version_info >= (2, 7):
             pass
         else:
             requirements.append(line)
