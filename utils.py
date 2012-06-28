@@ -28,6 +28,7 @@ from eventlet import greenthread
 from eventlet.green import subprocess
 
 from openstack.common import exception
+from openstack.common.gettextutils import _
 
 
 LOG = logging.getLogger(__name__)

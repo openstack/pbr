@@ -25,7 +25,9 @@ import logging
 from lxml import etree
 
 from openstack.common import exception
+from openstack.common.gettextutils import _
 from openstack.common import wsgi
+
 
 LOG = logging.getLogger('extensions')
 DEFAULT_XMLNS = "http://docs.openstack.org/"
