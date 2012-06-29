@@ -19,9 +19,10 @@ from openstack.common import importutils
 from openstack.common import log as logging
 
 
-list_notifier_drivers_opt = cfg.MultiStrOpt('list_notifier_drivers',
-        default=['openstack.common.notifier.no_op_notifier'],
-        help='List of drivers to send notifications')
+list_notifier_drivers_opt = cfg.MultiStrOpt(
+    'list_notifier_drivers',
+    default=['openstack.common.notifier.no_op_notifier'],
+    help='List of drivers to send notifications')
 
 CONF = cfg.CONF
 CONF.register_opt(list_notifier_drivers_opt)
