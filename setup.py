@@ -1,0 +1,47 @@
+# Copyright 2011 OpenStack, LLC
+# Copyright 2012 Hewlett-Packard Development Company, L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import setuptools
+
+setuptools.setup(
+    name="pbr",
+    version="#:",
+    author='Hewlett-Packard Development Company, L.P.',
+    author_email='openstack@lists.launchpad.net',
+    description="Python Build Reasonablness",
+    license="Apache License, Version 2.0",
+    url="https://github.com/openstack-dev/pbr",
+    packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
+    install_requires=['#:tools/pip-requires'],
+    tests_require=['#:tools/test-requires'],
+    dependency_links=['#:tools/pip-requires', '#:tools/test-requires'],
+    setup_requires=['setuptools_git>=0.4'],
+    test_suite="nose.collector",
+    classifiers=[
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Information Technology",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python"
+    ],
+    entry_points={
+        "distutils.setup_keywords": [
+            "version = pbr.version:inject_version",
+            "install_requires = pbr.requires:inject_requires",
+            "dependency_links = pbr.requires:inject_dependency_links",
+        ]
+    }
+)
