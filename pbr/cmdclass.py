@@ -66,10 +66,18 @@ def generate_authors():
         # don't include jenkins email address in AUTHORS file
         git_log_cmd = ("git log --format='%aN <%aE>' | sort -u | "
                        "grep -v " + jenkins_email)
-        changelog = util.run_shell_command(git_log_cmd)
+        author_entries = util.run_shell_command(git_log_cmd).split("\n")
+        signed_cmd = "git log | grep Co-authored-by: | sort -u"
+        signed_entries = util.run_shell_command(signed_cmd).split("\n")
+        author_entries.extend([signed.split(":", 1)[1].strip()
+                               for signed in signed_entries])
         mailmap = parse_mailmap()
+        authors = dict([(canonicalize_emails(author, mailmap), True)
+                        for author in author_entries])
         with open(new_authors, 'w') as new_authors_fh:
-            new_authors_fh.write(canonicalize_emails(changelog, mailmap))
+            authors_keys = authors.keys()
+            authors_keys.sort()
+            new_authors_fh.write("\n".join(authors_keys))
             if os.path.exists(old_authors):
                 with open(old_authors, "r") as old_authors_fh:
                     new_authors_fh.write('\n' + old_authors_fh.read())
