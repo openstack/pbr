@@ -162,7 +162,7 @@ def inject_version(dist, attr, value):
             (version_module, version_object) = version[2:].split(":")
         else:
             version_module = "%s" % dist.metadata.name
-            version_object = "__version_info"
+            version_object = "version_info"
         vinfo = __import__(version_module).__dict__[version_object]
         dist.metadata.version = vinfo.canonical_version_string(always=True)
 

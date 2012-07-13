@@ -16,5 +16,5 @@
 
 import version
 
-__version_info = version.VersionInfo('pbr')
-__version__ = __version_info.deferred_version_string()
+version_info = version.VersionInfo('pbr')
+__version__ = version_info.deferred_version_string()
