@@ -72,12 +72,11 @@ def generate_authors():
         author_entries.extend([signed.split(":", 1)[1].strip()
                                for signed in signed_entries])
         mailmap = parse_mailmap()
-        authors = dict([(canonicalize_emails(author, mailmap), True)
-                        for author in author_entries])
+        authors = list(set([canonicalize_emails(author, mailmap)
+                            for author in author_entries]))
+        authors.sort()
         with open(new_authors, 'w') as new_authors_fh:
-            authors_keys = authors.keys()
-            authors_keys.sort()
-            new_authors_fh.write("\n".join(authors_keys))
+            new_authors_fh.write("\n".join(authors))
             if os.path.exists(old_authors):
                 with open(old_authors, "r") as old_authors_fh:
                     new_authors_fh.write('\n' + old_authors_fh.read())
