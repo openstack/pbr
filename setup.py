@@ -178,12 +178,16 @@ def _get_git_post_version():
 
 def write_git_changelog():
     """Write a changelog based on the git changelog."""
-    if os.path.isdir('.git'):
-        git_log_cmd = 'git log --stat'
-        changelog = _run_shell_command(git_log_cmd)
-        mailmap = parse_mailmap()
-        with open("ChangeLog", "w") as changelog_file:
-            changelog_file.write(canonicalize_emails(changelog, mailmap))
+    new_changelog = 'ChangeLog'
+    if not os.getenv('SKIP_WRITE_GIT_CHANGELOG'):
+        if os.path.isdir('.git'):
+            git_log_cmd = 'git log --stat'
+            changelog = _run_shell_command(git_log_cmd)
+            mailmap = parse_mailmap()
+            with open(new_changelog, "w") as changelog_file:
+                changelog_file.write(canonicalize_emails(changelog, mailmap))
+    else:
+        open(new_changelog, 'w').close()
 
 
 def generate_authors():
