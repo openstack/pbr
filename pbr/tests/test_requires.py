@@ -28,7 +28,7 @@ raw_reqs = [
     '# Comment test',
     'setuptools',
     'mox>=7.5',
-    ]
+]
 
 parsed_reqs = [
     'nova',
@@ -36,7 +36,7 @@ parsed_reqs = [
     '# Comment test',
     'setuptools',
     'mox>=7.5'
-    ]
+]
 
 
 class RequiresTestCase(unittest2.TestCase):
