@@ -166,6 +166,14 @@ exclude .gitreview
                         autoindex.write("   %s.rst\n" % module)
 
             def run(self):
+                # Fix up defaults for option dicts
+                build_doc = self.distribution.get_option_dict('build_sphinx')
+                if 'source_dir' not in build_doc:
+                    build_doc['source_dir'] = ('pbr', 'doc/source')
+                if 'build_dir' not in build_doc:
+                    build_doc['build_dir'] = ('pbr', 'doc/build')
+                build_doc['all_files'] = ('pbr', True)
+                self.distribution.command_options['build_sphinx'] = build_doc
                 if not os.getenv('SPHINX_DEBUG'):
                     self.generate_autoindex()
 
@@ -177,6 +185,24 @@ exclude .gitreview
                     self.release = self.distribution.get_version()
                     BuildDoc.run(self)
         cmdclass['build_sphinx'] = LocalBuildDoc
+    except ImportError:
+        pass
+
+    try:
+        from setuptools.command.upload_docs import upload_docs
+
+        class LocalUploadDocs(upload_docs):
+            def run(self):
+                build_dict = self.distribution.get_option_dict('build_sphinx')
+                if 'build_dir' in build_dict:
+                    html_dir = os.path.join(build_dict['build_dir'][1], 'html')
+                else:
+                    html_dir = 'doc/build/html'
+                upload_doc = self.distribution.get_option_dict('upload_docs')
+                upload_doc['upload_dir'] = ('pbr', html_dir)
+                self.distribution.command_options['upload_docs'] = upload_doc
+                upload_docs.run(self)
+        cmdclass['upload_docs'] = LocalUploadDocs
     except ImportError:
         pass
 
