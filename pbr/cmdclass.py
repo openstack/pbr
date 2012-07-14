@@ -107,6 +107,17 @@ def get_cmdclass(versioninfo_path):
     class LocalSDist(sdist.sdist):
         """Builds the ChangeLog and Authors files from VC first."""
 
+        def check_readme(self):
+            alts = ("README.rst", "README", "README.txt")
+            for f in alts:
+                if os.path.exists(f):
+                    return
+            else:
+                self.warn(
+                    "standard file not found: should have one of " +
+                    ', '.join(alts)
+                )
+
         def run(self):
             write_git_changelog()
             generate_authors()
