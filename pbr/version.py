@@ -50,10 +50,13 @@ def _get_git_next_version_suffix(branch_name):
         revno_prefix = "r"
     else:
         revno_prefix = ""
-    run_shell_command("git fetch origin +refs/meta/*:refs/remotes/meta/*")
-    milestone_cmd = "git show meta/openstack/release:%s" % branch_name
-    milestonever = run_shell_command(milestone_cmd)
-    if not milestonever:
+    if os.environ.get('JENKINS_URL', None):
+        run_shell_command("git fetch origin +refs/meta/*:refs/remotes/meta/*")
+        milestone_cmd = "git show meta/openstack/release:%s" % branch_name
+        milestonever = run_shell_command(milestone_cmd)
+        if not milestonever:
+            milestonever = ""
+    else:
         milestonever = ""
     post_version = _get_git_post_version()
     # post version should look like:
