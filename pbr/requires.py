@@ -75,21 +75,3 @@ def parse_dependency_links(*links):
         elif re.match(r'\s*https?:', line):
             dependency_links.append(line)
     return dependency_links
-
-
-def __inject_parsed_file(value, func):
-    TOKEN = '#:'
-    new_reqs = []
-    for req in value:
-        if req.startswith(TOKEN):
-            req_file = req[len(TOKEN):]
-            new_reqs.extend(func(req_file))
-    return new_reqs
-
-
-def inject_requires(dist, attr, value):
-    value.extend(__inject_parsed_file(value, parse_requirements))
-
-
-def inject_dependency_links(dist, attr, value):
-    value.extend(__inject_parsed_file(value, parse_dependency_links))
