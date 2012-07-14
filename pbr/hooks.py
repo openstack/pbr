@@ -26,19 +26,23 @@ from pbr import requires
 def __inject_parsed_file(value, func):
     TOKEN = '#:'
     new_reqs = []
+    old_tokens = []
     for req in value:
         if req.startswith(TOKEN):
+            old_tokens.append(req)
             req_file = req[len(TOKEN):]
             new_reqs.extend(func(req_file))
-    return new_reqs
+    for val in old_tokens:
+        value.remove(val)
+    value.extend(new_reqs)
 
 
 def inject_requires(dist, attr, value):
-    value.extend(__inject_parsed_file(value, requires.parse_requirements))
+    __inject_parsed_file(value, requires.parse_requirements)
 
 
 def inject_dependency_links(dist, attr, value):
-    value.extend(__inject_parsed_file(value, requires.parse_dependency_links))
+    __inject_parsed_file(value, requires.parse_dependency_links)
 
 
 def inject_version(dist, attr, value):
