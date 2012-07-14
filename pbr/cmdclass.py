@@ -93,7 +93,7 @@ _rst_template = """%(heading)s
 """
 
 
-def get_cmdclass():
+def get_cmdclass(versioninfo_path):
     """Return dict of commands to run from setup.py."""
 
     cmdclass = dict()
@@ -110,8 +110,20 @@ def get_cmdclass():
         def run(self):
             write_git_changelog()
             generate_authors()
+            have_template = os.path.exists(self.template)
+            if not have_template:
+                with open(self.template, 'w') as template:
+                    template.write("""
+include AUTHORS
+include ChangeLog
+include %s
+exclude .gitignore
+exclude .gitreview
+""" % versioninfo_path)
             # sdist.sdist is an old style class, can't use super()
             sdist.sdist.run(self)
+            if not have_template:
+                os.remove(self.template)
 
     cmdclass['sdist'] = LocalSDist
 

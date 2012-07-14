@@ -15,14 +15,125 @@
 #    under the License.
 
 """
-Utilities for consuming the auto-generated versioninfo files.
+Generation and consumption of versions based on git revisions and tags.
+Versions are cached into a versioninfo file that is installed along with
+package data.
 """
 
 import datetime
 import pkg_resources
 import os
 
-import setup
+from pbr.util import run_shell_command
+
+
+def _get_git_branchname():
+    branch_ref = run_shell_command("git symbolic-ref -q HEAD")
+    if branch_ref == "":
+        _branch_name = "HEAD"
+    else:
+        _branch_name = branch_ref[len("refs/heads/"):]
+    return _branch_name
+
+
+def _get_git_current_tag():
+    return run_shell_command("git tag --contains HEAD")
+
+
+def _get_git_tag_info():
+    return run_shell_command("git describe --tags")
+
+
+def _get_git_next_version_suffix(branch_name):
+    datestamp = datetime.datetime.now().strftime('%Y%m%d')
+    if branch_name == 'milestone-proposed':
+        revno_prefix = "r"
+    else:
+        revno_prefix = ""
+    run_shell_command("git fetch origin +refs/meta/*:refs/remotes/meta/*")
+    milestone_cmd = "git show meta/openstack/release:%s" % branch_name
+    milestonever = run_shell_command(milestone_cmd)
+    if not milestonever:
+        milestonever = ""
+    post_version = _get_git_post_version()
+    # post version should look like:
+    # 0.1.1.4.gcc9e28a
+    # where the bit after the last . is the short sha, and the bit between
+    # the last and second to last is the revno count
+    (revno, sha) = post_version.split(".")[-2:]
+    first_half = "%(milestonever)s~%(datestamp)s" % locals()
+    second_half = "%(revno_prefix)s%(revno)s.%(sha)s" % locals()
+    return ".".join((first_half, second_half))
+
+
+def _get_git_post_version():
+    current_tag = _get_git_current_tag()
+    if current_tag is not None:
+        return current_tag
+    else:
+        tag_info = _get_git_tag_info()
+        if tag_info is None:
+            base_version = "0.0"
+            cmd = "git --no-pager log --oneline"
+            out = run_shell_command(cmd)
+            revno = len(out.split("\n"))
+            sha = run_shell_command("git describe --always")
+        else:
+            tag_infos = tag_info.split("-")
+            base_version = "-".join(tag_infos[:-2])
+            (revno, sha) = tag_infos[-2:]
+        return "%s.%s.%s" % (base_version, revno, sha)
+
+
+def read_versioninfo(project):
+    """Read the versioninfo file. If it doesn't exist, we're in a github
+       zipball, and there's really no way to know what version we really
+       are, but that should be ok, because the utility of that should be
+       just about nil if this code path is in use in the first place."""
+    versioninfo_path = os.path.join(project, 'versioninfo')
+    if os.path.exists(versioninfo_path):
+        with open(versioninfo_path, 'r') as vinfo:
+            version = vinfo.read().strip()
+    else:
+        version = "0.0.0"
+    return version
+
+
+def write_versioninfo(project, version):
+    """Write a simple file containing the version of the package."""
+    open(os.path.join(project, 'versioninfo'), 'w').write("%s\n" % version)
+
+
+def get_pre_version(projectname, base_version):
+    """Return a version which is leading up to a version that will
+       be released in the future."""
+    if os.path.isdir('.git'):
+        current_tag = _get_git_current_tag()
+        if current_tag is not None:
+            version = current_tag
+        else:
+            branch_name = os.getenv('BRANCHNAME',
+                                    os.getenv('GERRIT_REFNAME',
+                                              _get_git_branchname()))
+            version_suffix = _get_git_next_version_suffix(branch_name)
+            version = "%s~%s" % (base_version, version_suffix)
+        write_versioninfo(projectname, version)
+        return version
+    else:
+        version = read_versioninfo(projectname)
+    return version
+
+
+def get_post_version(projectname):
+    """Return a version which is equal to the tag that's on the current
+    revision if there is one, or tag plus number of additional revisions
+    if the current revision has no tag."""
+
+    if os.path.isdir('.git'):
+        version = _get_git_post_version()
+        write_versioninfo(projectname, version)
+        return version
+    return read_versioninfo(projectname)
 
 
 class _deferred_version_string(object):
@@ -60,12 +171,12 @@ class VersionInfo(object):
         self.version = None
 
     def _generate_version(self):
-        """Defer to the openstack.common.setup routines for making a
+        """Defer to the setup routines for making a
         version from git."""
         if self.pre_version is None:
-            return setup.get_post_version(self.python_package)
+            return get_post_version(self.python_package)
         else:
-            return setup.get_pre_version(self.python_package, self.pre_version)
+            return get_pre_version(self.python_package, self.pre_version)
 
     def _newer_version(self, pending_version):
         """Check to see if we're working with a stale version or not.
@@ -150,12 +261,12 @@ class VersionInfo(object):
 
 
 def inject_version(dist, attr, value):
+    """Manipulate the version provided to setuptools to be one calculated
+    from git.
+    If the setuptools version starts with the token #:, we'll take over
+    and replace it with something more friendly."""
     version = dist.metadata.version
     if version and version.startswith("#:"):
-
-        # Inject cmdclass values here
-        import cmdclass
-        dist.cmdclass.update(cmdclass.get_cmdclass())
 
         # Modify version number
         if len(version[2:]) > 0:
@@ -164,7 +275,12 @@ def inject_version(dist, attr, value):
             version_module = "%s" % dist.metadata.name
             version_object = "version_info"
         vinfo = __import__(version_module).__dict__[version_object]
+        versioninfo_path = os.path.join(vinfo.package, 'versioninfo')
         dist.metadata.version = vinfo.canonical_version_string(always=True)
+
+        # Inject cmdclass values here
+        import cmdclass
+        dist.cmdclass.update(cmdclass.get_cmdclass(versioninfo_path))
 
         # Inject long_description
         for readme in ("README.rst", "README.txt", "README"):
