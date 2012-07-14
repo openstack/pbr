@@ -23,12 +23,10 @@ setuptools.setup(
     description="Python Build Reasonablness",
     license="Apache License, Version 2.0",
     url="https://github.com/openstack-dev/pbr",
-    packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
     install_requires=['#:tools/pip-requires'],
     tests_require=['#:tools/test-requires'],
     dependency_links=['#:tools/pip-requires', '#:tools/test-requires'],
     setup_requires=['setuptools_git>=0.4'],
-    test_suite="nose.collector",
     classifiers=[
         "Environment :: Console",
         "Intended Audience :: Developers",

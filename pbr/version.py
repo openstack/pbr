@@ -265,6 +265,8 @@ def inject_version(dist, attr, value):
     from git.
     If the setuptools version starts with the token #:, we'll take over
     and replace it with something more friendly."""
+    import setuptools
+
     version = dist.metadata.version
     if version and version.startswith("#:"):
 
@@ -287,3 +289,10 @@ def inject_version(dist, attr, value):
             if dist.long_description is None and os.path.exists(readme):
                 dist.long_description = open(readme).read()
         dist.include_package_data = True
+
+        # Set sensible default for test_suite
+        if dist.test_suite is None:
+            dist.test_suite = 'nose.collector'
+        if dist.packages is None:
+            dist.packages = setuptools.find_packages(exclude=['tests',
+                                                              'tests.*'])
