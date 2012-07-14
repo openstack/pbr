@@ -138,15 +138,16 @@ def get_post_version(projectname):
 
 class _deferred_version_string(object):
     """Internal helper class which provides delayed version calculation."""
-    def __init__(self, version_info, prefix):
+    def __init__(self, version_info, version_method, prefix):
         self.version_info = version_info
+        self.version_method = version_method
         self.prefix = prefix
 
     def __str__(self):
-        return "%s%s" % (self.prefix, self.version_info.version_string())
+        return "%s%s" % (self.prefix, self.version_method(self_version_info))
 
     def __repr__(self):
-        return "%s%s" % (self.prefix, self.version_info.version_string())
+        return __str__(self)
 
 
 class VersionInfo(object):
@@ -257,4 +258,15 @@ class VersionInfo(object):
         passing version information into the CONF constructor, but
         rather only do the calculation when and if a version is requested
         """
-        return _deferred_version_string(self, prefix)
+        return _deferred_version_string(self, self.version_string, prefix)
+
+    def deferred_version_string_with_vcs(self, prefix=""):
+        """Generate an object which will expand in a string context to
+        the results of version_string(). We do this so that don't
+        call into pkg_resources every time we start up a program when
+        passing version information into the CONF constructor, but
+        rather only do the calculation when and if a version is requested
+        """
+        return _deferred_version_string_with_vcs(self,
+                                                 self.version_string_with_vcs,
+                                                 prefix)
