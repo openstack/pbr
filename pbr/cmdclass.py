@@ -68,9 +68,10 @@ def generate_authors():
                        "grep -v " + jenkins_email)
         author_entries = util.run_shell_command(git_log_cmd).split("\n")
         signed_cmd = "git log | grep Co-authored-by: | sort -u"
-        signed_entries = util.run_shell_command(signed_cmd).split("\n")
-        author_entries.extend([signed.split(":", 1)[1].strip()
-                               for signed in signed_entries])
+        signed_entries = util.run_shell_command(signed_cmd)
+        if signed_entries:
+            author_entries.extend([signed.split(":", 1)[1].strip()
+                                   for signed in signed_entries.split("\n")])
         mailmap = parse_mailmap()
         authors = list(set([canonicalize_emails(author, mailmap)
                             for author in author_entries]))
