@@ -148,10 +148,9 @@ exclude .gitreview
             def generate_autoindex(self):
                 print "**Autodocumenting from %s" % os.path.abspath(os.curdir)
                 modules = {}
-                option_dict = self.distribution.get_option_dict('build_sphinx')
-                source_dir = os.path.join(option_dict['source_dir'][1], 'api')
+                source_dir = os.path.join(self.source_dir, 'api')
                 if not os.path.exists(source_dir):
-                    os.makedirs(source_dir)
+                    self.mkpath(source_dir)
                 for pkg in self.distribution.packages:
                     if '.' not in pkg:
                         os.path.walk(pkg, _find_modules, modules)
@@ -176,15 +175,17 @@ exclude .gitreview
                             output_file.write(_rst_template % values)
                         autoindex.write("   %s.rst\n" % module)
 
-            def run(self):
+            def initialize_options(self):
+                BuildDoc.initialize_options(self)
                 # Fix up defaults for option dicts
                 build_doc = self.distribution.get_option_dict('build_sphinx')
                 if 'source_dir' not in build_doc:
-                    build_doc['source_dir'] = ('pbr', 'doc/source')
+                    self.source_dir = 'doc/source'
                 if 'build_dir' not in build_doc:
-                    build_doc['build_dir'] = ('pbr', 'doc/build')
-                build_doc['all_files'] = ('pbr', True)
-                self.distribution.command_options['build_sphinx'] = build_doc
+                    self.build_dir = 'doc/build'
+                self.all_files = False
+
+            def run(self):
                 if not os.getenv('SPHINX_DEBUG'):
                     self.generate_autoindex()
 
