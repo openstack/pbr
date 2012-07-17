@@ -13,7 +13,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pkg_resources
 import setuptools
+
+
+def _fake_require(*args, **kwargs):
+    """We need to block this from recursing - we're instaling an
+    entry_point, which trys to install us while it's getting installed."""
+    pass
+pkg_resources.EntryPoint.require = _fake_require
+
 
 setuptools.setup(
     name="pbr",
