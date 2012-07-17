@@ -20,7 +20,7 @@ setuptools.setup(
     version="#:",
     author='Hewlett-Packard Development Company, L.P.',
     author_email='openstack@lists.launchpad.net',
-    description="Python Build Reasonablness",
+    description="Python Build Reasonableness",
     license="Apache License, Version 2.0",
     url="https://github.com/openstack-dev/pbr",
     install_requires=['#:tools/pip-requires'],
