@@ -1,0 +1,8 @@
+include AUTHORS
+include ChangeLog
+include pbr/versioninfo
+include tox.ini
+graft doc
+graft tools
+
+global-exclude *.pyc

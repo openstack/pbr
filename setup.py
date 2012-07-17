@@ -26,7 +26,6 @@ setuptools.setup(
     install_requires=['#:tools/pip-requires'],
     tests_require=['#:tools/test-requires'],
     dependency_links=['#:tools/pip-requires', '#:tools/test-requires'],
-    setup_requires=['setuptools_git>=0.4'],
     classifiers=[
         "Environment :: Console",
         "Intended Audience :: Developers",
