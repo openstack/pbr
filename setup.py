@@ -40,7 +40,7 @@ setuptools.setup(
     tests_require=requires.parse_requirements('tools/test-requires'),
     dependency_links=requires.parse_dependency_links('tools/pip-requires',
                                                      'tools/test-requires'),
-    setup_requires=['setuptools-git>0.4'],
+    setup_requires=['setuptools-git>=0.4'],
     cmdclass=cmdclass.get_cmdclass('pbr/versioninfo'),
     long_description=open('README.rst').read(),
     include_package_data=True,
