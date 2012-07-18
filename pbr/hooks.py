@@ -37,12 +37,12 @@ def __inject_parsed_file(value, func):
     value.extend(new_reqs)
 
 
-def inject_requires(dist, attr, value):
-    __inject_parsed_file(value, requires.parse_requirements)
+def inject_requires(require):
+    __inject_parsed_file(require, requires.parse_requirements)
 
 
-def inject_dependency_links(dist, attr, value):
-    __inject_parsed_file(value, requires.parse_dependency_links)
+def inject_dependency_links(require):
+    __inject_parsed_file(require, requires.parse_dependency_links)
 
 
 def inject_version(dist, attr, value):
@@ -54,6 +54,15 @@ def inject_version(dist, attr, value):
 
     version = dist.metadata.version
     if version and version.startswith("#:"):
+
+        for require in 'install_requires', 'tests_require':
+            if require not in dist.__dict__:
+                dist.__dict__[require] = []
+            inject_requires(dist.__dict__[require])
+            print dist.__dict__[require]
+        if 'dependency_links' not in dist.__dict__:
+            dist.__dict__[require] = []
+        inject_dependency_links(dist.__dict__['dependency_links'])
 
         # Modify version number
         if len(version[2:]) > 0:
