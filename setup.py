@@ -16,6 +16,10 @@
 import pkg_resources
 import setuptools
 
+import pbr
+from pbr import cmdclass
+from pbr import requires
+
 
 def _fake_require(*args, **kwargs):
     """We need to block this from recursing - we're instaling an
@@ -26,16 +30,22 @@ pkg_resources.EntryPoint.require = _fake_require
 
 setuptools.setup(
     name="pbr",
-    version="#:",
+    version=pbr.version_info.canonical_version_string(always=True),
     author='Hewlett-Packard Development Company, L.P.',
     author_email='openstack@lists.launchpad.net',
     description="Python Build Reasonableness",
     license="Apache License, Version 2.0",
     url="https://github.com/openstack-dev/pbr",
-    install_requires=['#:tools/pip-requires'],
-    tests_require=['#:tools/test-requires'],
-    dependency_links=['#:tools/pip-requires', '#:tools/test-requires'],
+    install_requires=requires.parse_requirements('tools/pip-requires'),
+    tests_require=requires.parse_requirements('tools/test-requires'),
+    dependency_links=requires.parse_dependency_links('tools/pip-requires',
+                                                     'tools/test-requires'),
     setup_requires=['setuptools-git>0.4'],
+    cmdclass=cmdclass.get_cmdclass('pbr/versioninfo'),
+    long_description=open('README.rst').read(),
+    include_package_data=True,
+    test_suite='nose.collector',
+    packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
     classifiers=[
         "Environment :: Console",
         "Intended Audience :: Developers",
