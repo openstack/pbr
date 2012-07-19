@@ -16,31 +16,15 @@
 import pkg_resources
 import setuptools
 
-import pbr
-from pbr import cmdclass
-from pbr import requires
-
-
-def _fake_require(*args, **kwargs):
-    """We need to block this from recursing - we're instaling an
-    entry_point, which trys to install us while it's getting installed."""
-    pass
-pkg_resources.EntryPoint.require = _fake_require
-
 
 setuptools.setup(
     name="pbr",
-    version=pbr.version_info.canonical_version_string(always=True),
+    version="#:",
     author='Hewlett-Packard Development Company, L.P.',
     author_email='openstack@lists.launchpad.net',
     description="Python Build Reasonableness",
     license="Apache License, Version 2.0",
     url="https://github.com/openstack-dev/pbr",
-    cmdclass=cmdclass.get_cmdclass('pbr/versioninfo'),
-    long_description=open('README.rst').read(),
-    include_package_data=True,
-    test_suite='nose.collector',
-    packages=setuptools.find_packages(exclude=['tests', 'tests.*']),
     classifiers=[
         "Environment :: Console",
         "Intended Audience :: Developers",
