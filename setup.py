@@ -57,6 +57,8 @@ setuptools.setup(
     entry_points={
         "distutils.setup_keywords": [
             "version = pbr.hooks:inject_version",
+            "install_requires = pbr.hooks:inject_requires",
+            "dependency_links = pbr.hooks:inject_dependency_links",
         ]
     }
 )
