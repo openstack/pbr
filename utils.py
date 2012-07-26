@@ -20,7 +20,6 @@ System-level utilities and helper functions.
 """
 
 import logging
-import os
 import random
 import shlex
 
