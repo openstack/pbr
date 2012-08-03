@@ -29,7 +29,6 @@ setuptools.setup(
     url="https://github.com/openstack-dev/pbr",
     packages=setuptools.find_packages(),
     include_package_data=True,
-    install_requires=pbr.requires.parse_requirements('tools/pip-requires'),
     cmdclass=pbr.cmdclass.get_cmdclass('pbr/versioninfo'),
     classifiers=[
         "Environment :: Console",

@@ -171,6 +171,12 @@ class VersionInfo(object):
                                "python-glanceclient"
         :param pre_version: optional version that the project is working to
         """
+        # We have to kill a recursion bug in pkg_resources here
+        from pkg_resources import EntryPoint
+        def bogus_require(self, *args, **kwargs):
+            pass
+        EntryPoint.require = bogus_require
+
         self.package = package
         if python_package is None:
             self.python_package = package
