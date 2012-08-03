@@ -216,7 +216,8 @@ class VersionInfo(object):
         canonical_version_string should return 2012.2 if this is a final
         release, or else something like 2012.2~f1~20120705.20 if it's not.
 
-        :param always: if true, skip all version caching
+        :param always: if true, skip all version caching if we're in our
+                       git repo
         """
         if always:
             self.version = self._generate_version()

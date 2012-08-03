@@ -63,7 +63,9 @@ def inject_version(dist, attr, value):
             version_object = "version_info"
         vinfo = __import__(version_module).__dict__[version_object]
         versioninfo_path = os.path.join(vinfo.package, 'versioninfo')
-        dist.metadata.version = vinfo.canonical_version_string(always=True)
+        versioninfo_dir = os.path.join(os.path.dirname(versioninfo_path), "..")
+        own_repo = os.path.isdir(versioninfo_dir)
+        dist.metadata.version = vinfo.canonical_version_string(always=own_repo)
 
         # Inject cmdclass values here
         import cmdclass
