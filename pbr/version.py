@@ -152,10 +152,10 @@ class _deferred_version_string(object):
         self.prefix = prefix
 
     def __str__(self):
-        return "%s%s" % (self.prefix, self.version_method(self_version_info))
+        return "%s%s" % (self.prefix, self.version_method(self.version_info))
 
     def __repr__(self):
-        return __str__(self)
+        return self.__str__()
 
 
 class VersionInfo(object):
