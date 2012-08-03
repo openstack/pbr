@@ -13,18 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pkg_resources
 import setuptools
 
+import pbr
+import pbr.cmdclass
+import pbr.requires
 
 setuptools.setup(
     name="pbr",
-    version="#:",
+    version=pbr.version_info.canonical_version_string(),
     author='Hewlett-Packard Development Company, L.P.',
     author_email='openstack@lists.launchpad.net',
     description="Python Build Reasonableness",
     license="Apache License, Version 2.0",
     url="https://github.com/openstack-dev/pbr",
+    packages=setuptools.find_packages(),
+    include_package_data=True,
+    install_requires=pbr.requires.parse_requirements('tools/pip-requires'),
+    cmdclass=pbr.cmdclass.get_cmdclass('pbr/versioninfo'),
     classifiers=[
         "Environment :: Console",
         "Intended Audience :: Developers",

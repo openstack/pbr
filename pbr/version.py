@@ -64,8 +64,13 @@ def _get_git_next_version_suffix(branch_name):
     # where the bit after the last . is the short sha, and the bit between
     # the last and second to last is the revno count
     (revno, sha) = post_version.split(".")[-2:]
-    first_half = "%(milestonever)s~%(datestamp)s" % locals()
-    second_half = "%(revno_prefix)s%(revno)s.%(sha)s" % locals()
+    first_half = "%(milestonever)s~%(datestamp)s" % \
+        dict(datestamp=datestamp,
+             milestonever=milestonever)
+    second_half = "%(revno_prefix)s%(revno)s.%(sha)s" % \
+        dict(sha=sha,
+             revno_prefix=revno_prefix,
+             revno=revno)
     return ".".join((first_half, second_half))
 
 
@@ -270,6 +275,5 @@ class VersionInfo(object):
         passing version information into the CONF constructor, but
         rather only do the calculation when and if a version is requested
         """
-        return _deferred_version_string_with_vcs(self,
-                                                 self.version_string_with_vcs,
-                                                 prefix)
+        return _deferred_version_string(self, self.version_string_with_vcs,
+                                        prefix)
