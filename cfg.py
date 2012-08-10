@@ -1175,6 +1175,9 @@ class ConfigOpts(collections.Mapping):
         __import__(module_str)
         self._get_opt_info(name, group)
 
+    class _NoneValue(object):
+        pass
+
     @__clear_cache
     def set_override(self, name, override, group=None):
         """Override an opt value.
@@ -1187,6 +1190,8 @@ class ConfigOpts(collections.Mapping):
         :param group: an option OptGroup object or group name
         :raises: NoSuchOptError, NoSuchGroupError
         """
+        if override is None:
+            override = self._NoneValue()
         opt_info = self._get_opt_info(name, group)
         opt_info['override'] = override
 
@@ -1202,8 +1207,37 @@ class ConfigOpts(collections.Mapping):
         :param group: an option OptGroup object or group name
         :raises: NoSuchOptError, NoSuchGroupError
         """
+        if default is None:
+            default = self._NoneValue()
         opt_info = self._get_opt_info(name, group)
         opt_info['default'] = default
+
+    @__clear_cache
+    def clear_override(self, name, group=None):
+        """Clear an override an opt value.
+
+        Clear a previously set override of the command line, config file
+        and default values of a given option.
+
+        :param name: the name/dest of the opt
+        :param group: an option OptGroup object or group name
+        :raises: NoSuchOptError, NoSuchGroupError
+        """
+        opt_info = self._get_opt_info(name, group)
+        opt_info['override'] = None
+
+    @__clear_cache
+    def clear_default(self, name, group=None):
+        """Clear an override an opt's default value.
+
+        Clear a previously set override of the default value of given option.
+
+        :param name: the name/dest of the opt
+        :param group: an option OptGroup object or group name
+        :raises: NoSuchOptError, NoSuchGroupError
+        """
+        opt_info = self._get_opt_info(name, group)
+        opt_info['default'] = None
 
     def _all_opt_infos(self):
         """A generator function for iteration opt infos."""
@@ -1347,8 +1381,11 @@ class ConfigOpts(collections.Mapping):
         info = self._get_opt_info(name, group)
         default, opt, override = [info[k] for k in sorted(info.keys())]
 
+        def _convert_none(value):
+            return None if isinstance(value, self._NoneValue) else value
+
         if override is not None:
-            return override
+            return _convert_none(override)
 
         values = []
         if self._cparser is not None:
@@ -1377,7 +1414,7 @@ class ConfigOpts(collections.Mapping):
             return values
 
         if default is not None:
-            return default
+            return _convert_none(default)
 
         return opt.default
 
