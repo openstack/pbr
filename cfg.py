@@ -367,6 +367,11 @@ class ConfigFileValueError(Error):
     pass
 
 
+def _fixpath(p):
+    """Apply tilde expansion and absolutization to a path."""
+    return os.path.abspath(os.path.expanduser(p))
+
+
 def _get_config_dirs(project=None):
     """Return a list of directors where config files may be located.
 
@@ -384,11 +389,9 @@ def _get_config_dirs(project=None):
       ~/
       /etc/
     """
-    fix_path = lambda p: os.path.abspath(os.path.expanduser(p))
-
     cfg_dirs = [
-        fix_path(os.path.join('~', '.' + project)) if project else None,
-        fix_path('~'),
+        _fixpath(os.path.join('~', '.' + project)) if project else None,
+        _fixpath('~'),
         os.path.join('/etc', project) if project else None,
         '/etc'
     ]
@@ -1268,10 +1271,10 @@ class ConfigOpts(collections.Mapping):
         """
         dirs = []
         if self.config_dir:
-            dirs.append(self.config_dir)
+            dirs.append(_fixpath(self.config_dir))
 
         for cf in reversed(self.config_file):
-            dirs.append(os.path.dirname(cf))
+            dirs.append(os.path.dirname(_fixpath(cf)))
 
         dirs.extend(_get_config_dirs(self.project))
 
@@ -1451,6 +1454,8 @@ class ConfigOpts(collections.Mapping):
         if self.config_dir:
             config_dir_glob = os.path.join(self.config_dir, '*.conf')
             config_files += sorted(glob.glob(config_dir_glob))
+
+        config_files = [_fixpath(p) for p in config_files]
 
         self._cparser = MultiConfigParser()
 
