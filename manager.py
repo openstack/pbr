@@ -51,8 +51,10 @@ This module provides Manager, a base class for managers.
 
 """
 
+from openstack.common import periodic_task
 
-class Manager(object):
+
+class Manager(periodic_task.PeriodicTasks):
 
     def __init__(self, host):
         self.host = host
