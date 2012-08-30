@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 #
 
-import sys, os
+import os
+import sys
 
 project = 'pbr'
 
-# -- General configuration -----------------------------------------------------
+# -- General configuration ----------------------------------------------------
 
-# Add any Sphinx extension module names here, as strings. They can be extensions
-# coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
+# Add any Sphinx extension module names here, as strings. They can be
+# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
 
 # autodoc generation is a bit aggressive and a nuisance when doing heavy
@@ -37,7 +38,7 @@ add_module_names = True
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
-# -- Options for HTML output ---------------------------------------------------
+# -- Options for HTML output --------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
@@ -48,10 +49,11 @@ htmlhelp_basename = '%sdoc' % project
 
 
 # Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title, author, documentclass [howto/manual]).
+# (source start file, target name, title, author, documentclass [howto/manual])
+# .
 latex_documents = [
-  ('index',
-    '%s.tex' % project,
+    ('index',
+     '%s.tex' % project,
     u'%s Documentation' % project,
     u'OpenStack LLC', 'manual'),
 ]
