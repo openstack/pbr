@@ -86,8 +86,9 @@ def cfg_to_args(path='setup.cfg'):
                         "maintainer_email": ("metadata",),
                         "url": ("metadata", "home_page"),
                         "description": ("metadata", "summary"),
+                        "keywords": ("metadata",),
                         "long_description": ("metadata", "description"),
-                        "download-url": ("metadata",),
+                        "download_url": ("metadata",),
                         "classifiers": ("metadata", "classifier"),
                         "platforms": ("metadata", "platform"),  # **
                         "license": ("metadata",),
@@ -122,6 +123,8 @@ def cfg_to_args(path='setup.cfg'):
                     "cmdclass")
 
     BOOL_FIELDS = ("use_2to3", "zip_safe")
+
+    CSV_FIELDS = ("keywords",)
 
     # The method source code really starts here.
     parser = RawConfigParser()
@@ -163,7 +166,7 @@ def cfg_to_args(path='setup.cfg'):
             # There is no such option in the setup.cfg
             if arg == "long_description":
                 in_cfg_value = has_get_option(config, section,
-                                              "description-file")
+                                              "description_file")
                 if in_cfg_value:
                     in_cfg_value = split_multiline(in_cfg_value)
                     value = ''
@@ -177,6 +180,8 @@ def cfg_to_args(path='setup.cfg'):
             else:
                 continue
 
+        if arg in CSV_FIELDS:
+            in_cfg_value = split_csv(in_cfg_value)
         if arg in MULTI_FIELDS:
             in_cfg_value = split_multiline(in_cfg_value)
         elif arg in BOOL_FIELDS:
@@ -433,6 +438,15 @@ def split_multiline(value):
 
     value = [element for element in
              (line.strip() for line in value.split('\n'))
+             if element]
+    return value
+
+
+def split_csv(value):
+    """Special behaviour when we have a comma separated options"""
+
+    value = [element for element in
+             (chunk.strip() for chunk in value.split(','))
              if element]
     return value
 
