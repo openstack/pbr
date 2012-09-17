@@ -42,6 +42,10 @@ def update_setupcfg_version(filename, version):
                 break
             current_section = m.group('header')
             continue
+
+        if '=' not in line:
+            continue
+
         opt, val = line.split('=', 1)
         opt, val = opt.strip(), val.strip()
         if current_section == 'metadata' and opt == 'version':
