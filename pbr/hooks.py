@@ -35,6 +35,11 @@ def __inject_parsed_file(value, func):
     for val in old_tokens:
         value.remove(val)
     value.extend(new_reqs)
+    # Ensure that generating a manifest from any 'setup.py develop'
+    # bootstrapped environment gets a git based MANIFEST. Ideally this
+    # would only apply to 'setup.py develop' rather than simple installation
+    # - but its a small dependency with no recursive dependencies.
+    value.append('setuptools_git>=0.4')
 
 
 def inject_requires(dist, attr, value):
