@@ -31,13 +31,13 @@ from setuptools.command import sdist
 def parse_mailmap(mailmap='.mailmap'):
     mapping = {}
     if os.path.exists(mailmap):
-        fp = open(mailmap, 'r')
-        for l in fp:
-            l = l.strip()
-            if not l.startswith('#') and ' ' in l:
-                canonical_email, alias = [x for x in l.split(' ')
-                                          if x.startswith('<')]
-                mapping[alias] = canonical_email
+        with open(mailmap, 'r') as fp:
+            for l in fp:
+                l = l.strip()
+                if not l.startswith('#') and ' ' in l:
+                    canonical_email, alias = [x for x in l.split(' ')
+                                              if x.startswith('<')]
+                    mapping[alias] = canonical_email
     return mapping
 
 
@@ -54,7 +54,8 @@ def canonicalize_emails(changelog, mapping):
 def get_reqs_from_files(requirements_files):
     for requirements_file in requirements_files:
         if os.path.exists(requirements_file):
-            return open(requirements_file, 'r').read().split('\n')
+            with open(requirements_file, 'r') as fil:
+                return fil.read().split('\n')
     return []
 
 
@@ -236,7 +237,8 @@ def read_versioninfo(project):
 
 def write_versioninfo(project, version):
     """Write a simple file containing the version of the package."""
-    open(os.path.join(project, 'versioninfo'), 'w').write("%s\n" % version)
+    with open(os.path.join(project, 'versioninfo'), 'w') as fil:
+        fil.write("%s\n" % version)
 
 
 def get_cmdclass():
