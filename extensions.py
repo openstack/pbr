@@ -17,12 +17,12 @@
 #    under the License.
 
 import imp
+import logging
+from lxml import etree
 import os
 import routes
 import webob.dec
 import webob.exc
-import logging
-from lxml import etree
 
 from openstack.common import exception
 from openstack.common.gettextutils import _
