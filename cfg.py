@@ -239,7 +239,7 @@ in order to support a common usage pattern in OpenStack:
   from openstack.common import cfg
 
   opts = [
-    cfg.StrOpt('bind_host' default='0.0.0.0'),
+    cfg.StrOpt('bind_host', default='0.0.0.0'),
     cfg.IntOpt('bind_port', default=9292),
   ]
 
