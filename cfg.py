@@ -475,6 +475,8 @@ class Opt(object):
         a single character CLI option name
       default:
         the default value of the option
+      positional:
+        True if the option is a positional CLI argument
       metavar:
         the name shown as the argument to a CLI option in --help output
       help:
@@ -483,8 +485,8 @@ class Opt(object):
     multi = False
 
     def __init__(self, name, dest=None, short=None, default=None,
-                 metavar=None, help=None, secret=False, required=False,
-                 deprecated_name=None):
+                 positional=False, metavar=None, help=None,
+                 secret=False, required=False, deprecated_name=None):
         """Construct an Opt object.
 
         The only required parameter is the option's name. However, it is
@@ -494,6 +496,7 @@ class Opt(object):
         :param dest: the name of the corresponding ConfigOpts property
         :param short: a single character CLI option name
         :param default: the default value of the option
+        :param positional: True if the option is a positional CLI argument
         :param metavar: the option argument to show in --help
         :param help: an explanation of how the option is used
         :param secret: true iff the value should be obfuscated in log output
@@ -507,6 +510,7 @@ class Opt(object):
             self.dest = dest
         self.short = short
         self.default = default
+        self.positional = positional
         self.metavar = metavar
         self.help = help
         self.secret = secret
@@ -551,10 +555,10 @@ class Opt(object):
         kwargs = self._get_argparse_kwargs(group)
         prefix = self._get_argparse_prefix('', group)
         self._add_to_argparse(container, self.name, self.short, kwargs, prefix,
-                              self.deprecated_name)
+                              self.positional, self.deprecated_name)
 
     def _add_to_argparse(self, container, name, short, kwargs, prefix='',
-                         deprecated_name=None):
+                         positional=False, deprecated_name=None):
         """Add an option to an argparse parser or group.
 
         :param container: an argparse._ArgumentGroup object
@@ -562,14 +566,17 @@ class Opt(object):
         :param short: the short opt name
         :param kwargs: the keyword arguments for add_argument()
         :param prefix: an optional prefix to prepend to the opt name
+        :param position: whether the optional is a positional CLI argument
         :raises: DuplicateOptError if a naming confict is detected
         """
-        args = ['--' + prefix + name]
-        if short:
-            args += ['-' + short]
+        def hyphen(arg):
+            return arg if not positional else ''
 
+        args = [hyphen('--') + prefix + name]
+        if short:
+            args.append(hyphen('-') + short)
         if deprecated_name:
-            args += ['--' + prefix + deprecated_name]
+            args.append(hyphen('--') + prefix + deprecated_name)
 
         try:
             container.add_argument(*args, **kwargs)
@@ -598,11 +605,14 @@ class Opt(object):
         :param kwargs: optional keyword arguments to add to
         :returns: a dict of keyword arguments
         """
-        dest = self.dest
-        if group is not None:
-            dest = group.name + '_' + dest
-        kwargs.update({'dest': dest,
-                       'metavar': self.metavar,
+        if not self.positional:
+            dest = self.dest
+            if group is not None:
+                dest = group.name + '_' + dest
+            kwargs['dest'] = dest
+        else:
+            kwargs['nargs'] = '?'
+        kwargs.update({'metavar': self.metavar,
                        'help': self.help, })
         return kwargs
 
@@ -644,6 +654,11 @@ class BoolOpt(Opt):
     _boolean_states = {'1': True, 'yes': True, 'true': True, 'on': True,
                        '0': False, 'no': False, 'false': False, 'off': False}
 
+    def __init__(self, *args, **kwargs):
+        if 'positional' in kwargs:
+            raise ValueError('positional boolean args not supported')
+        super(BoolOpt, self).__init__(*args, **kwargs)
+
     def _get_from_config_parser(self, cparser, section):
         """Retrieve the opt value as a boolean from ConfigParser."""
         def convert_bool(v):
@@ -668,7 +683,7 @@ class BoolOpt(Opt):
         prefix = self._get_argparse_prefix('no', group)
         kwargs["help"] = "The inverse of --" + self.name
         self._add_to_argparse(container, self.name, None, kwargs, prefix,
-                              self.deprecated_name)
+                              self.positional, self.deprecated_name)
 
     def _get_argparse_kwargs(self, group, action='store_true', **kwargs):
         """Extends the base argparse keyword dict for boolean options."""
@@ -733,16 +748,20 @@ class ListOpt(Opt):
                      default=None,
                      required=False,
                      help=None,
-                     metavar=None):
+                     metavar=None,
+                     nargs=None):
             argparse._StoreAction.__init__(self,
                                            option_strings=option_strings,
                                            dest=dest,
                                            default=default,
                                            required=required,
-                                           help=help)
+                                           help=help,
+                                           nargs=nargs)
 
         def __call__(self, parser, namespace, values, option_string=None):
-            setattr(namespace, self.dest, values.split(','))
+            if values is not None:
+                values = values.split(',')
+            setattr(namespace, self.dest, values)
 
     def _get_from_config_parser(self, cparser, section):
         """Retrieve the opt value as a list from ConfigParser."""
@@ -767,8 +786,12 @@ class MultiStrOpt(Opt):
 
     def _get_argparse_kwargs(self, group, **kwargs):
         """Extends the base argparse keyword dict for multi str options."""
-        return super(MultiStrOpt,
-                     self)._get_argparse_kwargs(group, action='append')
+        kwargs = super(MultiStrOpt, self)._get_argparse_kwargs(group)
+        if not self.positional:
+            kwargs['action'] = 'append'
+        else:
+            kwargs['nargs'] = '*'
+        return kwargs
 
     def _cparser_get_with_deprecated(self, cparser, section):
         """If cannot find option as dest try deprecated_name alias."""
@@ -942,20 +965,6 @@ class ConfigCliParser(argparse.ArgumentParser):
     def add_subparsers(self, **kwargs):
         return super(ConfigCliParser, self).add_subparsers(**kwargs)
 
-    def parse_args(self, *args, **kwargs):
-        opts, args = super(ConfigCliParser, self).parse_known_args(*args,
-                                                                   **kwargs)
-        unknown_args = []
-        for arg in args:
-            if 0 == arg.find("-"):
-                unknown_args.append(arg)
-
-        if unknown_args:
-            msg = 'unrecognized arguments: %s'
-            self.error(msg % ' '.join(unknown_args))
-
-        return opts, args
-
 
 class ConfigOpts(collections.Mapping):
 
@@ -1090,13 +1099,11 @@ class ConfigOpts(collections.Mapping):
 
         self._setup(project, prog, version, usage, default_config_files)
 
-        self._cli_values, leftovers = self._parse_cli_opts(args)
+        self._cli_values = self._parse_cli_opts(args)
 
         self._parse_config_files()
 
         self._check_required_opts()
-
-        return leftovers
 
     def __getattr__(self, name):
         """Look up an option value and perform string substitution.
@@ -1452,6 +1459,10 @@ class ConfigOpts(collections.Mapping):
             if not opt.multi:
                 return value
 
+            # argparse ignores default=None for nargs='*'
+            if opt.positional and not value:
+                value = opt.default
+
             return value + values
 
         if values:
@@ -1577,9 +1588,7 @@ class ConfigOpts(collections.Mapping):
         for opt, group in self._all_opts():
             opt._add_to_cli(self._oparser, group)
 
-        values, leftovers = self._oparser.parse_args(args)
-
-        return vars(values), leftovers
+        return vars(self._oparser.parse_args(args))
 
     class GroupAttr(collections.Mapping):
 
