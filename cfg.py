@@ -932,7 +932,6 @@ class ConfigCliParser(argparse.ArgumentParser):
                                               *args, **kwargs)
 
         self.add_argument('--version', action='version', version=version)
-        self._optionals.title = 'Options'
 
     def add_argument(self, *args, **kwargs):
         try:
