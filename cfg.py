@@ -930,10 +930,6 @@ class ConfigCliParser(argparse.ArgumentParser):
     def __init__(self, prog=None, usage=None, version=None, *args, **kwargs):
         super(ConfigCliParser, self).__init__(prog=prog, usage=usage,
                                               *args, **kwargs)
-        # to eliminate error:
-        # ValueError: unsupported format character 'p' (0x70) at index 1
-        if usage is not None:
-            self.usage = usage.replace("%prog", self.prog)
 
         self.add_argument('--version', action='version', version=version)
         self._optionals.title = 'Options'
@@ -960,24 +956,6 @@ class ConfigCliParser(argparse.ArgumentParser):
             self.error(msg % ' '.join(unknown_args))
 
         return opts, args
-
-    def print_usage(self, file=None):
-        '''
-        overriding original print_usage method, only for
-        compatibility with optparse and happiness of unittest
-        '''
-        print >>file, "Usage: " + self.usage
-
-    def print_help(self, file=None):
-        '''
-        overriding original print_usage method, only for
-        compatibility with optparse and happiness of unittest
-        unittest: HelpTestCase:test_print_help
-        '''
-        msg = self.format_help()
-        if 0 == msg.find("usage:"):
-            msg = msg.replace("usage:", "Usage:")
-        print >>file, msg
 
 
 class ConfigOpts(collections.Mapping):
