@@ -580,7 +580,7 @@ class Opt(object):
 
         try:
             container.add_argument(*args, **kwargs)
-        except(argparse.ArgumentError) as e:
+        except argparse.ArgumentError as e:
             raise DuplicateOptError(e)
 
     def _get_argparse_container(self, parser, group):
