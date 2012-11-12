@@ -948,24 +948,6 @@ class MultiConfigParser(object):
         raise KeyError
 
 
-class ConfigCliParser(argparse.ArgumentParser):
-
-    def __init__(self, prog=None, usage=None, version=None, *args, **kwargs):
-        super(ConfigCliParser, self).__init__(prog=prog, usage=usage,
-                                              *args, **kwargs)
-
-        self.add_argument('--version', action='version', version=version)
-
-    def add_argument(self, *args, **kwargs):
-        try:
-            super(ConfigCliParser, self).add_argument(*args, **kwargs)
-        except(argparse.ArgumentError) as e:
-            raise DuplicateOptError(e)
-
-    def add_subparsers(self, **kwargs):
-        return super(ConfigCliParser, self).add_subparsers(**kwargs)
-
-
 class ConfigOpts(collections.Mapping):
 
     """
@@ -1003,9 +985,7 @@ class ConfigOpts(collections.Mapping):
 
         # if _pre_init_parser does not exist, create one
         if self._pre_init_parser is None:
-            self._oparser = ConfigCliParser(prog=prog,
-                                            version=version,
-                                            usage=usage)
+            self._oparser = argparse.ArgumentParser(prog=prog, usage=usage)
         # otherwise, use the pre-initialized parser with subparsers
         # and re-initialize parser
         else:
@@ -1014,6 +994,10 @@ class ConfigOpts(collections.Mapping):
             self._oparser.version = version
             self._oparser.usage = usage
             self._pre_init_parser = None
+
+        self._oparser.add_argument('--version',
+                                   action='version',
+                                   version=version)
 
         return prog, default_config_files
 
@@ -1135,7 +1119,7 @@ class ConfigOpts(collections.Mapping):
         # only add subparsers to pre-initialized root parser
         # to avoid cleared by self.clear()
         if self._pre_init_parser is None:
-            self._pre_init_parser = ConfigCliParser()
+            self._pre_init_parser = argparse.ArgumentParser()
         return self._pre_init_parser.add_subparsers(**kwargs)
 
     def reset(self):
