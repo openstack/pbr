@@ -925,33 +925,6 @@ class MultiConfigParser(object):
         raise KeyError
 
 
-class _VersionAction(argparse.Action):
-
-    def __init__(self,
-                 option_strings,
-                 version=None,
-                 dest=argparse.SUPPRESS,
-                 default=argparse.SUPPRESS,
-                 help="show program's version number and exit"):
-        super(_VersionAction, self).__init__(option_strings=option_strings,
-                                             dest=dest,
-                                             default=default,
-                                             nargs=0,
-                                             help=help)
-        self.version = version
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        version = self.version
-        if version is None:
-            version = parser.version
-        formatter = parser._get_formatter()
-        formatter.add_text(version)
-        message = formatter.format_help()
-        if message:
-            parser._print_message(message, sys.stdout)
-        sys.exit(0)
-
-
 class ConfigCliParser(argparse.ArgumentParser):
 
     def __init__(self, prog=None, usage=None, version=None, *args, **kwargs):
@@ -962,9 +935,7 @@ class ConfigCliParser(argparse.ArgumentParser):
         if usage is not None:
             self.usage = usage.replace("%prog", self.prog)
 
-        self.add_argument('--version',
-                          action=_VersionAction,
-                          version=version)
+        self.add_argument('--version', action='version', version=version)
         self._optionals.title = 'Options'
 
     def add_argument(self, *args, **kwargs):
@@ -1007,10 +978,6 @@ class ConfigCliParser(argparse.ArgumentParser):
         if 0 == msg.find("usage:"):
             msg = msg.replace("usage:", "Usage:")
         print >>file, msg
-
-    def print_version(self, file=None):
-        super(ConfigCliParser, self)._print_message(self.format_version(),
-                                                    file)
 
 
 class ConfigOpts(collections.Mapping):
