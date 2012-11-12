@@ -560,7 +560,7 @@ class Opt(object):
         :param container: an argparse._ArgumentGroup object
         :param name: the opt name
         :param short: the short opt name
-        :param kwargs: the keyword arguments for add_option()
+        :param kwargs: the keyword arguments for add_argument()
         :param prefix: an optional prefix to prepend to the opt name
         :raises: DuplicateOptError if a naming confict is detected
         """
@@ -962,13 +962,10 @@ class ConfigCliParser(argparse.ArgumentParser):
         if usage is not None:
             self.usage = usage.replace("%prog", self.prog)
 
-        self.add_option('--version',
-                        action=_VersionAction,
-                        version=version)
+        self.add_argument('--version',
+                          action=_VersionAction,
+                          version=version)
         self._optionals.title = 'Options'
-
-    def add_option(self, *args, **kwargs):
-        self.add_argument(*args, **kwargs)
 
     def add_argument(self, *args, **kwargs):
         try:
