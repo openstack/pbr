@@ -205,21 +205,7 @@ Option values may reference other values using PEP 292 string substitution::
 
 Note that interpolation can be avoided by using '$$'.
 
-For command line utilities that dispatch to other command line utilities, the
-disable_interspersed_args() method is available. If this this method is called,
-then parsing e.g.::
-
-  script --verbose cmd --debug /tmp/mything
-
-will no longer return::
-
-  ['cmd', '/tmp/mything']
-
-as the leftover arguments, but will instead return::
-
-  ['cmd', '--debug', '/tmp/mything']
-
-i.e. argument parsing is stopped at the first non-option argument.
+FIXME(markmc): document add_cli_subparsers()
 
 Options may be declared as required so that an error is raised if the user
 does not supply a value for the option.
@@ -1055,7 +1041,6 @@ class ConfigOpts(collections.Mapping):
         self._cli_values = {}
         self.__cache = {}
         self._config_opts = []
-        self._disable_interspersed_args = False
 
     def _pre_setup(self, project, prog, version, usage, default_config_files):
         """Initialize a ConfigCliParser object for option parsing."""
@@ -1403,33 +1388,6 @@ class ConfigOpts(collections.Mapping):
         for info, group in self._all_opt_infos():
             info.pop('default', None)
             info.pop('override', None)
-
-    def disable_interspersed_args(self):
-        """Set parsing to stop on the first non-option.
-
-        If this this method is called, then parsing e.g.
-
-          script --verbose cmd --debug /tmp/mything
-
-        will no longer return:
-
-          ['cmd', '/tmp/mything']
-
-        as the leftover arguments, but will instead return:
-
-          ['cmd', '--debug', '/tmp/mything']
-
-        i.e. argument parsing is stopped at the first non-option argument.
-        """
-        # do nothing
-        self._disable_interspersed_args = True
-
-    def enable_interspersed_args(self):
-        """Set parsing to not stop on the first non-option.
-
-        This it the default behaviour."""
-        # do nothing
-        self._disable_interspersed_args = False
 
     def find_file(self, name):
         """Locate a file located alongside the config files.
