@@ -738,26 +738,11 @@ class ListOpt(Opt):
     List opt values are simple string values separated by commas. The opt value
     is a list containing these strings.
     """
-    class _StoreListAction(argparse._StoreAction):
+
+    class _StoreListAction(argparse.Action):
         """
         An argparse action for parsing an option value into a list.
         """
-        def __init__(self,
-                     option_strings,
-                     dest,
-                     default=None,
-                     required=False,
-                     help=None,
-                     metavar=None,
-                     nargs=None):
-            argparse._StoreAction.__init__(self,
-                                           option_strings=option_strings,
-                                           dest=dest,
-                                           default=default,
-                                           required=required,
-                                           help=help,
-                                           nargs=nargs)
-
         def __call__(self, parser, namespace, values, option_string=None):
             if values is not None:
                 values = values.split(',')
