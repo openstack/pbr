@@ -745,7 +745,7 @@ class ListOpt(Opt):
         """
         def __call__(self, parser, namespace, values, option_string=None):
             if values is not None:
-                values = values.split(',')
+                values = [a.strip() for a in values.split(',')]
             setattr(namespace, self.dest, values)
 
     def _get_from_config_parser(self, cparser, section):
