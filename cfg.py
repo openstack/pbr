@@ -632,7 +632,8 @@ class Opt(object):
             kwargs['dest'] = dest
         else:
             kwargs['nargs'] = '?'
-        kwargs.update({'metavar': self.metavar,
+        kwargs.update({'default': None,
+                       'metavar': self.metavar,
                        'help': self.help, })
         return kwargs
 
