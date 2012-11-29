@@ -823,17 +823,18 @@ class OptGroup(object):
         self._opts = {}  # dict of dicts of (opt:, override:, default:)
         self._argparse_group = None
 
-    def _register_opt(self, opt):
+    def _register_opt(self, opt, cli=False):
         """Add an opt to this group.
 
         :param opt: an Opt object
+        :param cli: whether this is a CLI option
         :returns: False if previously registered, True otherwise
         :raises: DuplicateOptError if a naming conflict is detected
         """
         if _is_opt_registered(self._opts, opt):
             return False
 
-        self._opts[opt.dest] = {'opt': opt}
+        self._opts[opt.dest] = {'opt': opt, 'cli': cli}
 
         return True
 
@@ -1124,7 +1125,7 @@ class ConfigOpts(collections.Mapping):
             group._clear()
 
     @__clear_cache
-    def register_opt(self, opt, group=None):
+    def register_opt(self, opt, group=None, cli=False):
         """Register an option schema.
 
         Registering an option schema makes any option value which is previously
@@ -1132,17 +1133,19 @@ class ConfigOpts(collections.Mapping):
         as an attribute of this object.
 
         :param opt: an instance of an Opt sub-class
+        :param cli: whether this is a CLI option
         :param group: an optional OptGroup object or group name
         :return: False if the opt was already register, True otherwise
         :raises: DuplicateOptError
         """
         if group is not None:
-            return self._get_group(group, autocreate=True)._register_opt(opt)
+            group = self._get_group(group, autocreate=True)
+            return group._register_opt(opt, cli)
 
         if _is_opt_registered(self._opts, opt):
             return False
 
-        self._opts[opt.dest] = {'opt': opt}
+        self._opts[opt.dest] = {'opt': opt, 'cli': cli}
 
         return True
 
@@ -1168,7 +1171,7 @@ class ConfigOpts(collections.Mapping):
         if self._args is not None:
             raise ArgsAlreadyParsedError("cannot register CLI option")
 
-        return self.register_opt(opt, group, clear_cache=False)
+        return self.register_opt(opt, group, cli=True, clear_cache=False)
 
     @__clear_cache
     def register_cli_opts(self, opts, group=None):
@@ -1295,10 +1298,11 @@ class ConfigOpts(collections.Mapping):
             for info in group._opts.values():
                 yield info, group
 
-    def _all_opts(self):
-        """A generator function for iteration opts."""
+    def _all_cli_opts(self):
+        """A generator function for iterating CLI opts."""
         for info, group in self._all_opt_infos():
-            yield info['opt'], group
+            if info['cli']:
+                yield info['opt'], group
 
     def _unset_defaults_and_overrides(self):
         """Unset any default or override on all options."""
@@ -1554,7 +1558,7 @@ class ConfigOpts(collections.Mapping):
         """
         self._args = args
 
-        for opt, group in self._all_opts():
+        for opt, group in self._all_cli_opts():
             opt._add_to_cli(self._oparser, group)
 
         return vars(self._oparser.parse_args(args))
