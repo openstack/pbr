@@ -1652,12 +1652,12 @@ class CommonConfigOpts(ConfigOpts):
                metavar='FORMAT',
                help='A logging.Formatter log message format string which may '
                     'use any of the available logging.LogRecord attributes. '
-                    'Default: %default'),
+                    'Default: %(default)s'),
         StrOpt('log-date-format',
                default=DEFAULT_LOG_DATE_FORMAT,
                metavar='DATE_FORMAT',
-               help='Format string for %(asctime)s in log records. '
-                    'Default: %default'),
+               help='Format string for %%(asctime)s in log records. '
+                    'Default: %(default)s'),
         StrOpt('log-file',
                metavar='PATH',
                help='(Optional) Name of log file to output to. '
