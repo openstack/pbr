@@ -1576,12 +1576,12 @@ class ConfigOpts(collections.Mapping):
             :param conf: a ConfigOpts object
             :param group: an OptGroup object
             """
-            self.conf = conf
-            self.group = group
+            self._conf = conf
+            self._group = group
 
         def __getattr__(self, name):
             """Look up an option value and perform template substitution."""
-            return self.conf._get(name, self.group)
+            return self._conf._get(name, self._group)
 
         def __getitem__(self, key):
             """Look up an option value and perform string substitution."""
@@ -1589,16 +1589,16 @@ class ConfigOpts(collections.Mapping):
 
         def __contains__(self, key):
             """Return True if key is the name of a registered opt or group."""
-            return key in self.group._opts
+            return key in self._group._opts
 
         def __iter__(self):
             """Iterate over all registered opt and group names."""
-            for key in self.group._opts.keys():
+            for key in self._group._opts.keys():
                 yield key
 
         def __len__(self):
             """Return the number of options and option groups."""
-            return len(self.group._opts)
+            return len(self._group._opts)
 
     class StrSubWrapper(object):
 
