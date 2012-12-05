@@ -750,7 +750,7 @@ class ListOpt(Opt):
 
     def _get_from_config_parser(self, cparser, section):
         """Retrieve the opt value as a list from ConfigParser."""
-        return [v.split(',') for v in
+        return [[a.strip() for a in v.split(',')] for v in
                 self._cparser_get_with_deprecated(cparser, section)]
 
     def _get_argparse_kwargs(self, group, **kwargs):
