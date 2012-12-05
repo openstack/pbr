@@ -480,6 +480,13 @@ def _is_opt_registered(opts, opt):
         return False
 
 
+def set_defaults(opts, **kwargs):
+    for opt in opts:
+        if opt.dest in kwargs:
+            opt.default = kwargs[opt.dest]
+            break
+
+
 class Opt(object):
 
     """Base class for all configuration options.
