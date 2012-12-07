@@ -1763,11 +1763,12 @@ class CommonConfigOpts(ConfigOpts):
                     'Default: %(default)s'),
         StrOpt('log-file',
                metavar='PATH',
+               deprecated_name='logfile',
                help='(Optional) Name of log file to output to. '
                     'If not set, logging will go to stdout.'),
         StrOpt('log-dir',
                help='(Optional) The directory to keep log files in '
-                    '(will be prepended to --logfile)'),
+                    '(will be prepended to --log-file)'),
         BoolOpt('use-syslog',
                 default=False,
                 help='Use syslog for logging.'),
