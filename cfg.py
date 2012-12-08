@@ -1767,6 +1767,7 @@ class CommonConfigOpts(ConfigOpts):
                help='(Optional) Name of log file to output to. '
                     'If not set, logging will go to stdout.'),
         StrOpt('log-dir',
+               deprecated_name='logdir',
                help='(Optional) The directory to keep log files in '
                     '(will be prepended to --log-file)'),
         BoolOpt('use-syslog',
