@@ -93,29 +93,17 @@ def resolve_name(name):
     Raise ImportError if the module or name is not found.
     """
 
-    parts = name.split('.')
-    cursor = len(parts)
-    module_name = parts[:cursor]
+    parts = name.rsplit('.', 1)
+    if len(parts) != 2 :
+        raise ImportError('looking for name in the form module.object in "%s"'% name)
 
-    while cursor > 0:
-        try:
-            ret = __import__('.'.join(module_name))
-            break
-        except ImportError:
-            if cursor == 0:
-                raise
-            cursor -= 1
-            module_name = parts[:cursor]
-            ret = ''
+    exec "import %s as m" % parts[0]
 
-    for part in parts[1:]:
-        try:
-            ret = getattr(ret, part)
-        except AttributeError:
-            raise ImportError(name)
-
-    return ret
-
+    try :
+        exec "v = m.%s"%parts[1]
+    except AttributeError :
+        raise ImportError('object %s not found in %s'%(parts[1],parts[0]))
+    return v
 
 
 def cfg_to_args(path='setup.cfg'):
@@ -439,11 +427,12 @@ def run_command_hooks(cmd_obj, hook_kind):
 
     for hook in hooks.values():
         if isinstance(hook, str):
+            hook = hook.strip()
             try:
                 hook_obj = resolve_name(hook)
             except ImportError:
                 err = sys.exc_info()[1] # For py3k
-                raise DistutilsModuleError(err)
+                raise DistutilsModuleError('cannot find hook %s: %s'%(hook,err))
         else:
             hook_obj = hook
 
@@ -511,4 +500,5 @@ class IgnoreDict(dict):
         super(IgnoreDict, self).__setitem__(key, val)
 
 
-
+def nop_hook(*l, **kw) :
+    print "NOP hook"
