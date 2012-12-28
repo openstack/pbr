@@ -10,6 +10,7 @@ to be an installation dependency for our packages yet--it is still too unstable
 import os
 import re
 import sys
+import traceback
 
 from collections import defaultdict
 
@@ -141,9 +142,6 @@ def cfg_to_args(path='setup.cfg'):
         config[section] = dict(parser.items(section))
 
     # Run setup_hooks, if configured
-    # TODO: We need a better way of displaying errors that occur in setup_hook;
-    # right now they only show up as errors 'parsing' the cfg file.  A
-    # traceback and other info would be nice...
     setup_hooks = has_get_option(config, 'global', 'setup_hooks')
     package_dir = has_get_option(config, 'files', 'packages_root')
     # Add the source package directory to sys.path in case it contains
@@ -157,8 +155,13 @@ def cfg_to_args(path='setup.cfg'):
         if setup_hooks:
             setup_hooks = split_multiline(setup_hooks)
             for hook in setup_hooks:
-                hook = resolve_name(hook)
-                hook(config)
+                hook_fn = resolve_name(hook)
+                try :
+                    hook_fn(config)
+                except Exception as e:
+                    sys.stderr.write("setup hook %s raised exception: %s\n"% (hook, e))
+                    traceback.print_exc(file=sys.stderr)
+                    raise
 
         kwargs = setup_cfg_to_setup_kwargs(config)
 
