@@ -92,6 +92,7 @@ def resolve_name(name):
 
     Raise ImportError if the module or name is not found.
     """
+    print "d2to1 resolve name -%s-"%(name)
 
     parts = name.rsplit('.', 1)
     if len(parts) != 2 :
