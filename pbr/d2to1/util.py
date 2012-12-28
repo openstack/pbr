@@ -98,12 +98,18 @@ def resolve_name(name):
     if len(parts) != 2 :
         raise ImportError('looking for name in the form module.object in "%s"'% name)
 
-    exec "import %s as m" % parts[0]
+    s = "import %s as m" % parts[0]
+    print "d2to1 exec",s
+    exec s
 
     try :
-        exec "v = m.%s"%parts[1]
+        s = "v = m.%s"%parts[1]
+        print "d2to1 exec",s
+        exec s
     except AttributeError :
         raise ImportError('object %s not found in %s'%(parts[1],parts[0]))
+
+    print "d2to1 resolved name ok",v
     return v
 
 
