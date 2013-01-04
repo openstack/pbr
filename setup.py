@@ -276,6 +276,9 @@ def get_cmdclass():
         from sphinx.setup_command import BuildDoc
 
         class LocalBuildDoc(BuildDoc):
+
+            builders = ['html', 'man']
+
             def generate_autoindex(self):
                 print "**Autodocumenting from %s" % os.path.abspath(os.curdir)
                 modules = {}
@@ -311,14 +314,19 @@ def get_cmdclass():
                 if not os.getenv('SPHINX_DEBUG'):
                     self.generate_autoindex()
 
-                for builder in ['html', 'man']:
+                for builder in self.builders:
                     self.builder = builder
                     self.finalize_options()
                     self.project = self.distribution.get_name()
                     self.version = self.distribution.get_version()
                     self.release = self.distribution.get_version()
                     BuildDoc.run(self)
+
+        class LocalBuildLatex(LocalBuildDoc):
+            builders = ['latex']
+
         cmdclass['build_sphinx'] = LocalBuildDoc
+        cmdclass['build_sphinx_latex'] = LocalBuildLatex
     except ImportError:
         pass
 
