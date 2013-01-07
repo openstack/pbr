@@ -92,24 +92,20 @@ def resolve_name(name):
 
     Raise ImportError if the module or name is not found.
     """
-    print "d2to1 resolve name -%s-"%(name)
 
     parts = name.rsplit('.', 1)
     if len(parts) != 2 :
         raise ImportError('looking for name in the form module.object in "%s"'% name)
 
     s = "import %s as m" % parts[0]
-    print "d2to1 exec",s
     exec s
 
     try :
         s = "v = m.%s"%parts[1]
-        print "d2to1 exec",s
         exec s
     except AttributeError :
         raise ImportError('object %s not found in %s'%(parts[1],parts[0]))
 
-    print "d2to1 resolved name ok",v
     return v
 
 
