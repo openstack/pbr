@@ -1567,11 +1567,7 @@ class ConfigOpts(collections.Mapping):
             opts = group._opts
 
         if not opt_name in opts:
-            if group is None and '.' in opt_name:
-                group, opt_name = opt_name.split('.')
-                return self._get_opt_info(opt_name, group)
-            else:
-                raise NoSuchOptError(opt_name, group)
+            raise NoSuchOptError(opt_name, group)
 
         return opts[opt_name]
 
