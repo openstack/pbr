@@ -444,7 +444,12 @@ def run_command_hooks(cmd_obj, hook_kind):
 
         log.info('running %s %s for command %s',
                  hook_kind, hook, cmd_obj.get_command_name())
-        hook_obj(cmd_obj)
+
+        try :
+            hook_obj(cmd_obj)
+        except Exception as e :
+            sys.stderr.write("hook %s raised exception: %s\n"% (hook, e))
+            traceback.print_exc(file=sys.stderr)
 
 
 def has_get_option(config, section, option):
@@ -502,6 +507,10 @@ class IgnoreDict(dict):
             return
         super(IgnoreDict, self).__setitem__(key, val)
 
-
 def nop_hook(*l, **kw) :
-    print "NOP hook"
+    sys.stderr.write("NOP hook - d2to1.util.nop_hook\n")
+
+def exception_hook(*l, **kw) :
+    sys.stderr.write("EXCEPTION hook - d2to1.util.exception_hook\n")
+    raise Exception('Called d2to1.util.exception_hook')
+
