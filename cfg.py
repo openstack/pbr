@@ -236,10 +236,11 @@ in order to support a common usage pattern in OpenStack::
 Positional command line arguments are supported via a 'positional' Opt
 constructor argument::
 
-    >>> CONF.register_cli_opt(MultiStrOpt('bar', positional=True))
+    >>> conf = ConfigOpts()
+    >>> conf.register_cli_opt(MultiStrOpt('bar', positional=True))
     True
-    >>> CONF(['a', 'b'])
-    >>> CONF.bar
+    >>> conf(['a', 'b'])
+    >>> conf.bar
     ['a', 'b']
 
 It is also possible to use argparse "sub-parsers" to parse additional
@@ -249,10 +250,11 @@ command line arguments using the SubCommandOpt class:
     ...     list_action = subparsers.add_parser('list')
     ...     list_action.add_argument('id')
     ...
-    >>> CONF.register_cli_opt(SubCommandOpt('action', handler=add_parsers))
+    >>> conf = ConfigOpts()
+    >>> conf.register_cli_opt(SubCommandOpt('action', handler=add_parsers))
     True
-    >>> CONF(['list', '10'])
-    >>> CONF.action.name, CONF.action.id
+    >>> conf(args=['list', '10'])
+    >>> conf.action.name, conf.action.id
     ('list', '10')
 
 """
