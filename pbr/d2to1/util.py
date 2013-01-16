@@ -97,16 +97,21 @@ def resolve_name(name):
     if len(parts) != 2 :
         raise ImportError('looking for name in the form module.object in "%s"'% name)
 
-    s = "import %s as m" % parts[0]
-    exec s
-
+    # in python 2, this is a simple "exec string" statement.
+    # in python 3, it calls the exec() function, which does not affect
+    # our global or local variables.
+    #
+    # So, import the module we are interested in, assume we do not have it
+    # in our namespace, and look for it in sys.modules
+    exec ( "import %s" % parts[0] )
+    
     try :
-        s = "v = m.%s"%parts[1]
-        exec s
+        # Get the specific thing from the module
+        return getattr( sys.modules[parts[0]] , parts[1] )
     except AttributeError :
         raise ImportError('object %s not found in %s'%(parts[1],parts[0]))
 
-    return v
+    # not reached
 
 
 def cfg_to_args(path='setup.cfg'):
