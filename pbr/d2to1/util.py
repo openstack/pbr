@@ -93,25 +93,28 @@ def resolve_name(name):
     Raise ImportError if the module or name is not found.
     """
 
-    parts = name.rsplit('.', 1)
-    if len(parts) != 2 :
-        raise ImportError('looking for name in the form module.object in "%s"'% name)
+    parts = name.split('.')
+    cursor = len(parts)
+    module_name = parts[:cursor]
 
-    # in python 2, this is a simple "exec string" statement.
-    # in python 3, it calls the exec() function, which does not affect
-    # our global or local variables.
-    #
-    # So, import the module we are interested in, assume we do not have it
-    # in our namespace, and look for it in sys.modules
-    exec ( "import %s" % parts[0] )
-    
-    try :
-        # Get the specific thing from the module
-        return getattr( sys.modules[parts[0]] , parts[1] )
-    except AttributeError :
-        raise ImportError('object %s not found in %s'%(parts[1],parts[0]))
+    while cursor > 0:
+        try:
+            ret = __import__('.'.join(module_name))
+            break
+        except ImportError:
+            if cursor == 0:
+                raise
+            cursor -= 1
+            module_name = parts[:cursor]
+            ret = ''
 
-    # not reached
+    for part in parts[1:]:
+        try:
+            ret = getattr(ret, part)
+        except AttributeError:
+            raise ImportError(name)
+
+    return ret
 
 
 def cfg_to_args(path='setup.cfg'):
@@ -435,12 +438,11 @@ def run_command_hooks(cmd_obj, hook_kind):
 
     for hook in hooks.values():
         if isinstance(hook, str):
-            hook = hook.strip()
             try:
                 hook_obj = resolve_name(hook)
             except ImportError:
                 err = sys.exc_info()[1] # For py3k
-                raise DistutilsModuleError('cannot find hook %s: %s'%(hook,err))
+                raise DistutilsModuleError(err)
         else:
             hook_obj = hook
 
@@ -512,10 +514,11 @@ class IgnoreDict(dict):
             return
         super(IgnoreDict, self).__setitem__(key, val)
 
-def nop_hook(*l, **kw) :
+
+def nop_hook(*l, **kw):
     sys.stderr.write("NOP hook - d2to1.util.nop_hook\n")
 
-def exception_hook(*l, **kw) :
+
+def exception_hook(*l, **kw):
     sys.stderr.write("EXCEPTION hook - d2to1.util.exception_hook\n")
     raise Exception('Called d2to1.util.exception_hook')
-
