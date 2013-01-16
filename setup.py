@@ -107,15 +107,6 @@ def parse_dependency_links(requirements_files=['requirements.txt',
     return dependency_links
 
 
-def write_requirements():
-    if 'VIRTUAL_ENV' in os.environ:
-        with open("requirements.txt", "w") as req_file:
-            output = subprocess.Popen(["pip", "freeze", "-l"],
-                                      stdout=subprocess.PIPE)
-            requirements = output.communicate()[0].strip()
-            req_file.write(requirements)
-
-
 def _run_shell_command(cmd):
     if os.name == 'nt':
         output = subprocess.Popen(["cmd.exe", "/C", cmd],
