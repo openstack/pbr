@@ -34,11 +34,12 @@ def parse_mailmap(mailmap='.mailmap'):
     if os.path.exists(mailmap):
         with open(mailmap, 'r') as fp:
             for l in fp:
-                l = l.strip()
-                if not l.startswith('#') and ' ' in l:
-                    canonical_email, alias = [x for x in l.split(' ')
-                                              if x.startswith('<')]
-                    mapping[alias] = canonical_email
+                try:
+                    canonical_email, alias = re.match(
+                        r'[^#]*?(<.+>).*(<.+>).*', l).groups()
+                except AttributeError:
+                    continue
+                mapping[alias] = canonical_email
     return mapping
 
 
