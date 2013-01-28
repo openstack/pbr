@@ -863,7 +863,7 @@ class SubCommandOpt(Opt):
                                            description=self.description,
                                            help=self.help)
 
-        if not self.handler is None:
+        if self.handler is not None:
             self.handler(subparsers)
 
 
@@ -1547,8 +1547,8 @@ class ConfigOpts(collections.Mapping):
         group = group_or_name if isinstance(group_or_name, OptGroup) else None
         group_name = group.name if group else group_or_name
 
-        if not group_name in self._groups:
-            if not group is None or not autocreate:
+        if group_name not in self._groups:
+            if group is not None or not autocreate:
                 raise NoSuchGroupError(group_name)
 
             self.register_group(OptGroup(name=group_name))
@@ -1568,7 +1568,7 @@ class ConfigOpts(collections.Mapping):
             group = self._get_group(group)
             opts = group._opts
 
-        if not opt_name in opts:
+        if opt_name not in opts:
             raise NoSuchOptError(opt_name, group)
 
         return opts[opt_name]
@@ -1606,7 +1606,7 @@ class ConfigOpts(collections.Mapping):
             opt = info['opt']
 
             if opt.required:
-                if ('default' in info or 'override' in info):
+                if 'default' in info or 'override' in info:
                     continue
 
                 if self._get(opt.dest, group) is None:
