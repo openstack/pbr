@@ -1297,6 +1297,24 @@ class ConfigOpts(collections.Mapping):
         __import__(module_str)
         self._get_opt_info(name, group)
 
+    def import_group(self, group, module_str):
+        """Import an option group from a module.
+
+        Import a module and check that a given option group is registered.
+
+        This is intended for use with global configuration objects
+        like cfg.CONF where modules commonly register options with
+        CONF at module load time. If one module requires an option group
+        defined by another module it can use this method to explicitly
+        declare the dependency.
+
+        :param group: an option OptGroup object or group name
+        :param module_str: the name of a module to import
+        :raises: ImportError, NoSuchGroupError
+        """
+        __import__(module_str)
+        self._get_group(group)
+
     @__clear_cache
     def set_override(self, name, override, group=None):
         """Override an opt value.
