@@ -62,6 +62,8 @@ D1_D2_SETUP_ARGS = {
     "data_files": ("files",),
     "scripts": ("files",),
     "py_modules": ("files", "modules"),   # **
+    "test_suite":("test","suite"),
+    "tests_require"("test","require"),
     "cmdclass": ("global", "commands"),
     # Not supported in distutils2, but provided for
     # backwards compatibility with setuptools
@@ -80,6 +82,7 @@ MULTI_FIELDS = ("classifiers",
                 "data_files",
                 "scripts",
                 "py_modules",
+                "tests_require",
                 "cmdclass")
 
 # setup() arguments that contain boolean values
@@ -260,7 +263,7 @@ def setup_cfg_to_setup_kwargs(config):
                 in_cfg_value = False
 
         if in_cfg_value:
-            if arg == 'install_requires':
+            if arg in ('install_requires', 'tests_require'):
                 # Replaces PEP345-style version specs with the sort expected by
                 # setuptools
                 in_cfg_value = [_VERSION_SPEC_RE.sub(r'\1\2', pred)
