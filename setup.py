@@ -131,7 +131,7 @@ def write_git_changelog():
     """Write a changelog based on the git changelog."""
     new_changelog = 'ChangeLog'
     if not os.getenv('SKIP_WRITE_GIT_CHANGELOG'):
-        if os.path.isdir('.git'):
+        if os.path.exists('.git'):
             git_log_cmd = 'git log --stat'
             changelog = _run_shell_command(git_log_cmd)
             mailmap = parse_mailmap()
@@ -147,7 +147,7 @@ def generate_authors():
     old_authors = 'AUTHORS.in'
     new_authors = 'AUTHORS'
     if not os.getenv('SKIP_GENERATE_AUTHORS'):
-        if os.path.isdir('.git'):
+        if os.path.exists('.git'):
             # don't include jenkins email address in AUTHORS file
             git_log_cmd = ("git log --format='%aN <%aE>' | sort -u | "
                            "egrep -v '" + jenkins_email + "'")
@@ -279,7 +279,7 @@ def _get_version_from_git(pre_version):
     revision if there is one, or tag plus number of additional revisions
     if the current revision has no tag."""
 
-    if os.path.isdir('.git'):
+    if os.path.exists('.git'):
         if pre_version:
             try:
                 return _run_shell_command(
