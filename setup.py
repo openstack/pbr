@@ -117,9 +117,9 @@ def _run_shell_command(cmd, throw_on_error=False):
         output = subprocess.Popen(["/bin/sh", "-c", cmd],
                                   stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE)
+    out = output.communicate()
     if output.returncode and throw_on_error:
         raise Exception("%s returned %d" % cmd, output.returncode)
-    out = output.communicate()
     if len(out) == 0:
         return None
     if len(out[0].strip()) == 0:
