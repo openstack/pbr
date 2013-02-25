@@ -17,7 +17,8 @@ from collections import defaultdict
 import distutils.ccompiler
 
 from distutils import log
-from distutils.errors import DistutilsOptionError, DistutilsModuleError
+from distutils.errors import (DistutilsOptionError, DistutilsModuleError,
+                              DistutilsFileError)
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
 try:
@@ -94,21 +95,23 @@ def resolve_name(name):
     """
 
     parts = name.split('.')
-    cursor = len(parts)
+    cursor = len(parts) - 1
     module_name = parts[:cursor]
+    attr_name = parts[-1]
 
     while cursor > 0:
         try:
-            ret = __import__('.'.join(module_name))
+            ret = __import__('.'.join(module_name), fromlist=[attr_name])
             break
         except ImportError:
             if cursor == 0:
                 raise
             cursor -= 1
             module_name = parts[:cursor]
+            attr_name = parts[cursor]
             ret = ''
 
-    for part in parts[1:]:
+    for part in parts[cursor:]:
         try:
             ret = getattr(ret, part)
         except AttributeError:
@@ -158,9 +161,10 @@ def cfg_to_args(path='setup.cfg'):
                 try :
                     hook_fn(config)
                 except Exception as e:
-                    sys.stderr.write("setup hook %s raised exception: %s\n"% (hook, e))
-                    traceback.print_exc(file=sys.stderr)
-                    raise
+                    log.error('setup hook %s raised exception: %s\n' %
+                              (hook, e))
+                    log.error(traceback.format_exc())
+                    sys.exit(1)
 
         kwargs = setup_cfg_to_setup_kwargs(config)
 
@@ -442,7 +446,8 @@ def run_command_hooks(cmd_obj, hook_kind):
                 hook_obj = resolve_name(hook)
             except ImportError:
                 err = sys.exc_info()[1] # For py3k
-                raise DistutilsModuleError(err)
+                raise DistutilsModuleError('cannot find hook %s: %s' %
+                                           (hook,err))
         else:
             hook_obj = hook
 
@@ -455,8 +460,9 @@ def run_command_hooks(cmd_obj, hook_kind):
         try :
             hook_obj(cmd_obj)
         except Exception as e :
-            sys.stderr.write("hook %s raised exception: %s\n"% (hook, e))
-            traceback.print_exc(file=sys.stderr)
+            log.error('hook %s raised exception: %s\n' % (hook, e))
+            log.error(traceback.format_exc())
+            sys.exit(1)
 
 
 def has_get_option(config, section, option):
@@ -513,12 +519,3 @@ class IgnoreDict(dict):
         if self.__ignore.match(key):
             return
         super(IgnoreDict, self).__setitem__(key, val)
-
-
-def nop_hook(*l, **kw):
-    sys.stderr.write("NOP hook - d2to1.util.nop_hook\n")
-
-
-def exception_hook(*l, **kw):
-    sys.stderr.write("EXCEPTION hook - d2to1.util.exception_hook\n")
-    raise Exception('Called d2to1.util.exception_hook')
