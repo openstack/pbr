@@ -19,6 +19,7 @@ import distutils.ccompiler
 from distutils import log
 from distutils.errors import (DistutilsOptionError, DistutilsModuleError,
                               DistutilsFileError)
+from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
 try:
@@ -88,6 +89,9 @@ BOOL_FIELDS = ("use_2to3", "zip_safe")
 CSV_FIELDS = ("keywords",)
 
 
+log.set_verbosity(log.INFO)
+
+
 def resolve_name(name):
     """Resolve a name like ``module.object`` to an object and return it.
 
@@ -146,6 +150,7 @@ def cfg_to_args(path='setup.cfg'):
     # Run setup_hooks, if configured
     setup_hooks = has_get_option(config, 'global', 'setup_hooks')
     package_dir = has_get_option(config, 'files', 'packages_root')
+
     # Add the source package directory to sys.path in case it contains
     # additional hooks, and to make sure it's on the path before any existing
     # installations of the package
@@ -179,6 +184,26 @@ def cfg_to_args(path='setup.cfg'):
             kwargs['entry_points'] = entry_points
 
         wrap_commands(kwargs)
+
+        # Handle the [files]/extra_files option
+        extra_files = has_get_option(config, 'files', 'extra_files')
+        if extra_files:
+            extra_files = split_multiline(extra_files)
+            # Let's do a sanity check
+            for filename in extra_files:
+                if not os.path.exists(filename):
+                    raise DistutilsFileError(
+                        '%s from the extra_files option in setup.cfg does not '
+                        'exist' % filename)
+            # Unfortunately the only really sensible way to do this is to
+            # monkey-patch the manifest_maker class
+            log.info('patching the manifest_maker command to add extra_files '
+                     'support')
+            @monkeypatch_method(manifest_maker)
+            def add_defaults(self, extra_files=extra_files):
+                add_defaults._orig(self)
+                self.filelist.extend(extra_files)
+
     finally:
         # Perform cleanup if any paths were added to sys.path
         if package_dir:
@@ -490,6 +515,19 @@ def split_csv(value):
              (chunk.strip() for chunk in value.split(','))
              if element]
     return value
+
+
+def monkeypatch_method(cls):
+    """A function decorator to monkey-patch a method of the same name on the
+    given class.
+    """
+
+    def wrapper(func):
+        setattr(func, '_orig', getattr(cls, func.__name__))
+        setattr(cls, func.__name__, func)
+        return func
+
+    return wrapper
 
 
 # The following classes are used to hack Distribution.command_options a bit
