@@ -205,10 +205,10 @@ def cfg_to_args(path='setup.cfg'):
                         'exist' % filename)
             # Unfortunately the only really sensible way to do this is to
             # monkey-patch the manifest_maker class
-            log.info('patching the manifest_maker command to add extra_files '
-                     'support')
             @monkeypatch_method(manifest_maker)
             def add_defaults(self, extra_files=extra_files):
+                log.info('[d2to1] running patched manifest_maker command with '
+                         'extra_files support')
                 add_defaults._orig(self)
                 self.filelist.extend(extra_files)
 
