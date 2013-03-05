@@ -10,7 +10,10 @@ to be an installation dependency for our packages yet--it is still too unstable
 # These first two imports are not used, but are needed to get around an
 # irritating Python bug that can crop up when using ./setup.py test.
 # See: http://www.eby-sarna.com/pipermail/peak/2010-May/003355.html
-import multiprocessing
+try:
+    import multiprocessing
+except ImportError:
+    pass
 import logging
 
 import os
