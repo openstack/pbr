@@ -1,11 +1,13 @@
 import os
+import sys
 import warnings
 
 from distutils.core import Distribution as _Distribution
 from distutils.errors import DistutilsFileError, DistutilsSetupError
 from setuptools.dist import _get_unpatched
 
-from d2to1.util import DefaultGetDict, IgnoreDict, cfg_to_args, resolve_name
+from .extern import six
+from .util import DefaultGetDict, IgnoreDict, cfg_to_args, resolve_name
 
 
 _Distribution = _get_unpatched(_Distribution)
@@ -31,7 +33,7 @@ def d2to1(dist, attr, value):
 
     if not value:
         return
-    if isinstance(value, basestring):
+    if isinstance(value, six.string_types):
         path = os.path.abspath(value)
     else:
         path = os.path.abspath('setup.cfg')
@@ -42,17 +44,18 @@ def d2to1(dist, attr, value):
     # Converts the setup.cfg file to setup() arguments
     try:
         attrs = cfg_to_args(path)
-    except Exception, e:
+    except:
+        e = sys.exc_info()[1]
         raise DistutilsSetupError(
                 'Error parsing %s: %s: %s' % (path, e.__class__.__name__,
-                                              unicode(e)))
+                                              six.u(e)))
 
     # Repeat some of the Distribution initialization code with the newly
     # provided attrs
     if attrs:
         # Skips 'options' and 'licence' support which are rarely used; may add
         # back in later if demanded
-        for key, val in attrs.iteritems():
+        for key, val in six.iteritems(attrs):
             if hasattr(dist.metadata, 'set_' + key):
                 getattr(dist.metadata, 'set_' + key)(val)
             elif hasattr(dist.metadata, key):
@@ -67,7 +70,7 @@ def d2to1(dist, attr, value):
     _Distribution.finalize_options(dist)
 
     # This bit comes out of distribute/setuptools
-    if isinstance(dist.metadata.version, (int, long, float)):
+    if isinstance(dist.metadata.version, six.integer_types + (float,)):
         # Some people apparently take "version number" too literally :)
         dist.metadata.version = str(dist.metadata.version)
 

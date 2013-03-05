@@ -6,7 +6,8 @@ import shutil
 import stat
 
 
-from ConfigParser import ConfigParser
+from ..extern.six import moves as m
+ConfigParser = m.configparser.ConfigParser
 
 
 @contextlib.contextmanager
