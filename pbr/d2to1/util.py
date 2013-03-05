@@ -173,7 +173,7 @@ def cfg_to_args(path='setup.cfg'):
                 hook_fn = resolve_name(hook)
                 try :
                     hook_fn(config)
-                except Exception as e:
+                except Exception, e:
                     log.error('setup hook %s raised exception: %s\n' %
                               (hook, e))
                     log.error(traceback.format_exc())
@@ -492,7 +492,7 @@ def run_command_hooks(cmd_obj, hook_kind):
 
         try :
             hook_obj(cmd_obj)
-        except Exception as e :
+        except Exception, e :
             log.error('hook %s raised exception: %s\n' % (hook, e))
             log.error(traceback.format_exc())
             sys.exit(1)
