@@ -10,7 +10,10 @@ to be an installation dependency for our packages yet--it is still too unstable
 # These first two imports are not used, but are needed to get around an
 # irritating Python bug that can crop up when using ./setup.py test.
 # See: http://www.eby-sarna.com/pipermail/peak/2010-May/003355.html
-import multiprocessing
+try:
+    import multiprocessing
+except ImportError:
+    pass
 import logging
 
 import os
@@ -28,10 +31,9 @@ from distutils.errors import (DistutilsOptionError, DistutilsModuleError,
 from setuptools.command.egg_info import manifest_maker
 from setuptools.dist import Distribution
 from setuptools.extension import Extension
-try:
-    from ConfigParser import RawConfigParser
-except ImportError:
-    from configparser import RawConfigParser
+
+from .extern.six import moves as m
+RawConfigParser = m.configparser.RawConfigParser
 
 
 # A simplified RE for this; just checks that the line ends with version
@@ -173,7 +175,8 @@ def cfg_to_args(path='setup.cfg'):
                 hook_fn = resolve_name(hook)
                 try :
                     hook_fn(config)
-                except Exception, e:
+                except:
+                    e = sys.exc_info()[1]
                     log.error('setup hook %s raised exception: %s\n' %
                               (hook, e))
                     log.error(traceback.format_exc())
@@ -492,7 +495,8 @@ def run_command_hooks(cmd_obj, hook_kind):
 
         try :
             hook_obj(cmd_obj)
-        except Exception, e :
+        except:
+            e = sys.exc_info()[1]
             log.error('hook %s raised exception: %s\n' % (hook, e))
             log.error(traceback.format_exc())
             sys.exit(1)

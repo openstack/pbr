@@ -67,7 +67,8 @@ class D2to1TestCase(object):
         cmd = ('-c',
                'import sys;sys.path.insert(0, %r);'
                'from d2to1.tests import fake_d2to1_dist;'
-               'fake_d2to1_dist();execfile("setup.py")' % D2TO1_DIR)
+               'from d2to1.extern.six import exec_;'
+               'fake_d2to1_dist();exec_(open("setup.py").read())' % D2TO1_DIR)
         return self._run_cmd(sys.executable, cmd + args)
 
     def run_svn(self, *args):
@@ -85,4 +86,5 @@ class D2to1TestCase(object):
                              stderr=subprocess.PIPE)
 
         streams = tuple(s.decode('latin1').strip() for s in p.communicate())
+        print(streams)
         return (streams) + (p.returncode,)

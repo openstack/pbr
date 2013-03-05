@@ -18,7 +18,8 @@ is added then support for it should be included here as well.
 import logging
 import os
 
-from ConfigParser import ConfigParser
+from .extern.six import moves as m
+ConfigParser = m.configparser.ConfigParser
 
 
 logger = logging.getLogger(__name__)
