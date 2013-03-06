@@ -209,9 +209,9 @@ def cfg_to_args(path='setup.cfg'):
             # Unfortunately the only really sensible way to do this is to
             # monkey-patch the manifest_maker class
             @monkeypatch_method(manifest_maker)
-            def add_defaults(self, extra_files=extra_files):
-                log.info('[d2to1] running patched manifest_maker command with '
-                         'extra_files support')
+            def add_defaults(self, extra_files=extra_files, log=log):
+                log.info('[d2to1] running patched manifest_maker command '
+                          'with extra_files support')
                 add_defaults._orig(self)
                 self.filelist.extend(extra_files)
 
@@ -535,8 +535,10 @@ def monkeypatch_method(cls):
     """
 
     def wrapper(func):
-        setattr(func, '_orig', getattr(cls, func.__name__))
-        setattr(cls, func.__name__, func)
+        orig = getattr(cls, func.__name__, None)
+        if orig and not hasattr(orig, '_orig'):  # Already patched
+            setattr(func, '_orig', orig)
+            setattr(cls, func.__name__, func)
         return func
 
     return wrapper
