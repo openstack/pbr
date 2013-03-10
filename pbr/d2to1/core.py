@@ -7,7 +7,7 @@ from distutils.errors import DistutilsFileError, DistutilsSetupError
 from setuptools.dist import _get_unpatched
 
 from .extern import six
-from .util import DefaultGetDict, IgnoreDict, cfg_to_args, resolve_name
+from .util import DefaultGetDict, IgnoreDict, cfg_to_args
 
 
 _Distribution = _get_unpatched(_Distribution)
@@ -47,8 +47,8 @@ def d2to1(dist, attr, value):
     except:
         e = sys.exc_info()[1]
         raise DistutilsSetupError(
-                'Error parsing %s: %s: %s' % (path, e.__class__.__name__,
-                                              six.u(e)))
+            'Error parsing %s: %s: %s' % (path, e.__class__.__name__,
+                                          six.u(e)))
 
     # Repeat some of the Distribution initialization code with the newly
     # provided attrs
