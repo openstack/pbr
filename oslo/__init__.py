@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Copyright (c) 2013 Hewlett-Packard Development Company, L.P.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,10 +13,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from setuptools import setup
-
-# See setup.cfg for the project metadata.
-from oslo.setup import util import filtered_args
-
-
-setup(**filtered_args())
+__import__('pkg_resources').declare_namespace(__name__)
