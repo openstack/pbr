@@ -14,10 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from setuptools import setup
+import setuptools
 
 # See setup.cfg for the project metadata.
-from oslo.setup import util import filtered_args
+from oslo.packaging import util
 
 
-setup(**filtered_args())
+# Use our internals directly, so that we don't chicken-and-egg needing to
+# install an entry point before using ourself.
+setuptools.setup(**util.filtered_args())

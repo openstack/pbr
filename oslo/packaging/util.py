@@ -79,9 +79,9 @@ from setuptools.dist import Distribution
 from setuptools.extension import Extension
 
 try:
-    import configparser.RawConfigParser as RawConfigParser
+    from  ConfigParser import RawConfigParser
 except ImportError:
-    import ConfigParser.RawConfigParser as RawConfigParser
+    from configparser import RawConfigParser
 
 from oslo.packaging import packaging
 
@@ -274,9 +274,9 @@ def cfg_to_args(path='setup.cfg'):
     return kwargs
 
 
-def filtered_args(attr):
+def filtered_args(path='setup.cfg'):
     """Process and pass on the attrs dict."""
-    return packaging.attr_filter(attr)
+    return packaging.attr_filter(cfg_to_args(path))
 
 
 def setup_cfg_to_setup_kwargs(config):

@@ -13,23 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Copyright (C) 2013 Association of Universities for Research in Astronomy (AURA)
+# Copyright (C) 2013 Association of Universities for Research in Astronomy
+#                    (AURA)
 
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #     1. Redistributions of source code must retain the above copyright
 #        notice, this list of conditions and the following disclaimer.
-# 
+#
 #     2. Redistributions in binary form must reproduce the above
 #        copyright notice, this list of conditions and the following
 #        disclaimer in the documentation and/or other materials provided
 #        with the distribution.
-# 
+#
 #     3. The name of AURA and its representatives may not be used to
 #        endorse or promote products derived from this software without
 #        specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY AURA ``AS IS'' AND ANY EXPRESS OR IMPLIED
 # WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -48,13 +49,16 @@ import os
 import sys
 import warnings
 
+from distutils import log
+import pkg_resources
 from setuptools.dist import _get_unpatched
-import six
+from .extern import six
 
 from oslo.packaging import util
-
+from oslo.packaging import packaging
 
 _Distribution = _get_unpatched(_Distribution)
+log.set_verbosity(log.INFO)
 
 
 def setup(dist, attr, value):
@@ -72,6 +76,7 @@ def setup(dist, attr, value):
     not work well with distributions that do use a `Distribution` subclass.
     """
 
+    log.info("[oslo.packaging] Processing setup.cfg")
     if not value:
         return
     path = os.path.abspath('setup.cfg')
@@ -94,7 +99,12 @@ def setup(dist, attr, value):
 
         # Handle additional setup processing
         if 'setup_requires' in attrs:
-            attrs = chainload_setups(dist, attrs['setup_requires'], attrs)
+            chainload_setups(dist, attrs['setup_requires'])
+
+        for ep in pkg_resources.iter_entry_points(
+                'oslo.packaging.attr_filters'):
+            filter_method = ep.load()
+            attrs = filter_method(attrs)
 
         # Skips 'options' and 'licence' support which are rarely used; may add
         # back in later if demanded
@@ -117,10 +127,8 @@ def setup(dist, attr, value):
         # Some people apparently take "version number" too literally :)
         dist.metadata.version = str(dist.metadata.version)
 
-    dist.command_options = util.DefaultGetDict(lambda: util.IgnoreDict(ignore))
 
-
-def chainload_setups(dist, requires_list, attrs):
+def chainload_setups(dist, requires_list):
     try:
         import pip.command.install
     except ImportError:
@@ -132,13 +140,6 @@ def chainload_setups(dist, requires_list, attrs):
         cmd.ensure_finalized()
         cmd.easy_install("req")
         import pip.command.install
-    import pkg_resources
 
     pip_install = pip.command.install.InstallCommand()
     pip_install.run({}, requires_list)
-
-    for ep in pkg_resources.iter_entry_points('oslo.packaging.attr_filters'):
-        filter_method = ep.load()
-        attrs = filter_method(attrs)
-
-    return attrs

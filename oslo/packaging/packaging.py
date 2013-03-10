@@ -26,7 +26,11 @@ import re
 import subprocess
 import sys
 
+from distutils import log
+import setuptools
 from setuptools.command import sdist
+
+log.set_verbosity(log.INFO)
 
 
 def parse_mailmap(mailmap='.mailmap'):
@@ -145,11 +149,12 @@ def _get_git_directory():
 
 def write_git_changelog():
     """Write a changelog based on the git changelog."""
+    log.info('[oslo.packaging] Writing ChangeLog')
     new_changelog = 'ChangeLog'
     git_dir = _get_git_directory()
     if not os.getenv('SKIP_WRITE_GIT_CHANGELOG'):
         if git_dir:
-            git_log_cmd = 'git --git-dir=%s log --stat' % git_dir
+            git_log_cmd = 'git --git-dir=%s log' % git_dir
             changelog = _run_shell_command(git_log_cmd)
             mailmap = _parse_git_mailmap(git_dir)
             with open(new_changelog, "w") as changelog_file:
@@ -160,6 +165,7 @@ def write_git_changelog():
 
 def generate_authors():
     """Create AUTHORS file using git commits."""
+    log.info('[oslo.packaging] Generating AUTHORS')
     jenkins_email = 'jenkins@review.(openstack|stackforge).org'
     old_authors = 'AUTHORS.in'
     new_authors = 'AUTHORS'
@@ -224,7 +230,8 @@ def get_cmdclass():
             builders = ['html', 'man']
 
             def generate_autoindex(self):
-                print "**Autodocumenting from %s" % os.path.abspath(os.curdir)
+                log.info("[oslo.packaging] Autodocumenting from %s"
+                         % os.path.abspath(os.curdir))
                 modules = {}
                 option_dict = self.distribution.get_option_dict('build_sphinx')
                 source_dir = os.path.join(option_dict['source_dir'][1], 'api')
@@ -249,7 +256,8 @@ def get_cmdclass():
                         values = dict(module=module, heading=heading,
                                       underline=underline)
 
-                        print "Generating %s" % output_filename
+                        log.info("[oslo.packaging] Generating %s"
+                                 % output_filename)
                         with open(output_filename, 'w') as output_file:
                             output_file.write(_rst_template % values)
                         autoindex.write("   %s.rst\n" % module)
@@ -359,6 +367,17 @@ def get_version(package_name, pre_version=None):
                     " tarball, or access to an upstream git repository.")
 
 
+def smart_find_packages(package_list):
+    """Run find_packages the way we intend."""
+    packages = []
+    for pkg in package_list:
+        pkg_path = pkg.replace('.', os.path.sep)
+        packages.append(pkg)
+        packages.extend(['%s.%s' % (pkg, f)
+                         for f in setuptools.find_packages(pkg_path)])
+    return list(set(packages))
+
+
 def attr_filter(attrs):
     """Filter attrs parsed from a setup.cfg to inject our defaults."""
     attrs['version'] = get_version(attrs['name'], attrs.get('version', None))
@@ -366,4 +385,5 @@ def attr_filter(attrs):
     attrs['install_requires'] = parse_requirements()
     attrs['dependency_links'] = parse_dependency_links()
     attrs['include_package_data'] = True
+    attrs['packages'] = smart_find_packages(attrs['packages'])
     return attrs

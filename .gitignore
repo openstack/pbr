@@ -25,3 +25,5 @@ develop-eggs
 .*.swp
 .coverage
 cover
+AUTHORS
+ChangeLog
