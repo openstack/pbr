@@ -55,7 +55,6 @@ from setuptools.dist import _get_unpatched
 from .extern import six
 
 from oslo.packaging import util
-from oslo.packaging import packaging
 
 _Distribution = _get_unpatched(_Distribution)
 log.set_verbosity(log.INFO)
@@ -63,7 +62,7 @@ log.set_verbosity(log.INFO)
 
 def setup(dist, attr, value):
     """Implements the actual oslo.packaging setup() keyword.
-    
+
     When used, this should be the only keyword in your setup() aside from
     `setup_requires`.
 

@@ -129,7 +129,6 @@ class MovedAttribute(_LazyDescr):
         return getattr(module, self.attr)
 
 
-
 class _MovedItems(types.ModuleType):
     """Lazy loading of moved objects"""
 
@@ -163,8 +162,10 @@ _moved_attributes = [
     MovedModule("tkinter", "Tkinter"),
     MovedModule("tkinter_dialog", "Dialog", "tkinter.dialog"),
     MovedModule("tkinter_filedialog", "FileDialog", "tkinter.filedialog"),
-    MovedModule("tkinter_scrolledtext", "ScrolledText", "tkinter.scrolledtext"),
-    MovedModule("tkinter_simpledialog", "SimpleDialog", "tkinter.simpledialog"),
+    MovedModule("tkinter_scrolledtext", "ScrolledText",
+                "tkinter.scrolledtext"),
+    MovedModule("tkinter_simpledialog", "SimpleDialog",
+                "tkinter.simpledialog"),
     MovedModule("tkinter_tix", "Tix", "tkinter.tix"),
     MovedModule("tkinter_constants", "Tkconstants", "tkinter.constants"),
     MovedModule("tkinter_dnd", "Tkdnd", "tkinter.dnd"),
@@ -265,9 +266,11 @@ def iterkeys(d):
     """Return an iterator over the keys of a dictionary."""
     return iter(getattr(d, _iterkeys)())
 
+
 def itervalues(d):
     """Return an iterator over the values of a dictionary."""
     return iter(getattr(d, _itervalues)())
+
 
 def iteritems(d):
     """Return an iterator over the (key, value) pairs of a dictionary."""
@@ -275,8 +278,10 @@ def iteritems(d):
 
 
 if PY3:
+
     def b(s):
         return s.encode("latin-1")
+
     def u(s):
         return s
     if sys.version_info[1] <= 1:
@@ -289,8 +294,10 @@ if PY3:
     StringIO = io.StringIO
     BytesIO = io.BytesIO
 else:
+
     def b(s):
         return s
+
     def u(s):
         return unicode(s, "unicode_escape")
     int2byte = chr
@@ -304,17 +311,16 @@ if PY3:
     import builtins
     exec_ = getattr(builtins, "exec")
 
-
     def reraise(tp, value, tb=None):
         if value.__traceback__ is not tb:
             raise value.with_traceback(tb)
         raise value
 
-
     print_ = getattr(builtins, "print")
     del builtins
 
 else:
+
     def exec_(code, globs=None, locs=None):
         """Execute code in a namespace."""
         if globs is None:
@@ -327,17 +333,16 @@ else:
             locs = globs
         exec("""exec code in globs, locs""")
 
-
     exec_("""def reraise(tp, value, tb=None):
     raise tp, value, tb
 """)
-
 
     def print_(*args, **kwargs):
         """The new-style print function."""
         fp = kwargs.pop("file", sys.stdout)
         if fp is None:
             return
+
         def write(data):
             if not isinstance(data, basestring):
                 data = str(data)

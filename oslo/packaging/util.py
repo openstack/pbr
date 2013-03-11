@@ -13,23 +13,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Copyright (C) 2013 Association of Universities for Research in Astronomy (AURA)
-
+# Copyright (C) 2013 Association of Universities for Research in Astronomy
+#                    (AURA)
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 
+#
 #     1. Redistributions of source code must retain the above copyright
 #        notice, this list of conditions and the following disclaimer.
-# 
+#
 #     2. Redistributions in binary form must reproduce the above
 #        copyright notice, this list of conditions and the following
 #        disclaimer in the documentation and/or other materials provided
 #        with the distribution.
-# 
+#
 #     3. The name of AURA and its representatives may not be used to
 #        endorse or promote products derived from this software without
 #        specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY AURA ``AS IS'' AND ANY EXPRESS OR IMPLIED
 # WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -224,7 +225,7 @@ def cfg_to_args(path='setup.cfg'):
             setup_hooks = split_multiline(setup_hooks)
             for hook in setup_hooks:
                 hook_fn = resolve_name(hook)
-                try :
+                try:
                     hook_fn(config)
                 except:
                     e = sys.exc_info()[1]
@@ -257,6 +258,7 @@ def cfg_to_args(path='setup.cfg'):
                     raise DistutilsFileError(
                         '%s from the extra_files option in setup.cfg does not '
                         'exist' % filename)
+
             # Unfortunately the only really sensible way to do this is to
             # monkey-patch the manifest_maker class
             @monkeypatch_method(manifest_maker)
@@ -298,6 +300,7 @@ def setup_cfg_to_setup_kwargs(config):
 
         in_cfg_value = has_get_option(config, section, option)
         if not in_cfg_value:
+
             # There is no such option in the setup.cfg
             if arg == "long_description":
                 in_cfg_value = has_get_option(config, section,
@@ -537,9 +540,9 @@ def run_command_hooks(cmd_obj, hook_kind):
             try:
                 hook_obj = resolve_name(hook)
             except ImportError:
-                err = sys.exc_info()[1] # For py3k
+                err = sys.exc_info()[1]  # For py3k
                 raise DistutilsModuleError('cannot find hook %s: %s' %
-                                           (hook,err))
+                                           (hook, err))
         else:
             hook_obj = hook
 
@@ -549,7 +552,7 @@ def run_command_hooks(cmd_obj, hook_kind):
         log.info('running %s %s for command %s',
                  hook_kind, hook, cmd_obj.get_command_name())
 
-        try :
+        try:
             hook_obj(cmd_obj)
         except:
             e = sys.exc_info()[1]
