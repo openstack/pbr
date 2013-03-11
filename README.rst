@@ -2,8 +2,8 @@ Introduction
 ============
 
 oslo.packaging provides a set of default python packaging configuration and
-behaviors. It started off as a combination of an invasive fork of d2to1
-and the openstack.common.setup module.
+behaviors. It is implemented as a setup hook for d2to1 which allows us to
+manipulate the setup.cfg information before it is passed to setup.py.
 
 Behaviors
 =========
@@ -24,10 +24,7 @@ into the sphinx config.
 Usage
 =====
 oslo.packaging requires a distribution to use distribute.  Your distribution
-must include a distutils2-like setup.cfg file, and a minimal
-setup.py script. The purpose is not to actually support distutils2, that's
-turned in to a boondoggle. However, having declarative setup is a great idea,
-and we can have that now if we don't care about distutils2 ever being finished.
+must include a distutils2-like setup.cfg file, and a minimal setup.py script.
 
 A simple sample can be found in oslo.packaging s own setup.cfg
 (it uses its own machinery to install itself)::
@@ -55,6 +52,9 @@ A simple sample can be found in oslo.packaging s own setup.cfg
  packages =
      oslo
      oslo.packaging
+ [hooks]
+ setup-hooks =
+     oslo.packaging.hooks.setup_hook
 
 The minimal setup.py should look something like this::
 
@@ -63,11 +63,11 @@ The minimal setup.py should look something like this::
  from setuptools import setup
 
  setup(
-     setup_requires=['oslo.packaging'],
-     oslo_packaging=True
+     setup_requires=['d2to1', 'oslo.packaging'],
+     d2to1=True,
  )
 
-Note that it's important to specify oslo_packaging=True or else the
+Note that it's important to specify `d2to1=True` or else the
 oslo.packaging functionality will not be enabled.
 
 It should also work fine if additional arguments are passed to `setup()`,
