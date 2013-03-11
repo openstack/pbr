@@ -16,10 +16,6 @@
 
 import setuptools
 
-# See setup.cfg for the project metadata.
-from oslo.packaging import util
-
-
-# Use our internals directly, so that we don't chicken-and-egg needing to
-# install an entry point before using ourself.
-setuptools.setup(**util.filtered_args())
+setuptools.setup(
+    setup_requires = ['d2to1'],
+    d2to1 = True)
