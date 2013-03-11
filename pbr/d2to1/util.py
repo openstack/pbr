@@ -76,6 +76,9 @@ D1_D2_SETUP_ARGS = {
     "use_2to3": ("backwards_compat", "use_2to3"),
     "zip_safe": ("backwards_compat", "zip_safe"),
     "tests_require": ("backwards_compat", "tests_require"),
+    "setup_requires": ("backwards_compat",),
+    "dependency_links": ("backwards_compat",),
+    "include_package_data": ("backwards_compat",),
 }
 
 # setup() arguments that can have multiple values in setup.cfg
@@ -89,11 +92,13 @@ MULTI_FIELDS = ("classifiers",
                 "data_files",
                 "scripts",
                 "py_modules",
+                "dependency_links",
+                "setup_requires",
                 "tests_require",
                 "cmdclass")
 
 # setup() arguments that contain boolean values
-BOOL_FIELDS = ("use_2to3", "zip_safe")
+BOOL_FIELDS = ("use_2to3", "zip_safe", "include_package_data")
 
 
 CSV_FIELDS = ("keywords",)
