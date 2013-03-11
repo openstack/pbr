@@ -21,6 +21,7 @@ develop-eggs
 .installed.cfg
 
 # Other
+.testrepository
 .tox
 .*.swp
 .coverage
