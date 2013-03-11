@@ -48,7 +48,7 @@ def d2to1(dist, attr, value):
         e = sys.exc_info()[1]
         raise DistutilsSetupError(
             'Error parsing %s: %s: %s' % (path, e.__class__.__name__,
-                                          six.u(e)))
+                                          six.u(str(e))))
 
     # Repeat some of the Distribution initialization code with the newly
     # provided attrs
