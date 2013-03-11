@@ -28,7 +28,6 @@ import sys
 
 from distutils import log
 from setuptools.command import sdist
-from sphinx.setup_command import BuildDoc
 
 log.set_verbosity(log.INFO)
 
@@ -215,60 +214,71 @@ class LocalSDist(sdist.sdist):
         # sdist.sdist is an old style class, can't use super()
         sdist.sdist.run(self)
 
+try:
+    from sphinx.setup_command import BuildDoc
 
-class LocalBuildDoc(BuildDoc):
+    class LocalBuildDoc(BuildDoc):
 
-    command_name = 'build_sphinx'
-    builders = ['html', 'man']
+        command_name = 'build_sphinx'
+        builders = ['html', 'man']
 
-    def generate_autoindex(self):
-        log.info("[oslo.packaging] Autodocumenting from %s"
-                 % os.path.abspath(os.curdir))
-        modules = {}
-        option_dict = self.distribution.get_option_dict('build_sphinx')
-        source_dir = os.path.join(option_dict['source_dir'][1], 'api')
-        if not os.path.exists(source_dir):
-            os.makedirs(source_dir)
-        for pkg in self.distribution.packages:
-            if '.' not in pkg:
-                os.path.walk(pkg, _find_modules, modules)
-        module_list = modules.keys()
-        module_list.sort()
-        autoindex_filename = os.path.join(source_dir, 'autoindex.rst')
-        with open(autoindex_filename, 'w') as autoindex:
-            autoindex.write(""".. toctree::
-:maxdepth: 1
+        def generate_autoindex(self):
+            log.info("[oslo.packaging] Autodocumenting from %s"
+                     % os.path.abspath(os.curdir))
+            modules = {}
+            option_dict = self.distribution.get_option_dict('build_sphinx')
+            source_dir = os.path.join(option_dict['source_dir'][1], 'api')
+            if not os.path.exists(source_dir):
+                os.makedirs(source_dir)
+            for pkg in self.distribution.packages:
+                if '.' not in pkg:
+                    os.path.walk(pkg, _find_modules, modules)
+            module_list = modules.keys()
+            module_list.sort()
+            autoindex_filename = os.path.join(source_dir, 'autoindex.rst')
+            with open(autoindex_filename, 'w') as autoindex:
+                autoindex.write(""".. toctree::
+    :maxdepth: 1
 
-""")
-            for module in module_list:
-                output_filename = os.path.join(source_dir,
-                                               "%s.rst" % module)
-                heading = "The :mod:`%s` Module" % module
-                underline = "=" * len(heading)
-                values = dict(module=module, heading=heading,
-                              underline=underline)
+    """)
+                for module in module_list:
+                    output_filename = os.path.join(source_dir,
+                                                   "%s.rst" % module)
+                    heading = "The :mod:`%s` Module" % module
+                    underline = "=" * len(heading)
+                    values = dict(module=module, heading=heading,
+                                  underline=underline)
 
-                log.info("[oslo.packaging] Generating %s"
-                         % output_filename)
-                with open(output_filename, 'w') as output_file:
-                    output_file.write(_rst_template % values)
-                autoindex.write("   %s.rst\n" % module)
+                    log.info("[oslo.packaging] Generating %s"
+                             % output_filename)
+                    with open(output_filename, 'w') as output_file:
+                        output_file.write(_rst_template % values)
+                    autoindex.write("   %s.rst\n" % module)
 
-    def run(self):
-        if not os.getenv('SPHINX_DEBUG'):
-            self.generate_autoindex()
+        def run(self):
+            if not os.getenv('SPHINX_DEBUG'):
+                self.generate_autoindex()
 
-        for builder in self.builders:
-            self.builder = builder
-            self.finalize_options()
-            self.project = self.distribution.get_name()
-            self.version = self.distribution.get_version()
-            self.release = self.distribution.get_version()
-            BuildDoc.run(self)
+            for builder in self.builders:
+                self.builder = builder
+                self.finalize_options()
+                self.project = self.distribution.get_name()
+                self.version = self.distribution.get_version()
+                self.release = self.distribution.get_version()
+                BuildDoc.run(self)
 
-class LocalBuildLatex(LocalBuildDoc):
-    builders = ['latex']
-    command_name = 'build_sphinx_latex'
+    class LocalBuildLatex(LocalBuildDoc):
+        builders = ['latex']
+        command_name = 'build_sphinx_latex'
+
+    _have_sphinx = True
+
+except ImportError:
+    _have_sphinx = False
+
+
+def have_sphinx():
+    return _have_sphinx
 
 
 def _get_revno(git_dir):

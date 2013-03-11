@@ -43,6 +43,9 @@ def setup_hook(config):
     config['global'] = config.get('global', dict())
     config['global']['commands'] = config['global'].get('commands', "") + """
 oslo.packaging.packaging.LocalSDist
+"""
+    if packaging.have_sphinx():
+        config['global']['commands'] = config['global']['commands'] + """
 oslo.packaging.packaging.LocalBuildDoc
 oslo.packaging.packaging.LocalBuildLatex
 """
