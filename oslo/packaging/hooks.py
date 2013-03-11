@@ -48,8 +48,10 @@ oslo.packaging.packaging.LocalBuildLatex
 """
 
     # TODO: Need to get these two included upstream
-    #attrs['dependency_links'] = parse_dependency_links()
-    #attrs['include_package_data'] = True
+    #config['backwards_compat']['dependency_links'] = parse_dependency_links()
+    #config['backwards_compat']['include_package_data'] = True
+    #config['backwards_compat']['tests_require'] = parse_requirements(
+    #    ["test-requirements.txt", "tools/test-requires"])
 
     files = config.get('files', dict())
     files['packages'] = smart_find_packages(
