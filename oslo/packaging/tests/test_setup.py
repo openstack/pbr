@@ -155,19 +155,6 @@ class GitLogsTest(utils.BaseTestCase):
 
 class BuildSphinxTest(utils.BaseTestCase):
 
-    def setUp(self):
-        super(BuildSphinxTest, self).setUp()
-        if (os.environ.get('OS_STDOUT_CAPTURE') == 'True' or
-                os.environ.get('OS_STDOUT_CAPTURE') == '1'):
-            stdout = self.useFixture(fixtures.StringStream('stdout')).stream
-            self.useFixture(fixtures.MonkeyPatch('sys.stdout', stdout))
-        if (os.environ.get('OS_STDERR_CAPTURE') == 'True' or
-                os.environ.get('OS_STDERR_CAPTURE') == '1'):
-            stderr = self.useFixture(fixtures.StringStream('stderr')).stream
-            self.useFixture(fixtures.MonkeyPatch('sys.stderr', stderr))
-        self.log_fixture = self.useFixture(
-            fixtures.FakeLogger('oslo.packaging'))
-
     def test_build_sphinx(self):
 
         self.useFixture(fixtures.MonkeyPatch(

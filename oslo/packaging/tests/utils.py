@@ -16,6 +16,8 @@
 
 """Common utilities used in testing"""
 
+import os
+
 import fixtures
 import testtools
 
@@ -24,6 +26,17 @@ class BaseTestCase(testtools.TestCase):
 
     def setUp(self):
         super(BaseTestCase, self).setUp()
+        if (os.environ.get('OS_STDOUT_CAPTURE') == 'True' or
+                os.environ.get('OS_STDOUT_CAPTURE') == '1'):
+            stdout = self.useFixture(fixtures.StringStream('stdout')).stream
+            self.useFixture(fixtures.MonkeyPatch('sys.stdout', stdout))
+        if (os.environ.get('OS_STDERR_CAPTURE') == 'True' or
+                os.environ.get('OS_STDERR_CAPTURE') == '1'):
+            stderr = self.useFixture(fixtures.StringStream('stderr')).stream
+            self.useFixture(fixtures.MonkeyPatch('sys.stderr', stderr))
+        self.log_fixture = self.useFixture(
+            fixtures.FakeLogger('oslo.packaging'))
+
         self.useFixture(fixtures.NestedTempfile())
         self.useFixture(fixtures.FakeLogger())
         self.useFixture(fixtures.Timeout(30, True))
