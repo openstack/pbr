@@ -21,17 +21,17 @@ import os
 import fixtures
 import testtools
 
+_TRUE = ('True', '1')
+
 
 class BaseTestCase(testtools.TestCase):
 
     def setUp(self):
         super(BaseTestCase, self).setUp()
-        if (os.environ.get('OS_STDOUT_CAPTURE') == 'True' or
-                os.environ.get('OS_STDOUT_CAPTURE') == '1'):
+        if os.environ.get('OS_STDOUT_CAPTURE') in _TRUE:
             stdout = self.useFixture(fixtures.StringStream('stdout')).stream
             self.useFixture(fixtures.MonkeyPatch('sys.stdout', stdout))
-        if (os.environ.get('OS_STDERR_CAPTURE') == 'True' or
-                os.environ.get('OS_STDERR_CAPTURE') == '1'):
+        if os.environ.get('OS_STDERR_CAPTURE') in _TRUE:
             stderr = self.useFixture(fixtures.StringStream('stderr')).stream
             self.useFixture(fixtures.MonkeyPatch('sys.stderr', stderr))
         self.log_fixture = self.useFixture(
