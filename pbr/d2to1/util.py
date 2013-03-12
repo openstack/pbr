@@ -62,6 +62,7 @@ D1_D2_SETUP_ARGS = {
     # Use setuptools install_requires, not
     # broken distutils requires
     "install_requires": ("metadata", "requires_dist"),
+    "setup_requires": ("metadata", "setup_requires_dist"),
     "provides": ("metadata", "provides_dist"),  # **
     "obsoletes": ("metadata", "obsoletes_dist"),  # **
     "package_dir": ("files", 'packages_root'),
@@ -76,7 +77,6 @@ D1_D2_SETUP_ARGS = {
     "use_2to3": ("backwards_compat", "use_2to3"),
     "zip_safe": ("backwards_compat", "zip_safe"),
     "tests_require": ("backwards_compat", "tests_require"),
-    "setup_requires": ("backwards_compat",),
     "dependency_links": ("backwards_compat",),
     "include_package_data": ("backwards_compat",),
 }
