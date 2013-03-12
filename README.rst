@@ -87,8 +87,13 @@ testr arguments that are needed to tox. For example, you can run:
 
 It is also possible to run the tests inside of a virtual environment
 you have created, or it is possible that you have all of the dependencies
-installed locally already. In this case, you can interact with the testr
-command directly. Running `testr run` will run the entire test suite. `testr
-run --parallel` will run it in parallel (this is the default incantation tox
-uses.) More information about testr can be found at:
-http://wiki.openstack.org/testr
+installed locally already. If you'd like to go this route, the requirements
+are listed in requirements.txt and the requirements for testing are in
+test-requirements.txt. Installing them via pip, for instance, is simply::
+
+  pip install -r requirements.txt -r test-requirements.txt
+
+In you go this route, you can interact with the testr command directly.
+Running `testr run` will run the entire test suite. `testr run --parallel`
+will run it in parallel (this is the default incantation tox uses.) More
+information about testr can be found at: http://wiki.openstack.org/testr
