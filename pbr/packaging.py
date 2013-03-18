@@ -148,7 +148,7 @@ def _get_git_directory():
 
 def write_git_changelog():
     """Write a changelog based on the git changelog."""
-    log.info('[oslo.packaging] Writing ChangeLog')
+    log.info('[pbr] Writing ChangeLog')
     new_changelog = 'ChangeLog'
     git_dir = _get_git_directory()
     if not os.getenv('SKIP_WRITE_GIT_CHANGELOG'):
@@ -164,7 +164,7 @@ def write_git_changelog():
 
 def generate_authors():
     """Create AUTHORS file using git commits."""
-    log.info('[oslo.packaging] Generating AUTHORS')
+    log.info('[pbr] Generating AUTHORS')
     jenkins_email = 'jenkins@review.(openstack|stackforge).org'
     old_authors = 'AUTHORS.in'
     new_authors = 'AUTHORS'
@@ -223,7 +223,7 @@ try:
         builders = ['html', 'man']
 
         def generate_autoindex(self):
-            log.info("[oslo.packaging] Autodocumenting from %s"
+            log.info("[pbr] Autodocumenting from %s"
                      % os.path.abspath(os.curdir))
             modules = {}
             option_dict = self.distribution.get_option_dict('build_sphinx')
@@ -249,7 +249,7 @@ try:
                     values = dict(module=module, heading=heading,
                                   underline=underline)
 
-                    log.info("[oslo.packaging] Generating %s"
+                    log.info("[pbr] Generating %s"
                              % output_filename)
                     with open(output_filename, 'w') as output_file:
                         output_file.write(_rst_template % values)

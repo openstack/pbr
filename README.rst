@@ -1,7 +1,7 @@
 Introduction
 ============
 
-oslo.packaging provides a set of default python packaging configuration and
+pbr provides a set of default python packaging configuration and
 behaviors. It is implemented as a setup hook for d2to1 which allows us to
 manipulate the setup.cfg information before it is passed to setup.py.
 
@@ -23,14 +23,14 @@ into the sphinx config.
 
 Usage
 =====
-oslo.packaging requires a distribution to use distribute.  Your distribution
+pbr requires a distribution to use distribute.  Your distribution
 must include a distutils2-like setup.cfg file, and a minimal setup.py script.
 
-A simple sample can be found in oslo.packaging s own setup.cfg
+A simple sample can be found in pbr s own setup.cfg
 (it uses its own machinery to install itself)::
 
  [metadata]
- name = oslo.packaging
+ name = pbr
  author = OpenStack Foundation
  author-email = openstack-dev@lists.openstack.org
  summary = OpenStack's setup automation in a reuable form
@@ -51,10 +51,9 @@ A simple sample can be found in oslo.packaging s own setup.cfg
  [files]
  packages =
      oslo
-     oslo.packaging
  [hooks]
  setup-hooks =
-     oslo.packaging.hooks.setup_hook
+     pbr.hooks.setup_hook
 
 The minimal setup.py should look something like this::
 
@@ -63,12 +62,12 @@ The minimal setup.py should look something like this::
  from setuptools import setup
 
  setup(
-     setup_requires=['d2to1', 'oslo.packaging'],
+     setup_requires=['d2to1', 'pbr'],
      d2to1=True,
  )
 
-Note that it's important to specify `d2to1=True` or else the
-oslo.packaging functionality will not be enabled.
+Note that it's important to specify `d2to1=True` or else the pbr functionality
+will not be enabled.
 
 It should also work fine if additional arguments are passed to `setup()`,
 but it should be noted that they will be clobbered by any options in the

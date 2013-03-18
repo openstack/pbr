@@ -1,8 +1,9 @@
-oslo.packaging
-==============
+pbr - Python Build Reasonableness
+=================================
 
-An OpenStack library for managing setuptools packaging needs in a consistent
-manner.
+A library for managing setuptools packaging needs in a consistent manner.
+
+PBR is not a library about beer.
 
 Contents
 --------

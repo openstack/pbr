@@ -24,8 +24,8 @@ from tempfile import mkstemp
 
 import fixtures
 
-from oslo.packaging import packaging
-from oslo.packaging.tests import utils
+from pbr import packaging
+from pbr.tests import utils
 
 
 class DiveDir(fixtures.Fixture):
@@ -88,8 +88,8 @@ class GitLogsTest(utils.BaseTestCase):
     @staticmethod
     def _root_dir():
         # NOTE(yamahata): get root direcotry of repository
-        # __file__ = $ROOT/oslo/packaging/tests/test_setup.py
-        # => $ROOT/oslo/packaging/tests/unit => $ROOT/tests => $ROOT
+        # __file__ = $ROOT/pbr/tests/test_setup.py
+        # => $ROOT/pbr/tests/unit => $ROOT/tests => $ROOT
         root_dir = os.path.dirname(__file__)
         root_dir = os.path.dirname(root_dir)
         root_dir = os.path.dirname(root_dir)
@@ -103,7 +103,7 @@ class GitLogsTest(utils.BaseTestCase):
             "os.path.exists",
             lambda path: os.path.abspath(path) in exist_files))
         self.useFixture(fixtures.MonkeyPatch(
-            "oslo.packaging.packaging._get_git_directory",
+            "pbr.packaging._get_git_directory",
             lambda: os.path.join(os.path.abspath(root_dir), ".git")))
         self.useFixture(fixtures.FakePopen(lambda _: {
             "stdout": StringIO.StringIO("Author: Foo Bar <email@bar.com>\n")
