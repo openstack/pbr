@@ -50,7 +50,6 @@ pbr.packaging.LocalBuildDoc
 pbr.packaging.LocalBuildLatex
 """
 
-    # TODO: Need to get these two included upstream
     #config['backwards_compat']['dependency_links'] = parse_dependency_links()
     #config['backwards_compat']['include_package_data'] = True
     #config['backwards_compat']['tests_require'] = parse_requirements(
