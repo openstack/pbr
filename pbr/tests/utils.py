@@ -21,6 +21,8 @@ import os
 import fixtures
 import testtools
 
+from pbr.tests import moxstubout
+
 _TRUE = ('True', '1')
 
 
@@ -40,3 +42,4 @@ class BaseTestCase(testtools.TestCase):
         self.useFixture(fixtures.NestedTempfile())
         self.useFixture(fixtures.FakeLogger())
         self.useFixture(fixtures.Timeout(30, True))
+        self.stubs = self.useFixture(moxstubout.MoxStubout()).stubs
