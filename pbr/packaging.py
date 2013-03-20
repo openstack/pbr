@@ -215,9 +215,9 @@ class LocalSDist(sdist.sdist):
         sdist.sdist.run(self)
 
 try:
-    from sphinx.setup_command import BuildDoc
+    from sphinx import setup_command
 
-    class LocalBuildDoc(BuildDoc):
+    class LocalBuildDoc(setup_command.BuildDoc):
 
         command_name = 'build_sphinx'
         builders = ['html', 'man']
@@ -265,7 +265,7 @@ try:
                 self.project = self.distribution.get_name()
                 self.version = self.distribution.get_version()
                 self.release = self.distribution.get_version()
-                BuildDoc.run(self)
+                setup_command.BuildDoc.run(self)
 
     class LocalBuildLatex(LocalBuildDoc):
         builders = ['latex']
