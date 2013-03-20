@@ -16,7 +16,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import io
 import os
 import StringIO
 import sys
@@ -57,85 +56,70 @@ class MailmapTestCase(utils.BaseTestCase):
 
     def setUp(self):
         super(MailmapTestCase, self).setUp()
-        (fd, self.mailmap) = tempfile.mkstemp(prefix='openstack',
-                                              suffix='.setup')
+        self.git_dir = self.useFixture(fixtures.TempDir()).path
+        self.mailmap = os.path.join(self.git_dir, '.mailmap')
 
     def test_mailmap_with_fullname(self):
+        print self.mailmap, self.git_dir
         with open(self.mailmap, 'w') as mm_fh:
             mm_fh.write("Foo Bar <email@foo.com> Foo Bar <email@bar.com>\n")
         self.assertEqual({'<email@bar.com>': '<email@foo.com>'},
-                         packaging.parse_mailmap(self.mailmap))
+                         packaging.read_git_mailmap(self.git_dir))
 
     def test_mailmap_with_firstname(self):
         with open(self.mailmap, 'w') as mm_fh:
             mm_fh.write("Foo <email@foo.com> Foo <email@bar.com>\n")
         self.assertEqual({'<email@bar.com>': '<email@foo.com>'},
-                         packaging.parse_mailmap(self.mailmap))
+                         packaging.read_git_mailmap(self.git_dir))
 
     def test_mailmap_with_noname(self):
         with open(self.mailmap, 'w') as mm_fh:
             mm_fh.write("<email@foo.com> <email@bar.com>\n")
         self.assertEqual({'<email@bar.com>': '<email@foo.com>'},
-                         packaging.parse_mailmap(self.mailmap))
+                         packaging.read_git_mailmap(self.git_dir))
 
 
 class GitLogsTest(utils.BaseTestCase):
 
     def setUp(self):
         super(GitLogsTest, self).setUp()
-        temp_path = self.useFixture(fixtures.TempDir()).path
-        self.useFixture(DiveDir(temp_path))
-
-    @staticmethod
-    def _root_dir():
-        # NOTE(yamahata): get root direcotry of repository
-        # __file__ = $ROOT/pbr/tests/test_setup.py
-        # => $ROOT/pbr/tests/unit => $ROOT/tests => $ROOT
-        root_dir = os.path.dirname(__file__)
-        root_dir = os.path.dirname(root_dir)
-        root_dir = os.path.dirname(root_dir)
-        root_dir = os.path.dirname(root_dir)
-        return root_dir
+        self.temp_path = self.useFixture(fixtures.TempDir()).path
+        self.root_dir = os.path.abspath(os.path.curdir)
+        self.git_dir = os.path.join(self.root_dir, ".git")
 
     def test_write_git_changelog(self):
-        root_dir = self._root_dir()
-        exist_files = [os.path.join(root_dir, f) for f in ".git", ".mailmap"]
+        exist_files = [os.path.join(self.root_dir, f)
+                       for f in ".git", ".mailmap"]
         self.useFixture(fixtures.MonkeyPatch(
             "os.path.exists",
             lambda path: os.path.abspath(path) in exist_files))
-        self.useFixture(fixtures.MonkeyPatch(
-            "pbr.packaging._get_git_directory",
-            lambda: os.path.join(os.path.abspath(root_dir), ".git")))
         self.useFixture(fixtures.FakePopen(lambda _: {
             "stdout": StringIO.StringIO("Author: Foo Bar <email@bar.com>\n")
         }))
 
-        builtin_open = open
+        def _fake_read_git_mailmap(*args):
+            return {"email@bar.com": "email@foo.com"}
 
-        def _fake_open(name, mode):
-            if name.endswith('.mailmap'):
-                # StringIO.StringIO doesn't have __exit__ (at least python 2.6)
-                return io.BytesIO("Foo Bar <email@foo.com> <email@bar.com>\n")
-            return builtin_open(name, mode)
-        self.useFixture(fixtures.MonkeyPatch("__builtin__.open", _fake_open))
+        self.useFixture(fixtures.MonkeyPatch("pbr.packaging.read_git_mailmap",
+                                             _fake_read_git_mailmap))
 
-        packaging.write_git_changelog()
+        packaging.write_git_changelog(git_dir=self.git_dir,
+                                      dest_dir=self.temp_path)
 
-        with open("ChangeLog", "r") as ch_fh:
+        with open(os.path.join(self.temp_path, "ChangeLog"), "r") as ch_fh:
             self.assertTrue("email@foo.com" in ch_fh.read())
 
     def test_generate_authors(self):
         author_old = "Foo Foo <email@foo.com>"
         author_new = "Bar Bar <email@bar.com>"
 
-        root_dir = self._root_dir()
-        exist_files = [os.path.join(root_dir, ".git"),
-                       os.path.abspath("AUTHORS.in")]
+        exist_files = [os.path.join(self.root_dir, ".git"),
+                       os.path.join(self.temp_path, "AUTHORS.in")]
         self.useFixture(fixtures.MonkeyPatch(
             "os.path.exists",
             lambda path: os.path.abspath(path) in exist_files))
 
-        git_log_cmd = "git --git-dir=%s log" % os.path.join(root_dir, '.git')
+        git_log_cmd = "git --git-dir=%s log" % self.git_dir
         self.useFixture(fixtures.FakePopen(lambda proc_args: {
             "stdout": StringIO.StringIO(
                 author_new
@@ -143,12 +127,13 @@ class GitLogsTest(utils.BaseTestCase):
                 else "")
         }))
 
-        with open("AUTHORS.in", "w") as auth_fh:
-            auth_fh.write(author_old)
+        with open(os.path.join(self.temp_path, "AUTHORS.in"), "w") as auth_fh:
+            auth_fh.write("%s\n" % author_old)
 
-        packaging.generate_authors()
+        packaging.generate_authors(git_dir=self.git_dir,
+                                   dest_dir=self.temp_path)
 
-        with open("AUTHORS", "r") as auth_fh:
+        with open(os.path.join(self.temp_path, "AUTHORS"), "r") as auth_fh:
             authors = auth_fh.read()
             self.assertTrue(author_old in authors)
             self.assertTrue(author_new in authors)

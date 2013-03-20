@@ -32,23 +32,23 @@ from setuptools.command import sdist
 log.set_verbosity(log.INFO)
 
 
-def parse_mailmap(mailmap='.mailmap'):
-    mapping = {}
-    if os.path.exists(mailmap):
-        with open(mailmap, 'r') as fp:
-            for l in fp:
-                try:
-                    canonical_email, alias = re.match(
-                        r'[^#]*?(<.+>).*(<.+>).*', l).groups()
-                except AttributeError:
-                    continue
-                mapping[alias] = canonical_email
+def _parse_mailmap(mailmap_info):
+    mapping = dict()
+    for l in mailmap_info:
+        try:
+            canonical_email, alias = re.match(
+                r'[^#]*?(<.+>).*(<.+>).*', l).groups()
+        except AttributeError:
+            continue
+        mapping[alias] = canonical_email
     return mapping
 
 
-def _parse_git_mailmap(git_dir, mailmap='.mailmap'):
-    mailmap = os.path.join(os.path.dirname(git_dir), mailmap)
-    return parse_mailmap(mailmap)
+def read_git_mailmap(git_dir, mailmap='.mailmap'):
+    mailmap = os.path.join(git_dir, mailmap)
+    if os.path.exists(mailmap):
+        return _parse_mailmap(open(mailmap, 'r').readlines())
+    return dict()
 
 
 def canonicalize_emails(changelog, mapping):
@@ -146,44 +146,48 @@ def _get_git_directory():
             return None
 
 
-def write_git_changelog():
+def write_git_changelog(git_dir=None, dest_dir=os.path.curdir):
     """Write a changelog based on the git changelog."""
     log.info('[pbr] Writing ChangeLog')
-    new_changelog = 'ChangeLog'
-    git_dir = _get_git_directory()
+    new_changelog = os.path.join(dest_dir, 'ChangeLog')
     if not os.getenv('SKIP_WRITE_GIT_CHANGELOG'):
+        if git_dir is None:
+            git_dir = _get_git_directory()
         if git_dir:
             git_log_cmd = 'git --git-dir=%s log' % git_dir
             changelog = _run_shell_command(git_log_cmd)
-            mailmap = _parse_git_mailmap(git_dir)
+            mailmap = read_git_mailmap(git_dir)
             with open(new_changelog, "w") as changelog_file:
                 changelog_file.write(canonicalize_emails(changelog, mailmap))
     else:
-        open(new_changelog, 'w').close()
+        if not os.path.exists(new_changelog):
+            open(new_changelog, 'w').close()
 
 
-def generate_authors():
+def generate_authors(git_dir=None, dest_dir='.'):
     """Create AUTHORS file using git commits."""
     log.info('[pbr] Generating AUTHORS')
-    jenkins_email = 'jenkins@review.(openstack|stackforge).org'
-    old_authors = 'AUTHORS.in'
-    new_authors = 'AUTHORS'
-    git_dir = _get_git_directory()
+    jenkins_email = 'jenkins@review'
+    old_authors = os.path.join(dest_dir, 'AUTHORS.in')
+    new_authors = os.path.join(dest_dir, 'AUTHORS')
     if not os.getenv('SKIP_GENERATE_AUTHORS'):
+        if git_dir is None:
+            git_dir = _get_git_directory()
         if git_dir:
             # don't include jenkins email address in AUTHORS file
             git_log_cmd = ("git --git-dir=" + git_dir +
                            " log --format='%aN <%aE>' | sort -u | "
                            "egrep -v '" + jenkins_email + "'")
             changelog = _run_shell_command(git_log_cmd)
-            mailmap = _parse_git_mailmap(git_dir)
+            mailmap = read_git_mailmap(git_dir)
             with open(new_authors, 'w') as new_authors_fh:
                 new_authors_fh.write(canonicalize_emails(changelog, mailmap))
                 if os.path.exists(old_authors):
                     with open(old_authors, "r") as old_authors_fh:
                         new_authors_fh.write('\n' + old_authors_fh.read())
     else:
-        open(new_authors, 'w').close()
+        if not os.path.exists(new_authors):
+            open(new_authors, 'w').close()
 
 
 _rst_template = """%(heading)s
