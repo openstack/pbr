@@ -18,9 +18,9 @@
 
 import io
 import os
-import sys
 import StringIO
-from tempfile import mkstemp
+import sys
+import tempfile
 
 import fixtures
 
@@ -57,7 +57,8 @@ class MailmapTestCase(utils.BaseTestCase):
 
     def setUp(self):
         super(MailmapTestCase, self).setUp()
-        (fd, self.mailmap) = mkstemp(prefix='openstack', suffix='.setup')
+        (fd, self.mailmap) = tempfile.mkstemp(prefix='openstack',
+                                              suffix='.setup')
 
     def test_mailmap_with_fullname(self):
         with open(self.mailmap, 'w') as mm_fh:
@@ -159,8 +160,8 @@ class BuildSphinxTest(utils.BaseTestCase):
 
         self.useFixture(fixtures.MonkeyPatch(
             "sphinx.setup_command.BuildDoc.run", lambda self: None))
-        from distutils.dist import Distribution
-        distr = Distribution()
+        from distutils import dist
+        distr = dist.Distribution()
         distr.packages = ("fake_package",)
         distr.command_options["build_sphinx"] = {"source_dir": ["a", "."]}
         pkg_fixture = fixtures.PythonPackage(
@@ -181,7 +182,8 @@ class ParseRequirementsTest(utils.BaseTestCase):
 
     def setUp(self):
         super(ParseRequirementsTest, self).setUp()
-        (fd, self.tmp_file) = mkstemp(prefix='openstack', suffix='.setup')
+        (fd, self.tmp_file) = tempfile.mkstemp(prefix='openstack',
+                                               suffix='.setup')
 
     def test_parse_requirements_normal(self):
         with open(self.tmp_file, 'w') as fh:
@@ -221,7 +223,8 @@ class ParseDependencyLinksTest(utils.BaseTestCase):
 
     def setUp(self):
         super(ParseDependencyLinksTest, self).setUp()
-        (fd, self.tmp_file) = mkstemp(prefix="openstack", suffix=".setup")
+        (fd, self.tmp_file) = tempfile.mkstemp(prefix="openstack",
+                                               suffix=".setup")
 
     def test_parse_dependency_normal(self):
         with open(self.tmp_file, "w") as fh:
