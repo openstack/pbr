@@ -109,22 +109,34 @@ class GitLogsTest(utils.BaseTestCase):
         with open(os.path.join(self.temp_path, "ChangeLog"), "r") as ch_fh:
             self.assertTrue("email@foo.com" in ch_fh.read())
 
+    def _fake_log_output(self, cmd, mapping):
+        for (k, v) in mapping.items():
+            if cmd.startswith(k):
+                return v
+        return ""
+
     def test_generate_authors(self):
         author_old = "Foo Foo <email@foo.com>"
         author_new = "Bar Bar <email@bar.com>"
+        co_author = "Foo Bar <foo@bar.com>"
+        co_author_by = "Co-authored-by: " + co_author
 
-        exist_files = [os.path.join(self.root_dir, ".git"),
+        git_log_cmd = ("git --git-dir=%s log --format" % self.git_dir)
+        git_co_log_cmd = ("git log --git-dir=%s" % self.git_dir)
+        cmd_map = {
+            git_log_cmd: author_new,
+            git_co_log_cmd: co_author_by,
+        }
+
+        exist_files = [self.git_dir,
                        os.path.join(self.temp_path, "AUTHORS.in")]
         self.useFixture(fixtures.MonkeyPatch(
             "os.path.exists",
             lambda path: os.path.abspath(path) in exist_files))
 
-        git_log_cmd = "git --git-dir=%s log" % self.git_dir
         self.useFixture(fixtures.FakePopen(lambda proc_args: {
             "stdout": StringIO.StringIO(
-                author_new
-                if proc_args["args"][2].startswith(git_log_cmd)
-                else "")
+                self._fake_log_output(proc_args["args"][2], cmd_map))
         }))
 
         with open(os.path.join(self.temp_path, "AUTHORS.in"), "w") as auth_fh:
@@ -137,6 +149,7 @@ class GitLogsTest(utils.BaseTestCase):
             authors = auth_fh.read()
             self.assertTrue(author_old in authors)
             self.assertTrue(author_new in authors)
+            self.assertTrue(co_author in authors)
 
 
 class BuildSphinxTest(utils.BaseTestCase):
