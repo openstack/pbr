@@ -236,19 +236,16 @@ try:
         def __init__(self, *args, **kwargs):
             kwargs['warningiserror'] = True
             super(LocalSphinx, self).__init__(*args, **kwargs)
-    sphinx.application.Sphinx = LocalSphinx
-
 
     class LocalBuildDoc(setup_command.BuildDoc):
 
         command_name = 'build_sphinx'
         builders = ['html', 'man']
 
-        def generate_autoindex(self):
+        def generate_autoindex(self, option_dict):
             log.info("[pbr] Autodocumenting from %s"
                      % os.path.abspath(os.curdir))
             modules = {}
-            option_dict = self.distribution.get_option_dict('build_sphinx')
             source_dir = os.path.join(option_dict['source_dir'][1], 'api')
             if not os.path.exists(source_dir):
                 os.makedirs(source_dir)
@@ -278,8 +275,11 @@ try:
                     autoindex.write("   %s.rst\n" % module)
 
         def run(self):
-            if not os.getenv('SPHINX_DEBUG'):
-                self.generate_autoindex()
+            option_dict = self.distribution.get_option_dict('build_sphinx')
+            if 'autoindex' in option_dict and not os.getenv('SPHINX_DEBUG'):
+                self.generate_autoindex(option_dict)
+            if 'warnerrors' in option_dict:
+                application.Sphinx = LocalSphinx
 
             for builder in self.builders:
                 self.builder = builder
