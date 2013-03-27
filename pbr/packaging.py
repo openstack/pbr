@@ -229,6 +229,15 @@ class LocalSDist(sdist.sdist):
 
 try:
     from sphinx import setup_command
+    from sphinx import application
+
+    class LocalSphinx(application.Sphinx):
+
+        def __init__(self, *args, **kwargs):
+            kwargs['warningiserror'] = True
+            super(LocalSphinx, self).__init__(*args, **kwargs)
+    sphinx.application.Sphinx = LocalSphinx
+
 
     class LocalBuildDoc(setup_command.BuildDoc):
 
