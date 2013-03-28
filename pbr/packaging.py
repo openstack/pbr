@@ -136,7 +136,7 @@ def _run_shell_command(cmd, throw_on_error=False):
 
 
 def _get_git_directory():
-    parent_dir = os.path.dirname(__file__)
+    parent_dir = os.path.dirname(os.curdir)
     while True:
         git_dir = os.path.join(parent_dir, '.git')
         if os.path.exists(git_dir):
