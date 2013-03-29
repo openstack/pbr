@@ -162,6 +162,7 @@ class BuildSphinxTest(utils.BaseTestCase):
         distr = dist.Distribution()
         distr.packages = ("fake_package",)
         distr.command_options["build_sphinx"] = {"source_dir": ["a", "."]}
+        distr.command_options["pbr"] = {"autodoc_index_modules": "True"}
         pkg_fixture = fixtures.PythonPackage(
             "fake_package", [("fake_module.py", "")])
         self.useFixture(pkg_fixture)
