@@ -22,9 +22,10 @@ import sys
 import tempfile
 
 import fixtures
+import testscenarios
 
 from pbr import packaging
-from pbr.tests import utils
+from pbr import tests
 
 
 class DiveDir(fixtures.Fixture):
@@ -43,7 +44,7 @@ class DiveDir(fixtures.Fixture):
         self.addCleanup(os.chdir, self.old_path)
 
 
-class EmailTestCase(utils.BaseTestCase):
+class EmailTestCase(tests.BaseTestCase):
 
     def test_str_dict_replace(self):
         string = 'Johnnie T. Hozer'
@@ -52,7 +53,7 @@ class EmailTestCase(utils.BaseTestCase):
                          packaging.canonicalize_emails(string, mapping))
 
 
-class MailmapTestCase(utils.BaseTestCase):
+class MailmapTestCase(tests.BaseTestCase):
 
     def setUp(self):
         super(MailmapTestCase, self).setUp()
@@ -79,7 +80,7 @@ class MailmapTestCase(utils.BaseTestCase):
                          packaging.read_git_mailmap(self.git_dir))
 
 
-class GitLogsTest(utils.BaseTestCase):
+class GitLogsTest(tests.BaseTestCase):
 
     def setUp(self):
         super(GitLogsTest, self).setUp()
@@ -152,32 +153,49 @@ class GitLogsTest(utils.BaseTestCase):
             self.assertTrue(co_author in authors)
 
 
-class BuildSphinxTest(utils.BaseTestCase):
+class BuildSphinxTest(tests.BaseTestCase):
 
-    def test_build_sphinx(self):
+    scenarios = [
+        ('true_autodoc_caps',
+         dict(has_opt=True, autodoc='True', has_autodoc=True)),
+        ('true_autodoc_lower',
+         dict(has_opt=True, autodoc='true', has_autodoc=True)),
+        ('false_autodoc',
+         dict(has_opt=True, autodoc='False', has_autodoc=False)),
+        ('no_autodoc',
+         dict(has_opt=False, autodoc='False', has_autodoc=False)),
+    ]
+
+    def setUp(self):
+        super(BuildSphinxTest, self).setUp()
 
         self.useFixture(fixtures.MonkeyPatch(
             "sphinx.setup_command.BuildDoc.run", lambda self: None))
         from distutils import dist
-        distr = dist.Distribution()
-        distr.packages = ("fake_package",)
-        distr.command_options["build_sphinx"] = {"source_dir": ["a", "."]}
-        distr.command_options["pbr"] = {"autodoc_index_modules": "True"}
+        self.distr = dist.Distribution()
+        self.distr.packages = ("fake_package",)
+        self.distr.command_options["build_sphinx"] = {
+            "source_dir": ["a", "."]}
         pkg_fixture = fixtures.PythonPackage(
             "fake_package", [("fake_module.py", "")])
         self.useFixture(pkg_fixture)
         self.useFixture(DiveDir(pkg_fixture.base))
 
-        build_doc = packaging.LocalBuildDoc(distr)
+    def test_build_doc(self):
+        if self.has_opt:
+            self.distr.command_options["pbr"] = {
+                "autodoc_index_modules": self.autodoc}
+        build_doc = packaging.LocalBuildDoc(self.distr)
         build_doc.run()
 
         self.assertTrue(
-            os.path.exists("api/autoindex.rst"))
+            os.path.exists("api/autoindex.rst") == self.has_autodoc)
         self.assertTrue(
-            os.path.exists("api/fake_package.fake_module.rst"))
+            os.path.exists(
+                "api/fake_package.fake_module.rst") == self.has_autodoc)
 
 
-class ParseRequirementsTest(utils.BaseTestCase):
+class ParseRequirementsTest(tests.BaseTestCase):
 
     def setUp(self):
         super(ParseRequirementsTest, self).setUp()
@@ -218,7 +236,7 @@ class ParseRequirementsTest(utils.BaseTestCase):
         self.assertEqual([], actual)
 
 
-class ParseDependencyLinksTest(utils.BaseTestCase):
+class ParseDependencyLinksTest(tests.BaseTestCase):
 
     def setUp(self):
         super(ParseDependencyLinksTest, self).setUp()
@@ -238,3 +256,7 @@ class ParseDependencyLinksTest(utils.BaseTestCase):
         self.assertEqual(
             ["git://foo.com/zipball#egg=bar"],
             packaging.parse_dependency_links([self.tmp_file]))
+
+
+def load_tests(loader, in_tests, pattern):
+    return testscenarios.load_tests_apply_scenarios(loader, in_tests, pattern)

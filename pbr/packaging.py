@@ -31,6 +31,7 @@ from distutils import log
 from setuptools.command import sdist
 
 log.set_verbosity(log.INFO)
+TRUE_VALUES = ['true', '1', 'yes']
 
 
 def _parse_mailmap(mailmap_info):
@@ -315,6 +316,8 @@ try:
         def run(self):
             option_dict = self.distribution.get_option_dict('pbr')
             if ('autodoc_index_modules' in option_dict and
+                    option_dict.get(
+                        'autodoc_index_modules').lower() in TRUE_VALUES and
                     not os.getenv('SPHINX_DEBUG')):
                 self.generate_autoindex()
 

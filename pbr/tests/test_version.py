@@ -20,11 +20,11 @@ import sys
 
 from oslo.config import cfg
 
-from pbr.tests import utils
+from pbr import tests
 from pbr import version
 
 
-class DeferredVersionTestCase(utils.BaseTestCase):
+class DeferredVersionTestCase(tests.BaseTestCase):
 
     def setUp(self):
         super(DeferredVersionTestCase, self).setUp()
