@@ -51,9 +51,9 @@ pbr.packaging.LocalBuildLatex
 """
 
     pbr_config = config.get('pbr', dict())
-    if ('single-version-externally-mananged' in pbr_config and
+    if (('single-version-externally-mananged' in pbr_config and
             pbr_config['single-version-externally-mananged'] in
-            packaging.TRUE_VALUES):
+            packaging.TRUE_VALUES) or 'manpages' in pbr_config):
         config['global']['commands'] = config['global']['commands'] + """
 pbr.packaging.DistutilsInstall
 """
@@ -66,4 +66,21 @@ pbr.packaging.DistutilsInstall
     files = config.get('files', dict())
     files['packages'] = smart_find_packages(
         files.get('packages', metadata['name']))
+
+    if 'manpages' in pbr_config:
+        man_sections = dict()
+        manpages = pbr_config['manpages']
+        data_files = files.get('data_files', '')
+        for manpage in manpages.split():
+            section_number = manpage.strip()[-1]
+            section = man_sections.get(section_number, list())
+            section.append(manpage.strip())
+            man_sections[section_number] = section
+        for (section, pages) in man_sections.items():
+            manpath = os.path.join(packaging.get_manpath(), 'man%s' % section)
+            data_files = "%s\n%s" % (data_files, "%s =" % manpath)
+            for page in pages:
+                data_files = "%s\n%s" % (data_files, page)
+        files['data_files'] = data_files
+
     config['files'] = files
