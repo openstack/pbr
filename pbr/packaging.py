@@ -27,7 +27,9 @@ import StringIO
 import subprocess
 import sys
 
+from distutils.command import install as du_install
 from distutils import log
+from setuptools.command import install
 from setuptools.command import sdist
 
 log.set_verbosity(log.INFO)
@@ -216,6 +218,15 @@ def _find_modules(arg, dirname, files):
         if filename.endswith('.py') and filename != '__init__.py':
             arg["%s.%s" % (dirname.replace('/', '.'),
                            filename[:-3])] = True
+
+
+class DistutilsInstall(install.install):
+    """Forces single-version-externally-managed."""
+
+    command_name = 'install'
+
+    def run(self):
+        return du_install.install.run(self)
 
 
 class LocalSDist(sdist.sdist):

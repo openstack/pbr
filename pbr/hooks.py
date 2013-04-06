@@ -50,6 +50,14 @@ pbr.packaging.LocalBuildDoc
 pbr.packaging.LocalBuildLatex
 """
 
+    pbr_config = config.get('pbr', dict())
+    if ('single-version-externally-mananged' in pbr_config and
+            pbr_config['single-version-externally-mananged'] in
+            packaging.TRUE_VALUES):
+        config['global']['commands'] = config['global']['commands'] + """
+pbr.packaging.DistutilsInstall
+"""
+
     #config['backwards_compat']['dependency_links'] = parse_dependency_links()
     #config['backwards_compat']['include_package_data'] = True
     #config['backwards_compat']['tests_require'] = parse_requirements(
