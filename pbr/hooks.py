@@ -64,8 +64,9 @@ pbr.packaging.DistutilsInstall
     #    ["test-requirements.txt", "tools/test-requires"])
 
     files = config.get('files', dict())
-    files['packages'] = smart_find_packages(
-        files.get('packages', metadata['name']))
+    package = files.get('packages', metadata['name']).strip()
+    if os.path.isdir(package):
+        files['packages'] = smart_find_packages(package)
 
     if 'manpages' in pbr_config:
         man_sections = dict()
