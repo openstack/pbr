@@ -180,6 +180,8 @@ def cfg_to_args(path='setup.cfg'):
                 hook_fn = resolve_name(hook)
                 try :
                     hook_fn(config)
+                except SystemExit:
+                    log.error('setup hook %s terminated the installation')
                 except:
                     e = sys.exc_info()[1]
                     log.error('setup hook %s raised exception: %s\n' %
