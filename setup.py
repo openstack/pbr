@@ -17,5 +17,5 @@
 import setuptools
 
 setuptools.setup(
-    setup_requires=['d2to1'],
+    setup_requires=['d2to1>=0.2.10,<0.3'],
     d2to1=True)

@@ -58,10 +58,14 @@ pbr.packaging.LocalBuildLatex
 pbr.packaging.DistutilsInstall
 """
 
-    #config['backwards_compat']['dependency_links'] = parse_dependency_links()
-    #config['backwards_compat']['include_package_data'] = True
-    #config['backwards_compat']['tests_require'] = parse_requirements(
-    #    ["test-requirements.txt", "tools/test-requires"])
+    backwards_compat = config.get('backwards_compat', dict())
+    backwards_compat['dependency_links'] = "\n".join(
+        packaging.parse_dependency_links())
+    backwards_compat['include_package_data'] = 'True'
+    backwards_compat['tests_require'] = "\n".join(
+        packaging.parse_requirements(
+            ["test-requirements.txt", "tools/test-requires"]))
+    config['backwards_compat'] = backwards_compat
 
     files = config.get('files', dict())
     package = files.get('packages', metadata['name']).strip()
