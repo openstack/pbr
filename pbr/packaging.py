@@ -150,11 +150,20 @@ def _get_git_directory():
             return None
 
 
-def write_git_changelog(git_dir=None, dest_dir=os.path.curdir):
+def get_boolean_option(option_dict, option_name, env_name):
+    return ((option_name in option_dict
+             and option_dict[option_name].lower() in TRUE_VALUES) or
+            str(os.getenv(env_name)).lower() in TRUE_VALUES)
+
+
+def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
+                        option_dict=dict()):
     """Write a changelog based on the git changelog."""
-    log.info('[pbr] Writing ChangeLog')
-    new_changelog = os.path.join(dest_dir, 'ChangeLog')
-    if not os.getenv('SKIP_WRITE_GIT_CHANGELOG'):
+    should_skip = get_boolean_option(option_dict, 'skip_changelog',
+                                     'SKIP_WRITE_GIT_CHANGELOG')
+    if not should_skip:
+        log.info('[pbr] Writing ChangeLog')
+        new_changelog = os.path.join(dest_dir, 'ChangeLog')
         if git_dir is None:
             git_dir = _get_git_directory()
         if git_dir:
@@ -163,18 +172,17 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir):
             mailmap = read_git_mailmap(git_dir)
             with open(new_changelog, "w") as changelog_file:
                 changelog_file.write(canonicalize_emails(changelog, mailmap))
-    else:
-        if not os.path.exists(new_changelog):
-            open(new_changelog, 'w').close()
 
 
-def generate_authors(git_dir=None, dest_dir='.'):
+def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
     """Create AUTHORS file using git commits."""
-    log.info('[pbr] Generating AUTHORS')
-    jenkins_email = 'jenkins@review'
-    old_authors = os.path.join(dest_dir, 'AUTHORS.in')
-    new_authors = os.path.join(dest_dir, 'AUTHORS')
-    if not os.getenv('SKIP_GENERATE_AUTHORS'):
+    should_skip = get_boolean_option(option_dict, 'skip_authors',
+                                     'SKIP_GENERATE_AUTHORS')
+    if not should_skip:
+        log.info('[pbr] Generating AUTHORS')
+        jenkins_email = 'jenkins@review'
+        old_authors = os.path.join(dest_dir, 'AUTHORS.in')
+        new_authors = os.path.join(dest_dir, 'AUTHORS')
         if git_dir is None:
             git_dir = _get_git_directory()
         if git_dir:
@@ -198,9 +206,6 @@ def generate_authors(git_dir=None, dest_dir='.'):
                 if os.path.exists(old_authors):
                     with open(old_authors, "r") as old_authors_fh:
                         new_authors_fh.write('\n' + old_authors_fh.read())
-    else:
-        if not os.path.exists(new_authors):
-            open(new_authors, 'w').close()
 
 
 _rst_template = """%(heading)s
@@ -235,8 +240,9 @@ class LocalSDist(sdist.sdist):
     command_name = 'sdist'
 
     def run(self):
-        write_git_changelog()
-        generate_authors()
+        option_dict = self.distribution.get_option_dict('pbr')
+        write_git_changelog(option_dict=option_dict)
+        generate_authors(option_dict=option_dict)
         # sdist.sdist is an old style class, can't use super()
         sdist.sdist.run(self)
 

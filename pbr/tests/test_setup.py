@@ -80,6 +80,65 @@ class MailmapTestCase(tests.BaseTestCase):
                          packaging.read_git_mailmap(self.git_dir))
 
 
+class SkipFileWrites(tests.BaseTestCase):
+
+    scenarios = [
+        ('changelog_option_true',
+         dict(option_key='skip_changelog', option_value='True',
+              env_key='SKIP_WRITE_GIT_CHANGELOG', env_value=None,
+              pkg_func=packaging.write_git_changelog, filename='ChangeLog')),
+        ('changelog_option_false',
+         dict(option_key='skip_changelog', option_value='False',
+              env_key='SKIP_WRITE_GIT_CHANGELOG', env_value=None,
+              pkg_func=packaging.write_git_changelog, filename='ChangeLog')),
+        ('changelog_env_true',
+         dict(option_key='skip_changelog', option_value='False',
+              env_key='SKIP_WRITE_GIT_CHANGELOG', env_value='True',
+              pkg_func=packaging.write_git_changelog, filename='ChangeLog')),
+        ('changelog_both_true',
+         dict(option_key='skip_changelog', option_value='True',
+              env_key='SKIP_WRITE_GIT_CHANGELOG', env_value='True',
+              pkg_func=packaging.write_git_changelog, filename='ChangeLog')),
+        ('authors_option_true',
+         dict(option_key='skip_authors', option_value='True',
+              env_key='SKIP_GENERATE_AUTHORS', env_value=None,
+              pkg_func=packaging.generate_authors, filename='AUTHORS')),
+        ('authors_option_false',
+         dict(option_key='skip_authors', option_value='False',
+              env_key='SKIP_GENERATE_AUTHORS', env_value=None,
+              pkg_func=packaging.generate_authors, filename='AUTHORS')),
+        ('authors_env_true',
+         dict(option_key='skip_authors', option_value='False',
+              env_key='SKIP_GENERATE_AUTHORS', env_value='True',
+              pkg_func=packaging.generate_authors, filename='AUTHORS')),
+        ('authors_both_true',
+         dict(option_key='skip_authors', option_value='True',
+              env_key='SKIP_GENERATE_AUTHORS', env_value='True',
+              pkg_func=packaging.generate_authors, filename='AUTHORS')),
+    ]
+
+    def setUp(self):
+        super(SkipFileWrites, self).setUp()
+        self.temp_path = self.useFixture(fixtures.TempDir()).path
+        self.root_dir = os.path.abspath(os.path.curdir)
+        self.git_dir = os.path.join(self.root_dir, ".git")
+        self.filename = os.path.join(self.temp_path, self.filename)
+        self.option_dict = dict()
+        if self.option_key is not None:
+            self.option_dict[self.option_key] = self.option_value
+        self.useFixture(
+            fixtures.EnvironmentVariable(self.env_key, self.env_value))
+
+    def test_skip(self):
+        self.pkg_func(git_dir=self.git_dir,
+                      dest_dir=self.temp_path,
+                      option_dict=self.option_dict)
+        self.assertEqual(
+            not os.path.exists(self.filename),
+            (self.option_value.lower() in packaging.TRUE_VALUES
+             or self.env_value is not None))
+
+
 class GitLogsTest(tests.BaseTestCase):
 
     def setUp(self):
@@ -87,6 +146,10 @@ class GitLogsTest(tests.BaseTestCase):
         self.temp_path = self.useFixture(fixtures.TempDir()).path
         self.root_dir = os.path.abspath(os.path.curdir)
         self.git_dir = os.path.join(self.root_dir, ".git")
+        self.useFixture(
+            fixtures.EnvironmentVariable('SKIP_GENERATE_AUTHORS'))
+        self.useFixture(
+            fixtures.EnvironmentVariable('SKIP_WRITE_GIT_CHANGELOG'))
 
     def test_write_git_changelog(self):
         exist_files = [os.path.join(self.root_dir, f)

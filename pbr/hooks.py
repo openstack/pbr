@@ -51,9 +51,10 @@ pbr.packaging.LocalBuildLatex
 """
 
     pbr_config = config.get('pbr', dict())
-    if (('single-version-externally-mananged' in pbr_config and
-            pbr_config['single-version-externally-mananged'] in
-            packaging.TRUE_VALUES) or 'manpages' in pbr_config):
+    if (packaging.get_boolean_option(pbr_config,
+                                     'single-version-externally-mananged',
+                                     'SINGLE_VERSION_EXTERNALLY_MANANGED')
+            or 'manpages' in pbr_config):
         config['global']['commands'] = config['global']['commands'] + """
 pbr.packaging.DistutilsInstall
 """
