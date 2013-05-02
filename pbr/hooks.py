@@ -51,10 +51,10 @@ pbr.packaging.LocalBuildLatex
 """
 
     pbr_config = config.get('pbr', dict())
-    if (packaging.get_boolean_option(pbr_config,
-                                     'single-version-externally-mananged',
-                                     'SINGLE_VERSION_EXTERNALLY_MANANGED')
-            or 'manpages' in pbr_config):
+    use_egg = packaging.get_boolean_option(
+        pbr_config, 'use-egg', 'PBR_USE_EGG')
+    # We always want non-egg install unless explicitly requested
+    if 'manpages' in pbr_config or not use_egg:
         config['global']['commands'] = config['global']['commands'] + """
 pbr.packaging.DistutilsInstall
 """
