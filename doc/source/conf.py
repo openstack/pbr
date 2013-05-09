@@ -52,10 +52,10 @@ htmlhelp_basename = '%sdoc' % project
 # (source start file, target name, title, author, documentclass
 # [howto/manual]).
 latex_documents = [
-        ('index',
-         '%s.tex' % project,
-         u'%s Documentation' % project,
-         u'OpenStack LLC', 'manual'),
+    ('index',
+     '%s.tex' % project,
+     u'%s Documentation' % project,
+     u'OpenStack Foundation', 'manual'),
 ]
 
 # Example configuration for intersphinx: refer to the Python standard library.
