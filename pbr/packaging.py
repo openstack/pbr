@@ -140,14 +140,7 @@ def _run_shell_command(cmd, throw_on_error=False):
 
 
 def _get_git_directory():
-    parent_dir = os.path.dirname(os.curdir)
-    while True:
-        git_dir = os.path.join(parent_dir, '.git')
-        if os.path.exists(git_dir):
-            return git_dir
-        parent_dir, child = os.path.split(parent_dir)
-        if not child:   # reached to root dir
-            return None
+    return _run_shell_command("git rev-parse --git-dir", None)
 
 
 def get_boolean_option(option_dict, option_name, env_name):
