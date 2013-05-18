@@ -16,6 +16,8 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+from __future__ import print_function
+
 import os
 import StringIO
 import sys
@@ -61,7 +63,7 @@ class MailmapTestCase(tests.BaseTestCase):
         self.mailmap = os.path.join(self.git_dir, '.mailmap')
 
     def test_mailmap_with_fullname(self):
-        print self.mailmap, self.git_dir
+        print(self.mailmap, self.git_dir)
         with open(self.mailmap, 'w') as mm_fh:
             mm_fh.write("Foo Bar <email@foo.com> Foo Bar <email@bar.com>\n")
         self.assertEqual({'<email@bar.com>': '<email@foo.com>'},

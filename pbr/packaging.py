@@ -315,7 +315,7 @@ try:
 
             try:
                 app.build(force_all=self.all_files)
-            except Exception, err:
+            except Exception as err:
                 from docutils import utils
                 if isinstance(err, utils.SystemMessage):
                     sys.stder.write('reST markup error:\n')
