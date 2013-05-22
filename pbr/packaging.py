@@ -37,6 +37,7 @@ from setuptools.command import sdist
 log.set_verbosity(log.INFO)
 TRUE_VALUES = ('true', '1', 'yes')
 REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
+TEST_REQUIREMENTS_FILES = ('test-requirements.txt', 'tools/test-requires')
 
 
 def append_text_list(config, key, text_list):
@@ -112,12 +113,15 @@ def canonicalize_emails(changelog, mapping):
     return changelog
 
 
+def _any_existing(file_list):
+    return [f for f in file_list if os.path.exists(f)]
+
+
 # Get requirements from the first file that exists
 def get_reqs_from_files(requirements_files):
-    for requirements_file in requirements_files:
-        if os.path.exists(requirements_file):
-            with open(requirements_file, 'r') as fil:
-                return fil.read().split('\n')
+    for requirements_file in _any_existing(requirements_files):
+        with open(requirements_file, 'r') as fil:
+            return fil.read().split('\n')
     return []
 
 
@@ -310,6 +314,90 @@ class LocalInstall(install.install):
             _pip_install(links, self.distribution.install_requires, self.root)
 
         return du_install.install.run(self)
+
+
+def _newer_requires_files(egg_info_dir):
+    """Check to see if any of the requires files are newer than egg-info."""
+    for target, sources in (('requires.txt', REQUIREMENTS_FILES),
+                            ('test-requires.txt', TEST_REQUIREMENTS_FILES)):
+        target_path = os.path.join(egg_info_dir, target)
+        for src in _any_existing(sources):
+            if (not os.path.exists(target_path) or
+                    os.path.getmtime(target_path)
+                    < os.path.getmtime(os.path.join(egg_info_dir, src))):
+                return True
+    return False
+
+
+def _copy_test_requires_to(egg_info_dir):
+    """Copy the requirements file to egg-info/test-requires.txt."""
+    with open(os.path.join(egg_info_dir, 'test-requires.txt'), 'w') as dest:
+        for source in _any_existing(TEST_REQUIREMENTS_FILES):
+            dest.write(open(source, 'r').read().rstrip('\n') + '\n')
+
+
+class _PipInstallTestRequires(object):
+    """Mixin class to install test-requirements.txt before running tests."""
+
+    def install_test_requirements(self):
+
+        links = _make_links_args(_any_existing(TEST_REQUIREMENTS_FILES))
+        if self.distribution.tests_require:
+            _pip_install(links, self.distribution.tests_requires)
+
+    def pre_run(self):
+        self.egg_name = pkg_resources.safe_name(self.distribution.get_name())
+        self.egg_info = "%s.egg-info" % self.egg_name
+        if (not os.path.exists(self.egg_info) or
+                _newer_requires_files(self.egg_info)):
+            ei_cmd = self.get_finalized_command('egg_info')
+            ei_cmd.run()
+            self.install_test_requirements()
+            _copy_test_requires_to(self.egg_info)
+
+try:
+    from pbr import testr_command
+
+    class TestrTest(testr_command.Testr, _PipInstallTestRequires):
+        """Make setup.py test do the right thing."""
+
+        command_name = 'test'
+
+        def run(self):
+            self.pre_run()
+            # Can't use super - base class old-style class
+            testr_command.Testr.run(self)
+
+    _have_testr = True
+
+except ImportError:
+    _have_testr = False
+
+
+def have_testr():
+    return _have_testr
+
+try:
+    from nose import commands
+
+    class NoseTest(commands.nosetests, _PipInstallTestRequires):
+        """Fallback test runner if testr is a no-go."""
+
+        command_name = 'test'
+
+        def run(self):
+            self.pre_run()
+            # Can't use super - base class old-style class
+            commands.nosetests.run(self)
+
+    _have_nose = True
+
+except ImportError:
+    _have_nose = False
+
+
+def have_nose():
+    return _have_nose
 
 
 class LocalSDist(sdist.sdist):

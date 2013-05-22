@@ -31,4 +31,4 @@ class BackwardsCompatConfig(base.BaseConfig):
         packaging.append_text_list(
             self.config, 'tests_require',
             packaging.parse_requirements(
-                ["test-requirements.txt", "tools/test-requires"]))
+                packaging.TEST_REQUIREMENTS_FILES))

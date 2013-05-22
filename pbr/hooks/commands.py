@@ -15,6 +15,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import os
+
 from pbr.hooks import base
 from pbr import packaging
 
@@ -40,6 +42,13 @@ class CommandsConfig(base.BaseConfig):
         if packaging.have_sphinx():
             self.add_command('pbr.packaging.LocalBuildDoc')
             self.add_command('pbr.packaging.LocalBuildLatex')
+
+        if os.path.exists('.testr.conf') and packaging.have_testr():
+            # There is a .testr.conf file. We want to use it.
+            self.add_command('pbr.packaging.TestrTest')
+        elif self.config.get('nosetests', False) and packaging.have_nose():
+            # We seem to still have nose configured
+            self.add_command('pbr.packaging.NoseTest')
 
         use_egg = packaging.get_boolean_option(
             self.pbr_config, 'use-egg', 'PBR_USE_EGG')
