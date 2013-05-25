@@ -127,7 +127,8 @@ class SkipFileWrites(tests.BaseTestCase):
         self.filename = os.path.join(self.temp_path, self.filename)
         self.option_dict = dict()
         if self.option_key is not None:
-            self.option_dict[self.option_key] = self.option_value
+            self.option_dict[self.option_key] = ('setup.cfg',
+                                                 self.option_value)
         self.useFixture(
             fixtures.EnvironmentVariable(self.env_key, self.env_value))
 
