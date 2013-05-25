@@ -31,6 +31,7 @@ import distutils.errors
 from distutils import log
 import pkg_resources
 from setuptools.command import easy_install
+from setuptools.command import egg_info
 from setuptools.command import install
 from setuptools.command import install_scripts
 from setuptools.command import sdist
@@ -39,6 +40,8 @@ try:
     import cStringIO as io
 except ImportError:
     import io
+
+from pbr import extra_files
 
 log.set_verbosity(log.INFO)
 TRUE_VALUES = ('true', '1', 'yes')
@@ -305,6 +308,23 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
                                      .encode('utf-8'))
 
 
+def _find_git_files(dirname='', git_dir=None):
+    """Behave like a file finder entrypoint plugin.
+
+    We don't actually use the entrypoints system for this because it runs
+    at absurd times. We only want to do this when we are building an sdist.
+    """
+    file_list = []
+    if git_dir is None:
+        git_dir = _get_git_directory()
+    if git_dir:
+        log.info("[pbr] In git context, generating filelist from git")
+        git_ls_cmd = "git --git-dir=%s ls-files -z" % git_dir
+        file_list = _run_shell_command(git_ls_cmd)
+        file_list = file_list.split(b'\x00'.decode('utf-8'))
+    return [f for f in file_list if f]
+
+
 _rst_template = """%(heading)s
 %(underline)s
 
@@ -507,6 +527,65 @@ class LocalInstallScripts(install_scripts.install_scripts):
         )
         for args in get_script_args(dist, executable, is_wininst):
             self.write_script(*args)
+
+
+class LocalManifestMaker(egg_info.manifest_maker):
+    """Add any files that are in git and some standard sensible files."""
+
+    def _add_pbr_defaults(self):
+        for template_line in [
+            'include AUTHORS',
+            'include ChangeLog',
+            'exclude .gitignore',
+            'exclude .gitreview',
+            'global-exclude *.pyc'
+        ]:
+            self.filelist.process_template_line(template_line)
+
+    def add_defaults(self):
+        option_dict = self.distribution.get_option_dict('pbr')
+
+        sdist.sdist.add_defaults(self)
+        self.filelist.append(self.template)
+        self.filelist.append(self.manifest)
+        self.filelist.extend(extra_files.get_extra_files())
+        should_skip = get_boolean_option(option_dict, 'skip_git_sdist',
+                                         'SKIP_GIT_SDIST')
+        if not should_skip:
+            rcfiles = _find_git_files()
+            if rcfiles:
+                self.filelist.extend(rcfiles)
+        elif os.path.exists(self.manifest):
+            self.read_manifest()
+        ei_cmd = self.get_finalized_command('egg_info')
+        self._add_pbr_defaults()
+        self.filelist.include_pattern("*", prefix=ei_cmd.egg_info)
+
+
+class LocalEggInfo(egg_info.egg_info):
+    """Override the egg_info command to regenerate SOURCES.txt sensibly."""
+
+    command_name = 'egg_info'
+
+    def find_sources(self):
+        """Generate SOURCES.txt only if there isn't one already.
+
+        If we are in an sdist command, then we always want to update
+        SOURCES.txt. If we are not in an sdist command, then it doesn't
+        matter one flip, and is actually destructive.
+        """
+        manifest_filename = os.path.join(self.egg_info, "SOURCES.txt")
+        if not os.path.exists(manifest_filename) or 'sdist' in sys.argv:
+            log.info("[pbr] Processing SOURCES.txt")
+            mm = LocalManifestMaker(self.distribution)
+            mm.manifest = manifest_filename
+            mm.run()
+            self.filelist = mm.filelist
+        else:
+            log.info("[pbr] Reusing existing SOURCES.txt")
+            self.filelist = egg_info.FileList()
+            for entry in open(manifest_filename, 'r').read().split('\n'):
+                self.filelist.append(entry)
 
 
 class LocalSDist(sdist.sdist):

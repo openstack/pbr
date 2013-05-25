@@ -90,7 +90,7 @@ class TestCore(tests.BaseTestCase):
         tf = tarfile.open(tf_path)
         names = ['/'.join(p.split('/')[1:]) for p in tf.getnames()]
 
-        assert 'extra-file.txt' in names
+        self.assertIn('extra-file.txt', names)
 
     def test_console_script_install(self):
         """Test that we install a non-pkg-resources console script."""
@@ -120,3 +120,28 @@ class TestCore(tests.BaseTestCase):
             'develop', '--install-dir=%s' % self.temp_dir)
 
         self.check_script_install(stdout)
+
+
+class TestGitSDist(tests.BaseTestCase):
+
+    def setUp(self):
+        super(TestGitSDist, self).setUp()
+
+        stdout, _, return_code = self._run_cmd('git', ('init',))
+        if return_code:
+            self.skipTest("git not installed")
+
+        stdout, _, return_code = self._run_cmd('git', ('add', '.'))
+        stdout, _, return_code = self._run_cmd(
+            'git', ('commit', '-m', 'Turn this into a git repo'))
+
+        stdout, _, return_code = self.run_setup('sdist', '--formats=gztar')
+
+    def test_sdist_git_extra_files(self):
+        """Test that extra files found in git are correctly added."""
+        # There can be only one
+        tf_path = glob.glob(os.path.join('dist', '*.tar.gz'))[0]
+        tf = tarfile.open(tf_path)
+        names = ['/'.join(p.split('/')[1:]) for p in tf.getnames()]
+
+        self.assertIn('git-extra-file.txt', names)
