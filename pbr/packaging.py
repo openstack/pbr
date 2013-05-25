@@ -205,9 +205,10 @@ _rst_template = """%(heading)s
 %(underline)s
 
 .. automodule:: %(module)s
-  :members:
-  :undoc-members:
-  :show-inheritance:
+
+:members:
+:undoc-members:
+:show-inheritance:
 """
 
 
@@ -327,7 +328,7 @@ try:
             option_dict = self.distribution.get_option_dict('pbr')
             if ('autodoc_index_modules' in option_dict and
                     option_dict.get(
-                        'autodoc_index_modules').lower() in TRUE_VALUES and
+                        'autodoc_index_modules')[1].lower() in TRUE_VALUES and
                     not os.getenv('SPHINX_DEBUG')):
                 self.generate_autoindex()
 

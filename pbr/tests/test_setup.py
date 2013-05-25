@@ -249,7 +249,7 @@ class BuildSphinxTest(tests.BaseTestCase):
     def test_build_doc(self):
         if self.has_opt:
             self.distr.command_options["pbr"] = {
-                "autodoc_index_modules": self.autodoc}
+                "autodoc_index_modules": ('setup.cfg', self.autodoc)}
         build_doc = packaging.LocalBuildDoc(self.distr)
         build_doc.run()
 
