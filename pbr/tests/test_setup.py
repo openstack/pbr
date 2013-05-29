@@ -280,10 +280,22 @@ class ParseRequirementsTest(tests.BaseTestCase):
         self.assertEqual(['bar'],
                          packaging.parse_requirements([self.tmp_file]))
 
+    def test_parse_requirements_with_versioned_git_egg_url(self):
+        with open(self.tmp_file, 'w') as fh:
+            fh.write("-e git://foo.com/zipball#egg=bar-1.2.4")
+        self.assertEqual(['bar>=1.2.4'],
+                         packaging.parse_requirements([self.tmp_file]))
+
     def test_parse_requirements_with_http_egg_url(self):
         with open(self.tmp_file, 'w') as fh:
             fh.write("https://foo.com/zipball#egg=bar")
         self.assertEqual(['bar'],
+                         packaging.parse_requirements([self.tmp_file]))
+
+    def test_parse_requirements_with_versioned_http_egg_url(self):
+        with open(self.tmp_file, 'w') as fh:
+            fh.write("https://foo.com/zipball#egg=bar-4.2.1")
+        self.assertEqual(['bar>=4.2.1'],
                          packaging.parse_requirements([self.tmp_file]))
 
     def test_parse_requirements_removes_index_lines(self):

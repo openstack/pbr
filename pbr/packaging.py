@@ -75,20 +75,33 @@ def get_reqs_from_files(requirements_files):
 
 def parse_requirements(requirements_files=['requirements.txt',
                                            'tools/pip-requires']):
+
+    def egg_fragment(match):
+        # take a versioned egg fragment and return a
+        # versioned package requirement e.g.
+        # nova-1.2.3 becomes nova>=1.2.3
+        return re.sub(r'([\w.]+)-([\w.-]+)',
+                      r'\1>=\2',
+                      match.group(1))
+
     requirements = []
     for line in get_reqs_from_files(requirements_files):
         # For the requirements list, we need to inject only the portion
         # after egg= so that distutils knows the package it's looking for
         # such as:
         # -e git://github.com/openstack/nova/master#egg=nova
+        # -e git://github.com/openstack/nova/master#egg=nova-1.2.3
         if re.match(r'\s*-e\s+', line):
-            requirements.append(re.sub(r'\s*-e\s+.*#egg=(.*)$', r'\1',
-                                line))
+            requirements.append(re.sub(r'\s*-e\s+.*#egg=(.*)$',
+                                       egg_fragment,
+                                       line))
         # such as:
         # http://github.com/openstack/nova/zipball/master#egg=nova
+        # http://github.com/openstack/nova/zipball/master#egg=nova-1.2.3
         elif re.match(r'\s*https?:', line):
-            requirements.append(re.sub(r'\s*https?:.*#egg=(.*)$', r'\1',
-                                line))
+            requirements.append(re.sub(r'\s*https?:.*#egg=(.*)$',
+                                       egg_fragment,
+                                       line))
         # -f lines are for index locations, and don't get used here
         elif re.match(r'\s*-f\s+', line):
             pass
