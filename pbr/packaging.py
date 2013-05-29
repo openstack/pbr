@@ -205,10 +205,9 @@ _rst_template = """%(heading)s
 %(underline)s
 
 .. automodule:: %(module)s
-
-:members:
-:undoc-members:
-:show-inheritance:
+  :members:
+  :undoc-members:
+  :show-inheritance:
 """
 
 
