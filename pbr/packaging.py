@@ -38,6 +38,16 @@ log.set_verbosity(log.INFO)
 TRUE_VALUES = ['true', '1', 'yes']
 
 
+def append_text_list(config, key, text_list):
+    """Append a \n separated list to possibly existing value."""
+    new_value = []
+    current_value = config.get(key, "")
+    if current_value:
+        new_value.append(current_value)
+    new_value.extend(text_list)
+    config[key] = '\n'.join(new_value)
+
+
 def _parse_mailmap(mailmap_info):
     mapping = dict()
     for l in mailmap_info:
@@ -491,14 +501,3 @@ def get_version(package_name, pre_version=None):
         return version
     raise Exception("Versioning for this project requires either an sdist"
                     " tarball, or access to an upstream git repository.")
-
-
-def get_manpath():
-    manpath = 'share/man'
-    if os.path.exists(os.path.join(sys.prefix, 'man')):
-        # This works around a bug with install where it expects every node
-        # in the relative data directory to be an actual directory, since at
-        # least Debian derivatives (and probably other platforms as well)
-        # like to symlink Unixish /usr/local/man to /usr/local/share/man.
-        manpath = 'man'
-    return manpath
