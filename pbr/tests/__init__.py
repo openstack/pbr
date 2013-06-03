@@ -23,7 +23,6 @@ import testresources
 import testtools
 
 from pbr import packaging
-from pbr.tests import moxstubout
 
 
 class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
@@ -52,4 +51,3 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
 
         self.useFixture(fixtures.NestedTempfile())
         self.useFixture(fixtures.FakeLogger())
-        self.stubs = self.useFixture(moxstubout.MoxStubout()).stubs
