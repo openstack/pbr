@@ -23,10 +23,10 @@ Utilities with minimum-depends for use in setup.py
 import email
 import os
 import re
-import StringIO
 import subprocess
 import sys
 
+from d2to1.extern import six
 from distutils.command import install as du_install
 from distutils import log
 from setuptools.command import install
@@ -59,7 +59,7 @@ def canonicalize_emails(changelog, mapping):
     """Takes in a string and an email alias mapping and replaces all
        instances of the aliases in the string with their real email.
     """
-    for alias, email_address in mapping.iteritems():
+    for alias, email_address in six.iteritems(mapping):
         changelog = changelog.replace(alias, email_address)
     return changelog
 
@@ -300,7 +300,7 @@ try:
 
         def _sphinx_run(self):
             if not self.verbose:
-                status_stream = StringIO.StringIO()
+                status_stream = six.StringIO()
             else:
                 status_stream = sys.stdout
             confoverrides = {}

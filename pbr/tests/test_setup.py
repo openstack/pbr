@@ -19,10 +19,10 @@
 from __future__ import print_function
 
 import os
-import StringIO
 import sys
 import tempfile
 
+from d2to1.extern import six
 import fixtures
 import testscenarios
 
@@ -156,12 +156,12 @@ class GitLogsTest(tests.BaseTestCase):
 
     def test_write_git_changelog(self):
         exist_files = [os.path.join(self.root_dir, f)
-                       for f in ".git", ".mailmap"]
+                       for f in (".git", ".mailmap")]
         self.useFixture(fixtures.MonkeyPatch(
             "os.path.exists",
             lambda path: os.path.abspath(path) in exist_files))
         self.useFixture(fixtures.FakePopen(lambda _: {
-            "stdout": StringIO.StringIO("Author: Foo Bar <email@bar.com>\n")
+            "stdout": six.StringIO("Author: Foo Bar <email@bar.com>\n")
         }))
 
         def _fake_read_git_mailmap(*args):
@@ -202,7 +202,7 @@ class GitLogsTest(tests.BaseTestCase):
             lambda path: os.path.abspath(path) in exist_files))
 
         self.useFixture(fixtures.FakePopen(lambda proc_args: {
-            "stdout": StringIO.StringIO(
+            "stdout": six.StringIO(
                 self._fake_log_output(proc_args["args"][2], cmd_map))
         }))
 
