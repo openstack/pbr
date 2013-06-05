@@ -161,7 +161,8 @@ class GitLogsTest(tests.BaseTestCase):
             "os.path.exists",
             lambda path: os.path.abspath(path) in exist_files))
         self.useFixture(fixtures.FakePopen(lambda _: {
-            "stdout": six.StringIO("Author: Foo Bar <email@bar.com>\n")
+            "stdout": six.BytesIO("Author: Foo Bar "
+                                  "<email@bar.com>\n".encode('utf-8'))
         }))
 
         def _fake_read_git_mailmap(*args):
@@ -179,8 +180,8 @@ class GitLogsTest(tests.BaseTestCase):
     def _fake_log_output(self, cmd, mapping):
         for (k, v) in mapping.items():
             if cmd.startswith(k):
-                return v
-        return ""
+                return v.encode('utf-8')
+        return b""
 
     def test_generate_authors(self):
         author_old = "Foo Foo <email@foo.com>"
@@ -202,7 +203,7 @@ class GitLogsTest(tests.BaseTestCase):
             lambda path: os.path.abspath(path) in exist_files))
 
         self.useFixture(fixtures.FakePopen(lambda proc_args: {
-            "stdout": six.StringIO(
+            "stdout": six.BytesIO(
                 self._fake_log_output(proc_args["args"][2], cmd_map))
         }))
 
@@ -243,7 +244,7 @@ class BuildSphinxTest(tests.BaseTestCase):
         self.distr.command_options["build_sphinx"] = {
             "source_dir": ["a", "."]}
         pkg_fixture = fixtures.PythonPackage(
-            "fake_package", [("fake_module.py", "")])
+            "fake_package", [("fake_module.py", b"")])
         self.useFixture(pkg_fixture)
         self.useFixture(DiveDir(pkg_fixture.base))
 

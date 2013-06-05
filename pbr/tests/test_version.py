@@ -15,20 +15,11 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import sys
-
-from d2to1.extern import six
-from oslo.config import cfg
-
 from pbr import tests
 from pbr import version
 
 
 class DeferredVersionTestCase(tests.BaseTestCase):
-
-    def setUp(self):
-        super(DeferredVersionTestCase, self).setUp()
-        self.conf = cfg.ConfigOpts()
 
     def test_cached_version(self):
         class MyVersionInfo(version.VersionInfo):
@@ -37,39 +28,4 @@ class DeferredVersionTestCase(tests.BaseTestCase):
 
         deferred_string = MyVersionInfo("openstack").\
             cached_version_string()
-        self.conf([], project="project", prog="prog", version=deferred_string)
-        self.assertEquals("5.5.5.5", str(self.conf.version))
-
-    def test_print_cached_version(self):
-        class MyVersionInfo(version.VersionInfo):
-            def _get_version_from_pkg_resources(self):
-                return "5.5.5.5"
-
-        deferred_string = MyVersionInfo("openstack")\
-            .cached_version_string()
-        self.stubs.Set(sys, 'stderr', six.StringIO())
-        self.assertRaises(SystemExit,
-                          self.conf, ['--version'],
-                          project="project",
-                          prog="prog",
-                          version=deferred_string)
-        self.assertEquals("5.5.5.5", sys.stderr.getvalue().strip())
-
-    def test_print_cached_version_with_long_string(self):
-        my_version = "11111222223333344444555556666677777888889999900000"
-
-        class MyVersionInfo(version.VersionInfo):
-            def _get_version_from_pkg_resources(self):
-                return my_version
-
-        deferred_string = MyVersionInfo("openstack")\
-            .cached_version_string()
-
-        for i in range(50):
-            self.stubs.Set(sys, 'stderr', six.StringIO())
-            self.assertRaises(SystemExit,
-                              self.conf, ['--version'],
-                              project="project",
-                              prog="prog",
-                              version=deferred_string)
-            self.assertEquals(my_version, sys.stderr.getvalue().strip())
+        self.assertEquals("5.5.5.5", deferred_string)

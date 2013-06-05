@@ -149,7 +149,7 @@ def _run_shell_command(cmd, throw_on_error=False):
         return None
     if len(out[0].strip()) == 0:
         return None
-    return out[0].strip()
+    return out[0].strip().decode('utf-8')
 
 
 def _get_git_directory():
@@ -176,8 +176,9 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
             git_log_cmd = 'git --git-dir=%s log' % git_dir
             changelog = _run_shell_command(git_log_cmd)
             mailmap = read_git_mailmap(git_dir)
-            with open(new_changelog, "w") as changelog_file:
-                changelog_file.write(canonicalize_emails(changelog, mailmap))
+            with open(new_changelog, "wb") as changelog_file:
+                changelog_file.write(canonicalize_emails(
+                    changelog, mailmap).encode('utf-8'))
 
 
 def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
@@ -207,11 +208,12 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
                 changelog = "\n".join((changelog, new_entries))
 
             mailmap = read_git_mailmap(git_dir)
-            with open(new_authors, 'w') as new_authors_fh:
-                new_authors_fh.write(canonicalize_emails(changelog, mailmap))
+            with open(new_authors, 'wb') as new_authors_fh:
+                new_authors_fh.write(canonicalize_emails(
+                    changelog, mailmap).encode('utf-8'))
                 if os.path.exists(old_authors):
-                    with open(old_authors, "r") as old_authors_fh:
-                        new_authors_fh.write('\n' + old_authors_fh.read())
+                    with open(old_authors, "rb") as old_authors_fh:
+                        new_authors_fh.write(b'\n' + old_authors_fh.read())
 
 
 _rst_template = """%(heading)s
@@ -275,8 +277,9 @@ try:
                 os.makedirs(source_dir)
             for pkg in self.distribution.packages:
                 if '.' not in pkg:
-                    os.path.walk(pkg, _find_modules, modules)
-            module_list = modules.keys()
+                    for dirpath, dirnames, files in os.walk(pkg):
+                        _find_modules(modules, dirpath, files)
+            module_list = list(modules.keys())
             module_list.sort()
             autoindex_filename = os.path.join(source_dir, 'autoindex.rst')
             with open(autoindex_filename, 'w') as autoindex:
