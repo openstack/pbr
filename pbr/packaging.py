@@ -29,6 +29,8 @@ import sys
 from d2to1.extern import six
 from distutils.command import install as du_install
 from distutils import log
+import pkg_resources
+from setuptools.command import easy_install
 from setuptools.command import install
 from setuptools.command import sdist
 
@@ -238,7 +240,43 @@ class DistutilsInstall(install.install):
 
     command_name = 'install'
 
+    def fetch_build_egg(self, req):
+        """Fetch an egg needed for building."""
+        try:
+            cmd = self._egg_fetcher
+            cmd.package_index.to_scan = []
+        except AttributeError:
+            dist = self.distribution.__class__(
+                {'script_args': ['easy_install']})
+            dist.parse_config_files()
+            opts = dist.get_option_dict('easy_install')
+            keep = (
+                'find_links', 'site_dirs', 'index_url', 'optimize',
+                'site_dirs', 'allow_hosts'
+            )
+            for key in opts.keys():
+                if key not in keep:
+                    del opts[key]   # don't use any other settings
+            if self.distribution.dependency_links:
+                links = self.distribution.dependency_links[:]
+                if 'find_links' in opts:
+                    links = opts['find_links'][1].split() + links
+                opts['find_links'] = ('setup', links)
+            cmd = easy_install.easy_install(
+                dist, args=["x"],
+                always_copy=False, build_directory=None, editable=False,
+                upgrade=False, multi_version=True, no_report=True
+            )
+            cmd.ensure_finalized()
+            self._egg_fetcher = cmd
+        return cmd.easy_install(req)
+
     def run(self):
+        for dist in pkg_resources.working_set.resolve(
+                pkg_resources.parse_requirements(
+                    self.distribution.install_requires),
+                installer=self.fetch_build_egg):
+            pkg_resources.working_set.add(dist)
         return du_install.install.run(self)
 
 
