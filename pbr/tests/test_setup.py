@@ -124,6 +124,10 @@ class SkipFileWrites(tests.BaseTestCase):
         self.temp_path = self.useFixture(fixtures.TempDir()).path
         self.root_dir = os.path.abspath(os.path.curdir)
         self.git_dir = os.path.join(self.root_dir, ".git")
+        if not os.path.exists(self.git_dir):
+            self.skipTest("%s is missing; skipping git-related checks"
+                          % self.git_dir)
+            return
         self.filename = os.path.join(self.temp_path, self.filename)
         self.option_dict = dict()
         if self.option_key is not None:
