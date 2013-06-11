@@ -14,6 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import os
+import sys
+
+try:
+    sys.path += [x for x in os.listdir(".") if x.endswith(".egg")]
+    import d2to1  # flake8: noqa
+except ImportError:
+    import subprocess
+    if not subprocess.call(
+        [sys.executable] +
+            "-m pip.__init__ install distribute<0.7 d2to1>=0.2.10,<0.3".split()
+    ):
+        sys.exit(subprocess.call([sys.executable] + sys.argv))
 import setuptools
 
 setuptools.setup(

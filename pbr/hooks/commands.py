@@ -45,4 +45,4 @@ class CommandsConfig(base.BaseConfig):
             self.pbr_config, 'use-egg', 'PBR_USE_EGG')
         # We always want non-egg install unless explicitly requested
         if 'manpages' in self.pbr_config or not use_egg:
-            self.add_command('pbr.packaging.DistutilsInstall')
+            self.add_command('pbr.packaging.LocalInstall')

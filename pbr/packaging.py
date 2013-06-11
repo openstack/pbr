@@ -28,14 +28,15 @@ import sys
 
 from d2to1.extern import six
 from distutils.command import install as du_install
+import distutils.errors
 from distutils import log
 import pkg_resources
-from setuptools.command import easy_install
 from setuptools.command import install
 from setuptools.command import sdist
 
 log.set_verbosity(log.INFO)
-TRUE_VALUES = ['true', '1', 'yes']
+TRUE_VALUES = ('true', '1', 'yes')
+REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
 
 
 def append_text_list(config, key, text_list):
@@ -58,6 +59,41 @@ def _parse_mailmap(mailmap_info):
             continue
         mapping[alias] = canonical_email
     return mapping
+
+
+def _wrap_in_quotes(values):
+    return ["'%s'" % value for value in values]
+
+
+def _make_links_args(links):
+    return ["-f '%s'" % link for link in links]
+
+
+def _missing_requires(requires):
+    """Return the list of requirements that are not already installed.
+
+    Do this check explicitly, because it's very easy to see if a package
+    is in the current working set, to avoid shelling out to pip and attempting
+    an install. pip will do the right thing, but we don't need to do the
+    excess work on everyone's machines all the time (especially since tox
+    likes re-installing things a lot)
+    """
+    return [r for r in requires
+            if not pkg_resources.working_set.find(
+                pkg_resources.Requirement.parse(r))]
+
+
+def _pip_install(links, requires, root=None):
+    root_cmd = ""
+    if root:
+        root_cmd = "--root=%s" % root
+    _run_shell_command(
+        "%s -m pip install %s %s %s" % (
+            sys.executable,
+            root_cmd,
+            " ".join(links),
+            " ".join(_wrap_in_quotes(_missing_requires(requires)))),
+        throw_on_error=True, buffer=False)
 
 
 def read_git_mailmap(git_dir, mailmap='.mailmap'):
@@ -85,8 +121,7 @@ def get_reqs_from_files(requirements_files):
     return []
 
 
-def parse_requirements(requirements_files=['requirements.txt',
-                                           'tools/pip-requires']):
+def parse_requirements(requirements_files=REQUIREMENTS_FILES):
 
     def egg_fragment(match):
         # take a versioned egg fragment and return a
@@ -127,8 +162,7 @@ def parse_requirements(requirements_files=['requirements.txt',
     return requirements
 
 
-def parse_dependency_links(requirements_files=['requirements.txt',
-                                               'tools/pip-requires']):
+def parse_dependency_links(requirements_files=REQUIREMENTS_FILES):
     dependency_links = []
     # dependency_links inject alternate locations to find packages listed
     # in requirements
@@ -145,21 +179,27 @@ def parse_dependency_links(requirements_files=['requirements.txt',
     return dependency_links
 
 
-def _run_shell_command(cmd, throw_on_error=False):
+def _run_shell_command(cmd, throw_on_error=False, buffer=True):
+    if buffer:
+        out_location = subprocess.PIPE
+        err_location = subprocess.PIPE
+    else:
+        out_location = None
+        err_location = None
+
     if os.name == 'nt':
         output = subprocess.Popen(["cmd.exe", "/C", cmd],
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE)
+                                  stdout=out_location,
+                                  stderr=err_location)
     else:
         output = subprocess.Popen(["/bin/sh", "-c", cmd],
-                                  stdout=subprocess.PIPE,
-                                  stderr=subprocess.PIPE)
+                                  stdout=out_location,
+                                  stderr=err_location)
     out = output.communicate()
     if output.returncode and throw_on_error:
-        raise Exception("%s returned %d" % cmd, output.returncode)
-    if len(out) == 0:
-        return None
-    if len(out[0].strip()) == 0:
+        raise distutils.errors.DistutilsError(
+            "%s returned %d" % (cmd, output.returncode))
+    if len(out) == 0 or not out[0] or not out[0].strip():
         return None
     return out[0].strip().decode('utf-8')
 
@@ -245,48 +285,30 @@ def _find_modules(arg, dirname, files):
                            filename[:-3])] = True
 
 
-class DistutilsInstall(install.install):
-    """Forces single-version-externally-managed."""
+class LocalInstall(install.install):
+    """Runs python setup.py install in a sensible manner.
+
+    Force a non-egg installed in the manner of
+    single-version-externally-managed, which allows us to install manpages
+    and config files.
+
+    Because non-egg installs bypass the depend processing machinery, we
+    need to do our own. Because easy_install is evil, just use pip to
+    process our requirements files directly, which means we don't have to
+    do crazy extra processing.
+
+    Bypass installation if --single-version-externally-managed is given,
+    so that behavior for packagers remains the same.
+    """
 
     command_name = 'install'
 
-    def fetch_build_egg(self, req):
-        """Fetch an egg needed for building."""
-        try:
-            cmd = self._egg_fetcher
-            cmd.package_index.to_scan = []
-        except AttributeError:
-            dist = self.distribution.__class__(
-                {'script_args': ['easy_install']})
-            dist.parse_config_files()
-            opts = dist.get_option_dict('easy_install')
-            keep = (
-                'find_links', 'site_dirs', 'index_url', 'optimize',
-                'site_dirs', 'allow_hosts'
-            )
-            for key in opts.keys():
-                if key not in keep:
-                    del opts[key]   # don't use any other settings
-            if self.distribution.dependency_links:
-                links = self.distribution.dependency_links[:]
-                if 'find_links' in opts:
-                    links = opts['find_links'][1].split() + links
-                opts['find_links'] = ('setup', links)
-            cmd = easy_install.easy_install(
-                dist, args=["x"],
-                always_copy=False, build_directory=None, editable=False,
-                upgrade=False, multi_version=True, no_report=True
-            )
-            cmd.ensure_finalized()
-            self._egg_fetcher = cmd
-        return cmd.easy_install(req)
-
     def run(self):
-        for dist in pkg_resources.working_set.resolve(
-                pkg_resources.parse_requirements(
-                    self.distribution.install_requires),
-                installer=self.fetch_build_egg):
-            pkg_resources.working_set.add(dist)
+        if (not self.single_version_externally_managed
+                and self.distribution.install_requires):
+            links = _make_links_args(self.distribution.dependency_links)
+            _pip_install(links, self.distribution.install_requires, self.root)
+
         return du_install.install.run(self)
 
 
