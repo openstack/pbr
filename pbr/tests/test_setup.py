@@ -314,6 +314,24 @@ class ParseRequirementsTest(tests.BaseTestCase):
         if sys.version_info >= (2, 7):
             self.assertEqual([], packaging.parse_requirements([self.tmp_file]))
 
+    def test_parse_requirements_override_with_env(self):
+        with open(self.tmp_file, 'w') as fh:
+            fh.write("foo\nbar")
+        self.useFixture(
+            fixtures.EnvironmentVariable('PBR_REQUIREMENTS_FILES',
+                                         self.tmp_file))
+        self.assertEqual(['foo', 'bar'],
+                         packaging.parse_requirements())
+
+    def test_parse_requirements_override_with_env_multiple_files(self):
+        with open(self.tmp_file, 'w') as fh:
+            fh.write("foo\nbar")
+        self.useFixture(
+            fixtures.EnvironmentVariable('PBR_REQUIREMENTS_FILES',
+                                         "no-such-file," + self.tmp_file))
+        self.assertEqual(['foo', 'bar'],
+                         packaging.parse_requirements())
+
     def test_get_requirement_from_file_empty(self):
         actual = packaging.get_reqs_from_files([])
         self.assertEqual([], actual)

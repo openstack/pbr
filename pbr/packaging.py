@@ -128,7 +128,14 @@ def get_reqs_from_files(requirements_files):
     return []
 
 
-def parse_requirements(requirements_files=REQUIREMENTS_FILES):
+def parse_requirements(requirements_files=None):
+
+    if requirements_files is None:
+        files = os.environ.get("PBR_REQUIREMENTS_FILES")
+        if files:
+            requirements_files = tuple(f.strip() for f in files.split(','))
+        else:
+            requirements_files = REQUIREMENTS_FILES
 
     def egg_fragment(match):
         # take a versioned egg fragment and return a
