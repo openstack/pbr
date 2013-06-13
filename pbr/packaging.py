@@ -88,7 +88,7 @@ def _pip_install(links, requires, root=None):
     if root:
         root_cmd = "--root=%s" % root
     _run_shell_command(
-        "%s -m pip install %s %s %s" % (
+        "%s -m pip.__init__ install %s %s %s" % (
             sys.executable,
             root_cmd,
             " ".join(links),
