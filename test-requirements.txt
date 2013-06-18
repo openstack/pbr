@@ -4,6 +4,7 @@ fixtures>=0.3.12
 flake8
 python-subunit
 sphinx>=1.1.2
+testrepository>=0.0.13
 testresources
 testscenarios
 testtools>=0.9.27
