@@ -1,3 +1,2 @@
 d2to1>=0.2.10,<0.3
 setuptools_git>=0.4
-testrepository>=0.0.13
