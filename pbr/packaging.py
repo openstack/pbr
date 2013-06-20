@@ -137,6 +137,10 @@ def parse_requirements(requirements_files=REQUIREMENTS_FILES):
 
     requirements = []
     for line in get_reqs_from_files(requirements_files):
+        # Ignore comments
+        if (not line.strip()) or line.startswith('#'):
+            continue
+
         # For the requirements list, we need to inject only the portion
         # after egg= so that distutils knows the package it's looking for
         # such as:
@@ -224,8 +228,12 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
     should_skip = get_boolean_option(option_dict, 'skip_changelog',
                                      'SKIP_WRITE_GIT_CHANGELOG')
     if not should_skip:
-        log.info('[pbr] Writing ChangeLog')
         new_changelog = os.path.join(dest_dir, 'ChangeLog')
+        # If there's already a ChangeLog and it's not writable, just use it
+        if (os.path.exists(new_changelog)
+                and not os.access(new_changelog, os.W_OK)):
+            return
+        log.info('[pbr] Writing ChangeLog')
         if git_dir is None:
             git_dir = _get_git_directory()
         if git_dir:
@@ -242,10 +250,14 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
     should_skip = get_boolean_option(option_dict, 'skip_authors',
                                      'SKIP_GENERATE_AUTHORS')
     if not should_skip:
-        log.info('[pbr] Generating AUTHORS')
-        jenkins_email = 'jenkins@review'
         old_authors = os.path.join(dest_dir, 'AUTHORS.in')
         new_authors = os.path.join(dest_dir, 'AUTHORS')
+        # If there's already a ChangeLog and it's not writable, just use it
+        if (os.path.exists(new_authors)
+                and not os.access(new_authors, os.W_OK)):
+            return
+        log.info('[pbr] Generating AUTHORS')
+        jenkins_email = 'jenkins@review'
         if git_dir is None:
             git_dir = _get_git_directory()
         if git_dir:

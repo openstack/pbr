@@ -318,6 +318,12 @@ class ParseRequirementsTest(tests.BaseTestCase):
         actual = packaging.get_reqs_from_files([])
         self.assertEqual([], actual)
 
+    def test_parse_requirements_with_comments(self):
+        with open(self.tmp_file, 'w') as fh:
+            fh.write("# this is a comment\nfoobar\n# and another one\nfoobaz")
+        self.assertEqual(['foobar', 'foobaz'],
+                         packaging.parse_requirements([self.tmp_file]))
+
 
 class ParseDependencyLinksTest(tests.BaseTestCase):
 
