@@ -96,7 +96,7 @@ def _pip_install(links, requires, root=None):
             sys.executable,
             root_cmd,
             " ".join(links),
-            " ".join(_wrap_in_quotes(_missing_requires(requires)))),
+            " ".join(_wrap_in_quotes(requires))),
         throw_on_error=True, buffer=False)
 
 
@@ -344,7 +344,7 @@ def _newer_requires_files(egg_info_dir):
         for src in _any_existing(sources):
             if (not os.path.exists(target_path) or
                     os.path.getmtime(target_path)
-                    < os.path.getmtime(os.path.join(egg_info_dir, src))):
+                    < os.path.getmtime(src)):
                 return True
     return False
 
@@ -361,13 +361,15 @@ class _PipInstallTestRequires(object):
 
     def install_test_requirements(self):
 
-        links = _make_links_args(_any_existing(TEST_REQUIREMENTS_FILES))
+        links = _make_links_args(
+            parse_dependency_links(TEST_REQUIREMENTS_FILES))
         if self.distribution.tests_require:
-            _pip_install(links, self.distribution.tests_requires)
+            _pip_install(links, self.distribution.tests_require)
 
     def pre_run(self):
         self.egg_name = pkg_resources.safe_name(self.distribution.get_name())
-        self.egg_info = "%s.egg-info" % self.egg_name
+        self.egg_info = "%s.egg-info" % pkg_resources.to_filename(
+            self.egg_name)
         if (not os.path.exists(self.egg_info) or
                 _newer_requires_files(self.egg_info)):
             ei_cmd = self.get_finalized_command('egg_info')
