@@ -38,6 +38,9 @@ log.set_verbosity(log.INFO)
 TRUE_VALUES = ('true', '1', 'yes')
 REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
 TEST_REQUIREMENTS_FILES = ('test-requirements.txt', 'tools/test-requires')
+# part of the standard library starting with 2.7
+# adding it to the requirements list screws distro installs
+BROKEN_ON_27 = ('argparse', 'importlib')
 
 
 def append_text_list(config, key, text_list):
@@ -160,9 +163,7 @@ def parse_requirements(requirements_files=REQUIREMENTS_FILES):
         # -f lines are for index locations, and don't get used here
         elif re.match(r'\s*-f\s+', line):
             pass
-        # argparse is part of the standard library starting with 2.7
-        # adding it to the requirements list screws distro installs
-        elif line == 'argparse' and sys.version_info >= (2, 7):
+        elif line in BROKEN_ON_27 and sys.version_info >= (2, 7):
             pass
         else:
             requirements.append(line)
