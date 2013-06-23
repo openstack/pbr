@@ -92,6 +92,8 @@ def _missing_requires(requires):
 
 
 def _pip_install(links, requires, root=None):
+    if str(os.getenv('SKIP_PIP_INSTALL', '')).lower() in TRUE_VALUES:
+        return
     root_cmd = ""
     if root:
         root_cmd = "--root=%s" % root
