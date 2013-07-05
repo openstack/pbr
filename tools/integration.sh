@@ -41,8 +41,14 @@ mkdir -p $pypidir
 jeepybvenv=$tmpdir/jeepyb
 
 rm -f ~/.pip/pip.conf ~/.pydistutils.cfg
+mkdir -p ~/.pip
 
-mkvenv $jeepybvenv distribute pip
+cat <<EOF > ~/.pip/pip.conf
+[global]
+log = /home/jenkins/pip.log
+EOF
+
+mkvenv $jeepybvenv 'setuptools>=0.7' pip
 $jeepybvenv/bin/pip install -U git+https://review.openstack.org/p/openstack-infra/jeepyb.git
 
 cat <<EOF > $tmpdir/mirror.yaml
@@ -77,11 +83,11 @@ cat <<EOF > ~/.pydistutils.cfg
 index_url = $pypiurl
 EOF
 
-mkdir -p ~/.pip
 cat <<EOF > ~/.pip/pip.conf
 [global]
 index-url = $pypiurl
 extra-index-url = http://pypi.openstack.org/openstack
+log = /home/jenkins/pip.log
 EOF
 
 projectdir=$tmpdir/projects
@@ -96,6 +102,10 @@ for PROJECT in $PROJECTS ; do
     fi
     if [ $SHORT_PROJECT = 'tempest' ]; then
         # Tempest doesn't really install
+        continue
+    fi
+    if [ $SHORT_PROJECT = 'requirements' ]; then
+        # requirements doesn't really install
         continue
     fi
     shortprojectdir=$projectdir/$SHORT_PROJECT

@@ -26,13 +26,17 @@ import re
 import subprocess
 import sys
 
-from d2to1.extern import six
 from distutils.command import install as du_install
 import distutils.errors
 from distutils import log
 import pkg_resources
 from setuptools.command import install
 from setuptools.command import sdist
+
+try:
+    import cStringIO as io
+except ImportError:
+    import io
 
 log.set_verbosity(log.INFO)
 TRUE_VALUES = ('true', '1', 'yes')
@@ -111,7 +115,7 @@ def canonicalize_emails(changelog, mapping):
     """Takes in a string and an email alias mapping and replaces all
        instances of the aliases in the string with their real email.
     """
-    for alias, email_address in six.iteritems(mapping):
+    for alias, email_address in mapping.items():
         changelog = changelog.replace(alias, email_address)
     return changelog
 
@@ -481,7 +485,7 @@ try:
 
         def _sphinx_run(self):
             if not self.verbose:
-                status_stream = six.StringIO()
+                status_stream = io.StringIO()
             else:
                 status_stream = sys.stdout
             confoverrides = {}

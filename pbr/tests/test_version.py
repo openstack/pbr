@@ -28,4 +28,4 @@ class DeferredVersionTestCase(tests.BaseTestCase):
 
         deferred_string = MyVersionInfo("openstack").\
             cached_version_string()
-        self.assertEquals("5.5.5.5", deferred_string)
+        self.assertEqual("5.5.5.5", deferred_string)

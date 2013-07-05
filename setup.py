@@ -16,6 +16,7 @@
 
 import setuptools
 
+from pbr.d2to1 import util
+
 setuptools.setup(
-    setup_requires=['d2to1>=0.2.10,<0.3'],
-    d2to1=True)
+    **util.cfg_to_args())

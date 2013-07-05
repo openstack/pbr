@@ -1,81 +1,77 @@
-from __future__ import with_statement
+# Copyright (c) 2013 Hewlett-Packard Development Company, L.P.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Copyright (C) 2013 Association of Universities for Research in Astronomy
+#                    (AURA)
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#     1. Redistributions of source code must retain the above copyright
+#        notice, this list of conditions and the following disclaimer.
+#
+#     2. Redistributions in binary form must reproduce the above
+#        copyright notice, this list of conditions and the following
+#        disclaimer in the documentation and/or other materials provided
+#        with the distribution.
+#
+#     3. The name of AURA and its representatives may not be used to
+#        endorse or promote products derived from this software without
+#        specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY AURA ``AS IS'' AND ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL AURA BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+
 import os
 import shutil
 import subprocess
 import sys
-import tempfile
 
-import pkg_resources
-
-from .util import rmtree, open_config
+import fixtures
+import testtools
 
 
-D2TO1_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                         os.pardir, os.pardir))
-
-
-def fake_d2to1_dist():
-    # Fake a d2to1 distribution from the d2to1 package that these tests reside
-    # in and make sure it's active on the path with the appropriate entry
-    # points installed
-
-    class _FakeProvider(pkg_resources.EmptyProvider):
-        """A fake metadata provider that does almost nothing except to return
-        entry point metadata.
-        """
-
-        def has_metadata(self, name):
-            return name == 'entry_points.txt'
-
-        def get_metadata(self, name):
-            if name == 'entry_points.txt':
-                return '[distutils.setup_keywords]\nd2to1 = d2to1.core:d2to1\n'
-            else:
-                return ''
-
-
-    sys.path.insert(0, D2TO1_DIR)
-    if 'd2to1' in sys.modules:
-        del sys.modules['d2to1']
-    if 'd2to1' in pkg_resources.working_set.by_key:
-        del pkg_resources.working_set.by_key['d2to1']
-    dist = pkg_resources.Distribution(location=D2TO1_DIR, project_name='d2to1',
-                                      metadata=_FakeProvider())
-    pkg_resources.working_set.add(dist)
-
-
-class D2to1TestCase(object):
-    def setup(self):
-        self.temp_dir = tempfile.mkdtemp(prefix='d2to1-test-')
+class D2to1TestCase(testtools.TestCase):
+    def setUp(self):
+        super(D2to1TestCase, self).setUp()
+        self.temp_dir = self.useFixture(fixtures.TempDir()).path
         self.package_dir = os.path.join(self.temp_dir, 'testpackage')
         shutil.copytree(os.path.join(os.path.dirname(__file__), 'testpackage'),
                         self.package_dir)
-        self.oldcwd = os.getcwd()
+        self.addCleanup(os.chdir, os.getcwd())
         os.chdir(self.package_dir)
 
-    def teardown(self):
-        os.chdir(self.oldcwd)
+    def tearDown(self):
         # Remove d2to1.testpackage from sys.modules so that it can be freshly
         # re-imported by the next test
         for k in list(sys.modules):
             if (k == 'd2to1_testpackage' or
-                k.startswith('d2to1_testpackage.')):
+                    k.startswith('d2to1_testpackage.')):
                 del sys.modules[k]
-        rmtree(self.temp_dir)
+        super(D2to1TestCase, self).tearDown()
 
     def run_setup(self, *args):
-        cmd = ('-c',
-               'import sys;sys.path.insert(0, %r);'
-               'from d2to1.tests import fake_d2to1_dist;'
-               'from d2to1.extern.six import exec_;'
-               'fake_d2to1_dist();exec_(open("setup.py").read())' % D2TO1_DIR)
-        return self._run_cmd(sys.executable, cmd + args)
-
-    def run_svn(self, *args):
-        return self._run_cmd('svn', args)
+        return self._run_cmd(sys.executable, ('setup.py',) + args)
 
     def _run_cmd(self, cmd, args):
-        """
+        """Run a command in the root of the test working copy.
+
         Runs a command, with the given argument list, in the root of the test
         working copy--returns the stdout and stderr streams and the exit code
         from the subprocess.
