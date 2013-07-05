@@ -95,13 +95,15 @@ def _pip_install(links, requires, root=None):
     root_cmd = ""
     if root:
         root_cmd = "--root=%s" % root
-    _run_shell_command(
-        "%s -m pip.__init__ install %s %s %s" % (
-            sys.executable,
-            root_cmd,
-            " ".join(links),
-            " ".join(_wrap_in_quotes(_missing_requires(requires)))),
-        throw_on_error=True, buffer=False)
+    missing_requires = _missing_requires(requires)
+    if missing_requires:
+        _run_shell_command(
+            "%s -m pip.__init__ install %s %s %s" % (
+                sys.executable,
+                root_cmd,
+                " ".join(links),
+                " ".join(_wrap_in_quotes(missing_requires))),
+            throw_on_error=True, buffer=False)
 
 
 def read_git_mailmap(git_dir, mailmap='.mailmap'):
