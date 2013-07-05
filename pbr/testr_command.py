@@ -77,7 +77,7 @@ class Testr(cmd.Command):
             raise distutils.errors.DistutilsError(
                 "testr failed (%d)" % testr_ret)
         if self.slowest:
-            print "Slowest Tests"
+            print("Slowest Tests")
             self._run_testr("slowest")
         if self.coverage:
             self._coverage_after()
