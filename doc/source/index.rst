@@ -104,6 +104,7 @@ A simple sample can be found in pbr s own setup.cfg
  packages =
      pbr
  data_files =
+     etc/pbr = etc/*
      etc/init =
          pbr.packaging.conf
          pbr.version.conf
@@ -151,10 +152,12 @@ namespace packages.
 that contains key value pairs which specify target directory and source
 file to install there. More than one source file for a directory may be
 indicated with a further indented list. Source files are stripped of leading
-directories, so::
+directories. Additionally, `pbr` supports a simple file globbing syntax
+for installing entire directory structures, so::
 
  [files]
  data_files =
+     etc/pbr = etc/pbr/*
      etc/neutron =
          etc/api-paste.ini
          etc/dhcp-agent.ini
@@ -164,6 +167,9 @@ Will result in `/etc/neutron` containing `api-paste.ini` and `dhcp-agent.ini`,
 both of which pbr will expect to find in the `etc` directory in the root of
 the source tree. Additionally, `neutron.init` from that dir will be installed
 in `/etc/init.d`.
+
+All of the files and directories located under `etc/pbr` in the source tree
+will be installed into `/etc/pbr`.
 
 entry_points
 ------------
