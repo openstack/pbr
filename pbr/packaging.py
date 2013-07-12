@@ -26,13 +26,17 @@ import re
 import subprocess
 import sys
 
-from d2to1.extern import six
 from distutils.command import install as du_install
 import distutils.errors
 from distutils import log
 import pkg_resources
 from setuptools.command import install
 from setuptools.command import sdist
+
+try:
+    import cStringIO as io
+except ImportError:
+    import io
 
 log.set_verbosity(log.INFO)
 TRUE_VALUES = ('true', '1', 'yes')
@@ -88,16 +92,20 @@ def _missing_requires(requires):
 
 
 def _pip_install(links, requires, root=None):
+    if str(os.getenv('SKIP_PIP_INSTALL', '')).lower() in TRUE_VALUES:
+        return
     root_cmd = ""
     if root:
         root_cmd = "--root=%s" % root
-    _run_shell_command(
-        "%s -m pip.__init__ install %s %s %s" % (
-            sys.executable,
-            root_cmd,
-            " ".join(links),
-            " ".join(_wrap_in_quotes(requires))),
-        throw_on_error=True, buffer=False)
+    missing_requires = _missing_requires(requires)
+    if missing_requires:
+        _run_shell_command(
+            "%s -m pip.__init__ install %s %s %s" % (
+                sys.executable,
+                root_cmd,
+                " ".join(links),
+                " ".join(_wrap_in_quotes(missing_requires))),
+            throw_on_error=True, buffer=False)
 
 
 def read_git_mailmap(git_dir, mailmap='.mailmap'):
@@ -111,7 +119,7 @@ def canonicalize_emails(changelog, mapping):
     """Takes in a string and an email alias mapping and replaces all
        instances of the aliases in the string with their real email.
     """
-    for alias, email_address in six.iteritems(mapping):
+    for alias, email_address in mapping.items():
         changelog = changelog.replace(alias, email_address)
     return changelog
 
@@ -260,7 +268,7 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
     if not should_skip:
         old_authors = os.path.join(dest_dir, 'AUTHORS.in')
         new_authors = os.path.join(dest_dir, 'AUTHORS')
-        # If there's already a ChangeLog and it's not writable, just use it
+        # If there's already an AUTHORS file and it's not writable, just use it
         if (os.path.exists(new_authors)
                 and not os.access(new_authors, os.W_OK)):
             return
@@ -285,11 +293,11 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
 
             mailmap = read_git_mailmap(git_dir)
             with open(new_authors, 'wb') as new_authors_fh:
-                new_authors_fh.write(canonicalize_emails(
-                    changelog, mailmap).encode('utf-8'))
                 if os.path.exists(old_authors):
                     with open(old_authors, "rb") as old_authors_fh:
-                        new_authors_fh.write(b'\n' + old_authors_fh.read())
+                        new_authors_fh.write(old_authors_fh.read())
+                new_authors_fh.write(canonicalize_emails(
+                    changelog, mailmap).encode('utf-8'))
 
 
 _rst_template = """%(heading)s
@@ -483,7 +491,7 @@ try:
 
         def _sphinx_run(self):
             if not self.verbose:
-                status_stream = six.StringIO()
+                status_stream = io.StringIO()
             else:
                 status_stream = sys.stdout
             confoverrides = {}

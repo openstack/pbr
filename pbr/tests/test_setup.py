@@ -22,7 +22,13 @@ import os
 import sys
 import tempfile
 
-from d2to1.extern import six
+try:
+    import cStringIO as io
+    BytesIO = io.StringIO
+except ImportError:
+    import io
+    BytesIO = io.BytesIO
+
 import fixtures
 import testscenarios
 
@@ -165,8 +171,8 @@ class GitLogsTest(tests.BaseTestCase):
             "os.path.exists",
             lambda path: os.path.abspath(path) in exist_files))
         self.useFixture(fixtures.FakePopen(lambda _: {
-            "stdout": six.BytesIO("Author: Foo Bar "
-                                  "<email@bar.com>\n".encode('utf-8'))
+            "stdout": BytesIO("Author: Foo Bar "
+                              "<email@bar.com>\n".encode('utf-8'))
         }))
 
         def _fake_read_git_mailmap(*args):
@@ -207,7 +213,7 @@ class GitLogsTest(tests.BaseTestCase):
             lambda path: os.path.abspath(path) in exist_files))
 
         self.useFixture(fixtures.FakePopen(lambda proc_args: {
-            "stdout": six.BytesIO(
+            "stdout": BytesIO(
                 self._fake_log_output(proc_args["args"][2], cmd_map))
         }))
 
