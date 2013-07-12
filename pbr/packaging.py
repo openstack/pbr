@@ -268,7 +268,7 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
     if not should_skip:
         old_authors = os.path.join(dest_dir, 'AUTHORS.in')
         new_authors = os.path.join(dest_dir, 'AUTHORS')
-        # If there's already a ChangeLog and it's not writable, just use it
+        # If there's already an AUTHORS file and it's not writable, just use it
         if (os.path.exists(new_authors)
                 and not os.access(new_authors, os.W_OK)):
             return
@@ -293,11 +293,11 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
 
             mailmap = read_git_mailmap(git_dir)
             with open(new_authors, 'wb') as new_authors_fh:
-                new_authors_fh.write(canonicalize_emails(
-                    changelog, mailmap).encode('utf-8'))
                 if os.path.exists(old_authors):
                     with open(old_authors, "rb") as old_authors_fh:
-                        new_authors_fh.write(b'\n' + old_authors_fh.read())
+                        new_authors_fh.write(old_authors_fh.read())
+                new_authors_fh.write(canonicalize_emails(
+                    changelog, mailmap).encode('utf-8'))
 
 
 _rst_template = """%(heading)s
