@@ -65,27 +65,26 @@ class MailmapTestCase(tests.BaseTestCase):
 
     def setUp(self):
         super(MailmapTestCase, self).setUp()
-        self.git_dir = self.useFixture(fixtures.TempDir()).path
-        self.mailmap = os.path.join(self.git_dir, '.mailmap')
+        self.root_dir = self.useFixture(fixtures.TempDir()).path
+        self.mailmap = os.path.join(self.root_dir, '.mailmap')
 
     def test_mailmap_with_fullname(self):
-        print(self.mailmap, self.git_dir)
         with open(self.mailmap, 'w') as mm_fh:
             mm_fh.write("Foo Bar <email@foo.com> Foo Bar <email@bar.com>\n")
         self.assertEqual({'<email@bar.com>': '<email@foo.com>'},
-                         packaging.read_git_mailmap(self.git_dir))
+                         packaging.read_git_mailmap(self.root_dir))
 
     def test_mailmap_with_firstname(self):
         with open(self.mailmap, 'w') as mm_fh:
             mm_fh.write("Foo <email@foo.com> Foo <email@bar.com>\n")
         self.assertEqual({'<email@bar.com>': '<email@foo.com>'},
-                         packaging.read_git_mailmap(self.git_dir))
+                         packaging.read_git_mailmap(self.root_dir))
 
     def test_mailmap_with_noname(self):
         with open(self.mailmap, 'w') as mm_fh:
             mm_fh.write("<email@foo.com> <email@bar.com>\n")
         self.assertEqual({'<email@bar.com>': '<email@foo.com>'},
-                         packaging.read_git_mailmap(self.git_dir))
+                         packaging.read_git_mailmap(self.root_dir))
 
 
 class SkipFileWrites(tests.BaseTestCase):
@@ -201,9 +200,11 @@ class GitLogsTest(tests.BaseTestCase):
 
         git_log_cmd = ("git --git-dir=%s log --format" % self.git_dir)
         git_co_log_cmd = ("git log --git-dir=%s" % self.git_dir)
+        git_top_level = "git rev-parse --show-toplevel"
         cmd_map = {
             git_log_cmd: author_new,
             git_co_log_cmd: co_author_by,
+            git_top_level: self.root_dir,
         }
 
         exist_files = [self.git_dir,
