@@ -38,38 +38,54 @@
 # INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
 
-import glob
 import os
-import tarfile
+import textwrap
 
-from pbr.d2to1 import tests
+from pbr import tests
+from pbr.tests import util
 
 
-class TestCore(tests.D2to1TestCase):
+class TestHooks(tests.BaseTestCase):
+    def setUp(self):
+        super(TestHooks, self).setUp()
+        with util.open_config(
+                os.path.join(self.package_dir, 'setup.cfg')) as cfg:
+            cfg.set('global', 'setup-hooks',
+                    'pbr_testpackage._setup_hooks.test_hook_1\n'
+                    'pbr_testpackage._setup_hooks.test_hook_2')
+            cfg.set('build_ext', 'pre-hook.test_pre_hook',
+                    'pbr_testpackage._setup_hooks.test_pre_hook')
+            cfg.set('build_ext', 'post-hook.test_post_hook',
+                    'pbr_testpackage._setup_hooks.test_post_hook')
 
-    def test_setup_py_keywords(self):
-        """setup.py --keywords.
+    def test_global_setup_hooks(self):
+        """Test setup_hooks.
 
-        Test that the `./setup.py --keywords` command returns the correct
-        value without balking.
+        Test that setup_hooks listed in the [global] section of setup.cfg are
+        executed in order.
         """
 
-        self.run_setup('egg_info')
-        stdout, _, _ = self.run_setup('--keywords')
-        assert stdout == 'packaging,distutils,setuptools'
+        stdout, _, return_code = self.run_setup('egg_info')
+        assert 'test_hook_1\ntest_hook_2' in stdout
+        assert return_code == 0
 
-    def test_sdist_extra_files(self):
-        """Test that the extra files are correctly added."""
+    def test_command_hooks(self):
+        """Test command hooks.
 
-        stdout, _, return_code = self.run_setup('sdist', '--formats=gztar')
+        Simple test that the appropriate command hooks run at the
+        beginning/end of the appropriate command.
+        """
 
-        # There can be only one
-        try:
-            tf_path = glob.glob(os.path.join('dist', '*.tar.gz'))[0]
-        except IndexError:
-            assert False, 'source dist not found'
+        stdout, _, return_code = self.run_setup('egg_info')
+        assert 'build_ext pre-hook' not in stdout
+        assert 'build_ext post-hook' not in stdout
+        assert return_code == 0
 
-        tf = tarfile.open(tf_path)
-        names = ['/'.join(p.split('/')[1:]) for p in tf.getnames()]
-
-        assert 'extra-file.txt' in names
+        stdout, _, return_code = self.run_setup('build_ext')
+        assert textwrap.dedent("""
+            running build_ext
+            running pre_hook pbr_testpackage._setup_hooks.test_pre_hook for command build_ext
+            build_ext pre-hook
+        """) in stdout  # flake8: noqa
+        assert stdout.endswith('build_ext post-hook')
+        assert return_code == 0

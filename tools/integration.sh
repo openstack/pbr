@@ -151,7 +151,7 @@ for PROJECT in $PROJECTS ; do
 
     # TODO(mordred): need to implement egg filtering
     # Because install will have caused eggs to be locally downloaded
-    # pbr and d2to1 can get excluded from being in the actual venv
+    # pbr can get excluded from being in the actual venv
     # test that this did not happen
     # $tempvenv/bin/python -c 'import pkg_resources as p; import sys; pbr=p.working_set.find(p.Requirement.parse("pbr")) is None; sys.exit(pbr or 0)'
 done
