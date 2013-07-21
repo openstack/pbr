@@ -90,6 +90,49 @@ extra-index-url = http://pypi.openstack.org/openstack
 log = /home/jenkins/pip.log
 EOF
 
+eptest=$tmpdir/eptest
+mkdir $eptest
+cd $eptest
+
+cat <<EOF > setup.cfg
+[metadata]
+name = test_project
+
+[entry_points]
+console_scripts =
+    test_cmd = test_project:main
+
+[global]
+setup-hooks =
+    pbr.hooks.setup_hook
+EOF
+
+cat <<EOF > setup.py
+import setuptools
+
+setuptools.setup(
+    setup_requires=['pbr'],
+    pbr=True)
+EOF
+
+mkdir test_project
+cat <<EOF > test_project/__init__.py
+def main():
+    print "Test cmd"
+EOF
+
+epvenv=$eptest/venv
+mkvenv $epvenv setuptools pip
+
+eppbrdir=$tmpdir/eppbrdir
+git clone $REPODIR/pbr $eppbrdir
+$epvenv/bin/pip install -e $eppbrdir
+
+PBR_VERSION=0.0 $epvenv/bin/python setup.py install
+cat $epvenv/bin/test_cmd
+grep 'PBR Generated' $epvenv/bin/test_cmd
+$epvenv/bin/test_cmd | grep 'Test cmd'
+
 projectdir=$tmpdir/projects
 mkdir -p $projectdir
 

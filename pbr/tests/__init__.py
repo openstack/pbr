@@ -100,7 +100,7 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
     def run_setup(self, *args):
         return self._run_cmd(sys.executable, ('setup.py',) + args)
 
-    def _run_cmd(self, cmd, args):
+    def _run_cmd(self, cmd, args=[]):
         """Run a command in the root of the test working copy.
 
         Runs a command, with the given argument list, in the root of the test
