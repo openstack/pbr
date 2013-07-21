@@ -235,6 +235,10 @@ def cfg_to_args(path='setup.cfg'):
 
         kwargs = setup_cfg_to_setup_kwargs(config)
 
+        # Set default config overrides
+        kwargs['include_package_data'] = True
+        kwargs['zip_safe'] = False
+
         register_custom_compilers(config)
 
         ext_modules = get_extension_modules(config)
