@@ -52,7 +52,7 @@ from pbr.d2to1 import util
 core.Distribution = dist._get_unpatched(core.Distribution)
 if sys.version_info[0] == 3:
     string_type = str
-    integer_types = int
+    integer_types = (int,)
 else:
     string_type = basestring
     integer_types = (int, long)
