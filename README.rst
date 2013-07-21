@@ -124,9 +124,6 @@ A simple sample can be found in pbr s own setup.cfg
  [files]
  packages =
      oslo
- [hooks]
- setup-hooks =
-     pbr.hooks.setup_hook
 
 The minimal setup.py should look something like this::
 

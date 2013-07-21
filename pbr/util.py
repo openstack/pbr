@@ -77,6 +77,7 @@ try:
 except ImportError:
     import ConfigParser as configparser
 
+import pbr.hooks
 
 # A simplified RE for this; just checks that the line ends with version
 # predicates in ()
@@ -219,7 +220,9 @@ def cfg_to_args(path='setup.cfg'):
 
     try:
         if setup_hooks:
-            setup_hooks = split_multiline(setup_hooks)
+            setup_hooks = [
+                hook for hook in split_multiline(setup_hooks)
+                if hook != 'pbr.hook.setup_hook']
             for hook in setup_hooks:
                 hook_fn = resolve_name(hook)
                 try :
@@ -232,6 +235,9 @@ def cfg_to_args(path='setup.cfg'):
                               (hook, e))
                     log.error(traceback.format_exc())
                     sys.exit(1)
+
+        # Run the pbr hook
+        pbr.hooks.setup_hook(config)
 
         kwargs = setup_cfg_to_setup_kwargs(config)
 
