@@ -45,7 +45,7 @@ mkdir -p ~/.pip
 
 cat <<EOF > ~/.pip/pip.conf
 [global]
-log = /home/jenkins/pip.log
+log = $HOME/pip.log
 EOF
 
 mkvenv $jeepybvenv 'setuptools>=0.7' pip
@@ -87,7 +87,7 @@ cat <<EOF > ~/.pip/pip.conf
 [global]
 index-url = $pypiurl
 extra-index-url = http://pypi.openstack.org/openstack
-log = /home/jenkins/pip.log
+log = $HOME/pip.log
 EOF
 
 projectdir=$tmpdir/projects
