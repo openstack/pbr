@@ -42,6 +42,8 @@ import glob
 import os
 import tarfile
 
+import fixtures
+
 from pbr import tests
 
 
@@ -73,3 +75,26 @@ class TestCore(tests.BaseTestCase):
         names = ['/'.join(p.split('/')[1:]) for p in tf.getnames()]
 
         assert 'extra-file.txt' in names
+
+    def test_console_script_install(self):
+        """Test that we install a non-pkg-resources console script."""
+
+        if os.name == 'nt':
+            self.skipTest('Windows support is passthrough')
+
+        stdout, _, return_code = self.run_setup(
+            'install_scripts', '--install-dir=%s' % self.temp_dir)
+
+        self.assertIn(
+            'Installing pbr_test_cmd script to %s' % self.temp_dir,
+            stdout)
+        self.assertNotIn(
+            'pkg_resources',
+            open(os.path.join(self.temp_dir, 'pbr_test_cmd'), 'r').read())
+
+        self.useFixture(
+            fixtures.EnvironmentVariable('PYTHONPATH', '.'))
+
+        stdout, _, return_code = self._run_cmd(
+            os.path.join(self.temp_dir, 'pbr_test_cmd'))
+        self.assertIn("PBR", stdout)

@@ -38,6 +38,7 @@ class CommandsConfig(base.BaseConfig):
 
     def hook(self):
         self.add_command('pbr.packaging.LocalSDist')
+        self.add_command('pbr.packaging.LocalInstallScripts')
 
         if packaging.have_sphinx():
             self.add_command('pbr.packaging.LocalBuildDoc')

@@ -30,7 +30,9 @@ from distutils.command import install as du_install
 import distutils.errors
 from distutils import log
 import pkg_resources
+from setuptools.command import easy_install
 from setuptools.command import install
+from setuptools.command import install_scripts
 from setuptools.command import sdist
 
 try:
@@ -428,6 +430,68 @@ except ImportError:
 
 def have_nose():
     return _have_nose
+
+
+_script_text = """# PBR Generated from %(group)r
+
+import sys
+
+from %(module_name)s import %(func)s
+
+
+if __name__ == "__main__":
+    sys.exit(%(func)s())
+"""
+
+
+def _get_script_args(dist, executable, is_wininst):
+    """Override entrypoints console_script."""
+    header = easy_install.get_script_header("", executable, is_wininst)
+    for group in 'console_scripts', 'gui_scripts':
+        for name, ep in dist.get_entry_map(group).items():
+            script_text = _script_text % dict(
+                group=group,
+                module_name=ep.module_name,
+                func=ep.attrs[0])
+            yield (name, header+script_text)
+
+
+class LocalInstallScripts(install_scripts.install_scripts):
+    """Intercepts console scripts entry_points."""
+    command_name = 'install_scripts'
+
+    def run(self):
+        if os.name != 'nt':
+            get_script_args = _get_script_args
+        else:
+            get_script_args = easy_install.get_script_args
+
+        import distutils.command.install_scripts
+
+        self.run_command("egg_info")
+        if self.distribution.scripts:
+            # run first to set up self.outfiles
+            distutils.command.install_scripts.install_scripts.run(self)
+        else:
+            self.outfiles = []
+        if self.no_ep:
+            # don't install entry point scripts into .egg file!
+            return
+
+        ei_cmd = self.get_finalized_command("egg_info")
+        dist = pkg_resources.Distribution(
+            ei_cmd.egg_base,
+            pkg_resources.PathMetadata(ei_cmd.egg_base, ei_cmd.egg_info),
+            ei_cmd.egg_name, ei_cmd.egg_version,
+        )
+        bs_cmd = self.get_finalized_command('build_scripts')
+        executable = getattr(
+            bs_cmd, 'executable', easy_install.sys_executable)
+        is_wininst = getattr(
+            self.get_finalized_command("bdist_wininst"), '_is_running', False
+        )
+        for args in get_script_args(dist, executable, is_wininst):
+            self.write_script(*args)
 
 
 class LocalSDist(sdist.sdist):
