@@ -38,56 +38,21 @@
 # INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
 
-import os
-import textwrap
+from testtools import content
 
-from pbr.d2to1 import tests
-from pbr.d2to1.tests import util
+from pbr import tests
 
 
-class TestHooks(tests.D2to1TestCase):
-    def setUp(self):
-        super(TestHooks, self).setUp()
-        with util.open_config(
-                os.path.join(self.package_dir, 'setup.cfg')) as cfg:
-            cfg.set('global', 'setup-hooks',
-                    'd2to1_testpackage._setup_hooks.test_hook_1\n'
-                    'd2to1_testpackage._setup_hooks.test_hook_2')
-            cfg.set('build_ext', 'pre-hook.test_pre_hook',
-                    'd2to1_testpackage._setup_hooks.test_pre_hook')
-            cfg.set('build_ext', 'post-hook.test_post_hook',
-                    'd2to1_testpackage._setup_hooks.test_post_hook')
+class TestCommands(tests.BaseTestCase):
+    def test_custom_build_py_command(self):
+        """Test custom build_py command.
 
-    def test_global_setup_hooks(self):
-        """Test setup_hooks.
-
-        Test that setup_hooks listed in the [global] section of setup.cfg are
-        executed in order.
+        Test that a custom subclass of the build_py command runs when listed in
+        the commands [global] option, rather than the normal build command.
         """
 
-        stdout, _, return_code = self.run_setup('egg_info')
-        assert 'test_hook_1\ntest_hook_2' in stdout
-        assert return_code == 0
-
-    def test_command_hooks(self):
-        """Test command hooks.
-
-        Simple test that the appropriate command hooks run at the
-        beginning/end of the appropriate command.
-        """
-
-        stdout, _, return_code = self.run_setup('egg_info')
-        assert 'build_ext pre-hook' not in stdout
-        assert 'build_ext post-hook' not in stdout
-        assert return_code == 0
-
-        stdout, _, return_code = self.run_setup('build_ext')
-        assert textwrap.dedent("""
-            running build_ext
-            running pre_hook d2to1_testpackage._setup_hooks.test_pre_hook for command build_ext
-            build_ext pre-hook
-        """) in stdout  # flake8: noqa
-        assert stdout.endswith('build_ext post-hook')
-        assert return_code == 0
-
-
+        stdout, stderr, return_code = self.run_setup('build_py')
+        self.addDetail('stdout', content.text_content(stdout))
+        self.addDetail('stderr', content.text_content(stderr))
+        self.assertIn('Running custom build_py command.', stdout)
+        self.assertEqual(return_code, 0)

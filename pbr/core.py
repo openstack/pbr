@@ -46,7 +46,7 @@ import warnings
 
 from setuptools import dist
 
-from pbr.d2to1 import util
+from pbr import util
 
 
 core.Distribution = dist._get_unpatched(core.Distribution)

@@ -38,21 +38,38 @@
 # INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
 
-from testtools import content
+import glob
+import os
+import tarfile
 
-from pbr.d2to1 import tests
+from pbr import tests
 
 
-class TestCommands(tests.D2to1TestCase):
-    def test_custom_build_py_command(self):
-        """Test custom build_py command.
+class TestCore(tests.BaseTestCase):
 
-        Test that a custom subclass of the build_py command runs when listed in
-        the commands [global] option, rather than the normal build command.
+    def test_setup_py_keywords(self):
+        """setup.py --keywords.
+
+        Test that the `./setup.py --keywords` command returns the correct
+        value without balking.
         """
 
-        stdout, stderr, return_code = self.run_setup('build_py')
-        self.addDetail('stdout', content.text_content(stdout))
-        self.addDetail('stderr', content.text_content(stderr))
-        self.assertIn('Running custom build_py command.', stdout)
-        self.assertEqual(return_code, 0)
+        self.run_setup('egg_info')
+        stdout, _, _ = self.run_setup('--keywords')
+        assert stdout == 'packaging,distutils,setuptools'
+
+    def test_sdist_extra_files(self):
+        """Test that the extra files are correctly added."""
+
+        stdout, _, return_code = self.run_setup('sdist', '--formats=gztar')
+
+        # There can be only one
+        try:
+            tf_path = glob.glob(os.path.join('dist', '*.tar.gz'))[0]
+        except IndexError:
+            assert False, 'source dist not found'
+
+        tf = tarfile.open(tf_path)
+        names = ['/'.join(p.split('/')[1:]) for p in tf.getnames()]
+
+        assert 'extra-file.txt' in names

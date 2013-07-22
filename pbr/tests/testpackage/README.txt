@@ -5,7 +5,7 @@ projects; specifically those projects that comprise stsci_python_ and
 Astrolib_.
 
 It currently consists mostly of some setup_hook scripts meant for use with
-`distutils2/packaging`_ and/or d2to1_, and a customized easy_install command
+`distutils2/packaging`_ and/or pbr_, and a customized easy_install command
 meant for use with distribute_.
 
 This package is not meant for general consumption, though it might be worth

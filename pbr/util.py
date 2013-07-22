@@ -265,7 +265,7 @@ def cfg_to_args(path='setup.cfg'):
             # monkey-patch the manifest_maker class
             @monkeypatch_method(manifest_maker)
             def add_defaults(self, extra_files=extra_files, log=log):
-                log.info('[d2to1] running patched manifest_maker command '
+                log.info('[pbr] running patched manifest_maker command '
                           'with extra_files support')
                 add_defaults._orig(self)
                 self.filelist.extend(extra_files)
