@@ -275,14 +275,14 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
                 and not os.access(new_authors, os.W_OK)):
             return
         log.info('[pbr] Generating AUTHORS')
-        jenkins_email = 'jenkins@review'
+        ignore_emails = '(jenkins@review|infra@lists)'
         if git_dir is None:
             git_dir = _get_git_directory()
         if git_dir:
             # don't include jenkins email address in AUTHORS file
             git_log_cmd = ("git --git-dir=" + git_dir +
                            " log --format='%aN <%aE>' | sort -u | "
-                           "egrep -v '" + jenkins_email + "'")
+                           "egrep -v '" + ignore_emails + "'")
             changelog = _run_shell_command(git_log_cmd)
             signed_cmd = ("git log --git-dir=" + git_dir +
                           " | grep -i Co-authored-by: | sort -u")
