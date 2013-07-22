@@ -79,6 +79,7 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
 
         self.useFixture(fixtures.NestedTempfile())
         self.useFixture(fixtures.FakeLogger())
+        self.useFixture(fixtures.EnvironmentVariable('PBR_VERSION', '0.0'))
 
         self.temp_dir = self.useFixture(fixtures.TempDir()).path
         self.package_dir = os.path.join(self.temp_dir, 'testpackage')
