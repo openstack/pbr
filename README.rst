@@ -36,7 +36,7 @@ What It Does
 
 PBR can and does do a bunch of things for you:
 
- * **Version**: Manage version number bad on git revisions and tags
+ * **Version**: Manage version number based on git revisions and tags
  * **AUTHORS**: Generate AUTHORS file from git log
  * **ChangeLog**: Generate ChangeLog from git log
  * **Sphinx Autodoc**: Generate autodoc stub files for your whole module
