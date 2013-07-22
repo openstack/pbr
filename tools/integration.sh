@@ -48,8 +48,11 @@ cat <<EOF > ~/.pip/pip.conf
 log = $HOME/pip.log
 EOF
 
+jeepybsourcedir=$tmpdir/jeepybsourcedir
+git clone $REPODIR/jeepyb $jeepybsourcedir
+
 mkvenv $jeepybvenv setuptools pip
-$jeepybvenv/bin/pip install -U git+https://review.openstack.org/p/openstack-infra/jeepyb.git
+$jeepybvenv/bin/pip install -e $jeepybsourcedir
 
 cat <<EOF > $tmpdir/mirror.yaml
 cache-root: $tmpdownload
@@ -57,7 +60,7 @@ cache-root: $tmpdownload
 mirrors:
   - name: openstack
     projects:
-      - https://github.com/openstack/requirements
+      - file://$REPODIR/requirements
     output: $pypidir
 EOF
 
