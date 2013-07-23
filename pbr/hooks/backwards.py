@@ -24,6 +24,7 @@ class BackwardsCompatConfig(base.BaseConfig):
     section = 'backwards_compat'
 
     def hook(self):
+        self.config['include_package_data'] = 'True'
         packaging.append_text_list(
             self.config, 'dependency_links',
             packaging.parse_dependency_links())
