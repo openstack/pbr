@@ -444,7 +444,8 @@ if __name__ == "__main__":
 """
 
 
-def _get_script_args(dist, executable, is_wininst):
+def override_get_script_args(
+        dist, executable=os.path.normpath(sys.executable), is_wininst=False):
     """Override entrypoints console_script."""
     header = easy_install.get_script_header("", executable, is_wininst)
     for group in 'console_scripts', 'gui_scripts':
@@ -462,7 +463,7 @@ class LocalInstallScripts(install_scripts.install_scripts):
 
     def run(self):
         if os.name != 'nt':
-            get_script_args = _get_script_args
+            get_script_args = override_get_script_args
         else:
             get_script_args = easy_install.get_script_args
 

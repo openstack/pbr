@@ -17,6 +17,8 @@
 
 import os
 
+from setuptools.command import easy_install
+
 from pbr.hooks import base
 from pbr import packaging
 
@@ -39,6 +41,8 @@ class CommandsConfig(base.BaseConfig):
     def hook(self):
         self.add_command('pbr.packaging.LocalSDist')
         self.add_command('pbr.packaging.LocalInstallScripts')
+        if os.name != 'nt':
+            easy_install.get_script_args = packaging.override_get_script_args
 
         if packaging.have_sphinx():
             self.add_command('pbr.packaging.LocalBuildDoc')
