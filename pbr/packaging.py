@@ -49,6 +49,13 @@ TEST_REQUIREMENTS_FILES = ('test-requirements.txt', 'tools/test-requires')
 BROKEN_ON_27 = ('argparse', 'importlib')
 
 
+def get_requirements_files():
+    files = os.environ.get("PBR_REQUIREMENTS_FILES")
+    if files:
+        return tuple(f.strip() for f in files.split(','))
+    return REQUIREMENTS_FILES
+
+
 def append_text_list(config, key, text_list):
     """Append a \n separated list to possibly existing value."""
     new_value = []
@@ -141,11 +148,7 @@ def get_reqs_from_files(requirements_files):
 def parse_requirements(requirements_files=None):
 
     if requirements_files is None:
-        files = os.environ.get("PBR_REQUIREMENTS_FILES")
-        if files:
-            requirements_files = tuple(f.strip() for f in files.split(','))
-        else:
-            requirements_files = REQUIREMENTS_FILES
+        requirements_files = get_requirements_files()
 
     def egg_fragment(match):
         # take a versioned egg fragment and return a
@@ -188,7 +191,9 @@ def parse_requirements(requirements_files=None):
     return requirements
 
 
-def parse_dependency_links(requirements_files=REQUIREMENTS_FILES):
+def parse_dependency_links(requirements_files=None):
+    if requirements_files is None:
+        requirements_files = get_requirements_files()
     dependency_links = []
     # dependency_links inject alternate locations to find packages listed
     # in requirements
@@ -348,7 +353,7 @@ class LocalInstall(install.install):
 
 def _newer_requires_files(egg_info_dir):
     """Check to see if any of the requires files are newer than egg-info."""
-    for target, sources in (('requires.txt', REQUIREMENTS_FILES),
+    for target, sources in (('requires.txt', get_requirements_files()),
                             ('test-requires.txt', TEST_REQUIREMENTS_FILES)):
         target_path = os.path.join(egg_info_dir, target)
         for src in _any_existing(sources):
