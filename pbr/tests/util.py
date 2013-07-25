@@ -44,9 +44,9 @@ import shutil
 import stat
 
 try:
-    import configparser
-except ImportError:
     import ConfigParser as configparser
+except ImportError:
+    import configparser
 
 
 @contextlib.contextmanager

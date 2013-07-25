@@ -73,9 +73,9 @@ from setuptools.dist import Distribution
 from setuptools.extension import Extension
 
 try:
-    import configparser
-except ImportError:
     import ConfigParser as configparser
+except ImportError:
+    import configparser
 
 import pbr.hooks
 
