@@ -48,7 +48,7 @@ cat <<EOF > ~/.pip/pip.conf
 log = $HOME/pip.log
 EOF
 
-mkvenv $jeepybvenv 'setuptools>=0.7' pip
+mkvenv $jeepybvenv setuptools pip
 $jeepybvenv/bin/pip install -U git+https://review.openstack.org/p/openstack-infra/jeepyb.git
 
 cat <<EOF > $tmpdir/mirror.yaml
@@ -68,7 +68,6 @@ cd $pbrsdistdir
 $jeepybvenv/bin/run-mirror -b remotes/origin/master --verbose -c $tmpdir/mirror.yaml --no-process
 
 $jeepybvenv/bin/pip install -i http://pypi.python.org/simple -d $tmpdownload/pip/openstack 'pip==1.0' 'setuptools>=0.7'
-$jeepybvenv/bin/pip install -i http://pypi.python.org/simple -d $tmpdownload/pip/openstack 'setuptools<0.7'
 
 $jeepybvenv/bin/pip install -i http://pypi.python.org/simple -d $tmpdownload/pip/openstack -r requirements.txt
 $jeepybvenv/bin/python setup.py sdist -d $tmpdownload/pip/openstack
@@ -164,7 +163,7 @@ for PROJECT in $PROJECTS ; do
     # Test that the tarball installs
     cd $tmpdir
     tarballvenv=$tmpdir/tarball
-    mkvenv $tarballvenv 'setuptools>=0.7' 'pip>=1.3,<1.4'
+    mkvenv $tarballvenv setuptools pip
     $tarballvenv/bin/pip install $shortprojectdir/dist/*tar.gz
 
     # Test pip installing
