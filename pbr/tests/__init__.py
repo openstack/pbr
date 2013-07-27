@@ -128,5 +128,6 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
                              stderr=subprocess.PIPE)
 
         streams = tuple(s.decode('latin1').strip() for s in p.communicate())
-        print(streams)
+        for line in streams:
+            print(line)
         return (streams) + (p.returncode,)
