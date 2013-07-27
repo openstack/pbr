@@ -98,3 +98,27 @@ class TestCore(tests.BaseTestCase):
         stdout, _, return_code = self._run_cmd(
             os.path.join(self.temp_dir, 'pbr_test_cmd'))
         self.assertIn("PBR", stdout)
+
+    def test_console_script_develop(self):
+        """Test that we develop a non-pkg-resources console script."""
+
+        if os.name == 'nt':
+            self.skipTest('Windows support is passthrough')
+
+        self.useFixture(
+            fixtures.EnvironmentVariable(
+                'PYTHONPATH', ".:%s" % self.temp_dir))
+
+        stdout, _, return_code = self.run_setup(
+            'develop', '--install-dir=%s' % self.temp_dir)
+
+        self.assertIn(
+            'Installing pbr_test_cmd script to %s' % self.temp_dir,
+            stdout)
+        self.assertNotIn(
+            'pkg_resources',
+            open(os.path.join(self.temp_dir, 'pbr_test_cmd'), 'r').read())
+
+        stdout, _, return_code = self._run_cmd(
+            os.path.join(self.temp_dir, 'pbr_test_cmd'))
+        self.assertIn("PBR", stdout)
