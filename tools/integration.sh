@@ -184,6 +184,11 @@ for PROJECT in $PROJECTS ; do
     cd $installprojectdir
     $installvenv/bin/python setup.py install
 
+    # Ensure the install_package_data is doing the thing it should do
+    if [ $SHORT_PROJECT = 'nova' ]; then
+        find $installvenv | grep migrate.cfg
+    fi
+
     # TODO(mordred): extend script to do a better job with the mirrir
     # easy_install to a file:/// can't handle name case insensitivity
     # Test python setup.py develop
