@@ -79,8 +79,9 @@ def _make_links_args(links):
     return ["-f '%s'" % link for link in links]
 
 
-def _pip_install(links, requires, root=None):
-    if str(os.getenv('SKIP_PIP_INSTALL', '')).lower() in TRUE_VALUES:
+def _pip_install(links, requires, root=None, option_dict=dict()):
+    if get_boolean_option(
+            option_dict, 'skip_pip_install', 'SKIP_PIP_INSTALL'):
         return
     root_cmd = ""
     if root:
@@ -322,10 +323,13 @@ class LocalInstall(install.install):
     command_name = 'install'
 
     def run(self):
+        option_dict = self.distribution.get_option_dict('pbr')
         if (not self.single_version_externally_managed
                 and self.distribution.install_requires):
             links = _make_links_args(self.distribution.dependency_links)
-            _pip_install(links, self.distribution.install_requires, self.root)
+            _pip_install(
+                links, self.distribution.install_requires, self.root,
+                option_dict=option_dict)
 
         return du_install.install.run(self)
 
@@ -358,7 +362,10 @@ class _PipInstallTestRequires(object):
         links = _make_links_args(
             parse_dependency_links(TEST_REQUIREMENTS_FILES))
         if self.distribution.tests_require:
-            _pip_install(links, self.distribution.tests_require)
+            option_dict = self.distribution.get_option_dict('pbr')
+            _pip_install(
+                links, self.distribution.tests_require,
+                option_dict=option_dict)
 
     def pre_run(self):
         self.egg_name = pkg_resources.safe_name(self.distribution.get_name())
