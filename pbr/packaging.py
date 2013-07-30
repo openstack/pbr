@@ -79,35 +79,19 @@ def _make_links_args(links):
     return ["-f '%s'" % link for link in links]
 
 
-def _missing_requires(requires):
-    """Return the list of requirements that are not already installed.
-
-    Do this check explicitly, because it's very easy to see if a package
-    is in the current working set, to avoid shelling out to pip and attempting
-    an install. pip will do the right thing, but we don't need to do the
-    excess work on everyone's machines all the time (especially since tox
-    likes re-installing things a lot)
-    """
-    return [r for r in requires
-            if not pkg_resources.working_set.find(
-                pkg_resources.Requirement.parse(r))]
-
-
 def _pip_install(links, requires, root=None):
     if str(os.getenv('SKIP_PIP_INSTALL', '')).lower() in TRUE_VALUES:
         return
     root_cmd = ""
     if root:
         root_cmd = "--root=%s" % root
-    missing_requires = _missing_requires(requires)
-    if missing_requires:
-        _run_shell_command(
-            "%s -m pip.__init__ install %s %s %s" % (
-                sys.executable,
-                root_cmd,
-                " ".join(links),
-                " ".join(_wrap_in_quotes(missing_requires))),
-            throw_on_error=True, buffer=False)
+    _run_shell_command(
+        "%s -m pip.__init__ install %s %s %s" % (
+            sys.executable,
+            root_cmd,
+            " ".join(links),
+            " ".join(_wrap_in_quotes(requires))),
+        throw_on_error=True, buffer=False)
 
 
 def read_git_mailmap(git_dir, mailmap='.mailmap'):
