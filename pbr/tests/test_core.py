@@ -49,6 +49,22 @@ from pbr import tests
 
 class TestCore(tests.BaseTestCase):
 
+    cmd_names = ('pbr_test_cmd', 'pbr_test_cmd_with_class')
+
+    def check_script_install(self, install_stdout):
+        for cmd_name in self.cmd_names:
+            install_txt = 'Installing %s script to %s' % (cmd_name,
+                                                          self.temp_dir)
+            self.assertIn(install_txt, install_stdout)
+
+            cmd_filename = os.path.join(self.temp_dir, cmd_name)
+
+            script_txt = open(cmd_filename, 'r').read()
+            self.assertNotIn('pkg_resources', script_txt)
+
+            stdout, _, return_code = self._run_cmd(cmd_filename)
+            self.assertIn("PBR", stdout)
+
     def test_setup_py_keywords(self):
         """setup.py --keywords.
 
@@ -85,19 +101,10 @@ class TestCore(tests.BaseTestCase):
         stdout, _, return_code = self.run_setup(
             'install_scripts', '--install-dir=%s' % self.temp_dir)
 
-        self.assertIn(
-            'Installing pbr_test_cmd script to %s' % self.temp_dir,
-            stdout)
-        self.assertNotIn(
-            'pkg_resources',
-            open(os.path.join(self.temp_dir, 'pbr_test_cmd'), 'r').read())
-
         self.useFixture(
             fixtures.EnvironmentVariable('PYTHONPATH', '.'))
 
-        stdout, _, return_code = self._run_cmd(
-            os.path.join(self.temp_dir, 'pbr_test_cmd'))
-        self.assertIn("PBR", stdout)
+        self.check_script_install(stdout)
 
     def test_console_script_develop(self):
         """Test that we develop a non-pkg-resources console script."""
@@ -112,13 +119,4 @@ class TestCore(tests.BaseTestCase):
         stdout, _, return_code = self.run_setup(
             'develop', '--install-dir=%s' % self.temp_dir)
 
-        self.assertIn(
-            'Installing pbr_test_cmd script to %s' % self.temp_dir,
-            stdout)
-        self.assertNotIn(
-            'pkg_resources',
-            open(os.path.join(self.temp_dir, 'pbr_test_cmd'), 'r').read())
-
-        stdout, _, return_code = self._run_cmd(
-            os.path.join(self.temp_dir, 'pbr_test_cmd'))
-        self.assertIn("PBR", stdout)
+        self.check_script_install(stdout)
