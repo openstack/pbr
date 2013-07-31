@@ -94,10 +94,14 @@ def _pip_install(links, requires, root=None):
         throw_on_error=True, buffer=False)
 
 
-def read_git_mailmap(git_dir, mailmap='.mailmap'):
-    mailmap = os.path.join(git_dir, mailmap)
+def read_git_mailmap(root_dir=None, mailmap='.mailmap'):
+    if not root_dir:
+        root_dir = _run_shell_command('git rev-parse --show-toplevel')
+
+    mailmap = os.path.join(root_dir, mailmap)
     if os.path.exists(mailmap):
         return _parse_mailmap(open(mailmap, 'r').readlines())
+
     return dict()
 
 
@@ -241,7 +245,7 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
         if git_dir:
             git_log_cmd = 'git --git-dir=%s log' % git_dir
             changelog = _run_shell_command(git_log_cmd)
-            mailmap = read_git_mailmap(git_dir)
+            mailmap = read_git_mailmap()
             with open(new_changelog, "wb") as changelog_file:
                 changelog_file.write(canonicalize_emails(
                     changelog, mailmap).encode('utf-8'))
@@ -277,7 +281,7 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
                      for signed in signed_entries.split("\n") if signed])
                 changelog = "\n".join((changelog, new_entries))
 
-            mailmap = read_git_mailmap(git_dir)
+            mailmap = read_git_mailmap()
             with open(new_authors, 'wb') as new_authors_fh:
                 if os.path.exists(old_authors):
                     with open(old_authors, "rb") as old_authors_fh:
