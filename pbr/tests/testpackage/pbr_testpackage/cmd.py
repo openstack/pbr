@@ -17,3 +17,10 @@ from __future__ import print_function
 
 def main():
     print("PBR Test Command")
+
+
+class Foo(object):
+
+    @classmethod
+    def bar(self):
+        print("PBR Test Command - with class!")
