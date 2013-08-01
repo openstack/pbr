@@ -508,6 +508,7 @@ class LocalSDist(sdist.sdist):
         sdist.sdist.run(self)
 
 try:
+    from sphinx import apidoc
     from sphinx import application
     from sphinx import config
     from sphinx import setup_command
@@ -517,17 +518,21 @@ try:
         command_name = 'build_sphinx'
         builders = ['html', 'man']
 
-        def generate_autoindex(self):
+        def _get_source_dir(self):
             option_dict = self.distribution.get_option_dict('build_sphinx')
-            log.info("[pbr] Autodocumenting from %s"
-                     % os.path.abspath(os.curdir))
-            modules = {}
             if 'source_dir' in option_dict:
                 source_dir = os.path.join(option_dict['source_dir'][1], 'api')
             else:
                 source_dir = 'doc/source/api'
             if not os.path.exists(source_dir):
                 os.makedirs(source_dir)
+            return source_dir
+
+        def generate_autoindex(self):
+            log.info("[pbr] Autodocumenting from %s"
+                     % os.path.abspath(os.curdir))
+            modules = {}
+            source_dir = self._get_source_dir()
             for pkg in self.distribution.packages:
                 if '.' not in pkg:
                     for dirpath, dirnames, files in os.walk(pkg):
@@ -553,6 +558,10 @@ try:
                     with open(output_filename, 'w') as output_file:
                         output_file.write(_rst_template % values)
                     autoindex.write("   %s.rst\n" % module)
+
+        def _sphinx_tree(self):
+                source_dir = self._get_source_dir()
+                apidoc.main(['apidoc', '.', '-H', 'Modules', '-o', source_dir])
 
         def _sphinx_run(self):
             if not self.verbose:
@@ -594,11 +603,19 @@ try:
 
         def run(self):
             option_dict = self.distribution.get_option_dict('pbr')
-            if ('autodoc_index_modules' in option_dict and
-                    option_dict.get(
-                        'autodoc_index_modules')[1].lower() in TRUE_VALUES and
-                    not os.getenv('SPHINX_DEBUG')):
-                self.generate_autoindex()
+            tree_index = get_boolean_option(option_dict,
+                                            'autodoc_tree_index_modules',
+                                            'AUTODOC_TREE_INDEX_MODULES')
+            auto_index = get_boolean_option(option_dict,
+                                            'autodoc_index_modules',
+                                            'AUTODOC_INDEX_MODULES')
+            if not os.getenv('SPHINX_DEBUG'):
+                #NOTE(afazekas): These options can be used together,
+                # but they do a very similar thing in a difffernet way
+                if tree_index:
+                    self._sphinx_tree()
+                if auto_index:
+                    self.generate_autoindex()
 
             for builder in self.builders:
                 self.builder = builder
