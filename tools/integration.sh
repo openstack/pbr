@@ -26,9 +26,9 @@ REPODIR=${REPODIR:-$BASE/new}
 # TODO: Figure out how to get this on to the box properly
 sudo apt-get install -y --force-yes libxml2-dev libxslt-dev libmysqlclient-dev libpq-dev libnspr4-dev pkg-config libsqlite3-dev libzmq-dev libffi-dev
 
-tmpdir=`mktemp -d`
+tmpdir=$(mktemp -d)
 
-whoami=`whoami`
+whoami=$(whoami)
 tmpdownload=$tmpdir/download
 mkdir -p $tmpdownload
 
@@ -158,7 +158,7 @@ projectdir=$tmpdir/projects
 mkdir -p $projectdir
 
 for PROJECT in $PROJECTS ; do
-    SHORT_PROJECT=`basename $PROJECT`
+    SHORT_PROJECT=$(basename $PROJECT)
     if ! grep 'pbr' $REPODIR/$SHORT_PROJECT/requirements.txt >/dev/null 2>&1
     then
         # project doesn't use pbr
