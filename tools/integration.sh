@@ -17,9 +17,6 @@ function mkvenv {
     $venv/bin/pip install $pip
 }
 
-# PROJECTS is a list of projects that we're testing
-PROJECTS=$*
-
 # BASE should be a directory with a subdir called "new" and in that
 #      dir, there should be a git repository for every entry in PROJECTS
 BASE=${BASE:-/opt/stack}
@@ -40,9 +37,11 @@ mkdir -p $pypidir
 
 jeepybvenv=$tmpdir/jeepyb
 
+sudo touch $HOME/pip.log
+sudo chown $USER $HOME/pip.log
+
 rm -f ~/.pip/pip.conf ~/.pydistutils.cfg
 mkdir -p ~/.pip
-
 cat <<EOF > ~/.pip/pip.conf
 [global]
 log = $HOME/pip.log
@@ -64,6 +63,24 @@ mirrors:
     output: $pypidir
 EOF
 
+# Default to using pypi.openstack.org as an easy_install mirror
+if [ "$1" == "--no-mirror" ] ; then
+    shift
+else
+    cat <<EOF > ~/.pydistutils.cfg
+[easy_install]
+index_url = http://pypi.openstack.org/openstack
+EOF
+    cat <<EOF > ~/.pip/pip.conf
+[global]
+index-url = http://pypi.openstack.org/openstack
+log = $HOME/pip.log
+EOF
+fi
+
+# PROJECTS is a list of projects that we're testing
+PROJECTS=$*
+
 pbrsdistdir=$tmpdir/pbrsdist
 git clone $REPODIR/pbr $pbrsdistdir
 cd $pbrsdistdir
@@ -76,6 +93,8 @@ $jeepybvenv/bin/pip install -i http://pypi.python.org/simple -d $tmpdownload/pip
 $jeepybvenv/bin/python setup.py sdist -d $tmpdownload/pip/openstack
 
 $jeepybvenv/bin/run-mirror -b remotes/origin/master --verbose -c $tmpdir/mirror.yaml --no-download
+
+find $pypidir
 
 # Make pypi thing
 pypiurl=file://$pypidir
