@@ -222,7 +222,7 @@ def cfg_to_args(path='setup.cfg'):
         if setup_hooks:
             setup_hooks = [
                 hook for hook in split_multiline(setup_hooks)
-                if hook != 'pbr.hook.setup_hook']
+                if hook != 'pbr.hooks.setup_hook']
             for hook in setup_hooks:
                 hook_fn = resolve_name(hook)
                 try :
