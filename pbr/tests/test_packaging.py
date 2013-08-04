@@ -79,7 +79,7 @@ class TestPackagingInGitRepoWithoutCommit(tests.BaseTestCase):
         # No commits, no authors in list
         with open(os.path.join(self.package_dir, 'AUTHORS'), 'r') as f:
             body = f.read()
-        self.assertEqual(body, '')
+        self.assertEqual(body, '\n')
 
     def test_changelog(self):
         # No commits, nothing should be in the ChangeLog list

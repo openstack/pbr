@@ -273,27 +273,36 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
         if git_dir is None:
             git_dir = _get_git_directory()
         if git_dir:
+            authors = []
+
             # don't include jenkins email address in AUTHORS file
             git_log_cmd = ("git --git-dir=" + git_dir +
-                           " log --format='%aN <%aE>' | sort -u | "
-                           "egrep -v '" + ignore_emails + "'")
-            changelog = _run_shell_command(git_log_cmd)
-            signed_cmd = ("git log --git-dir=" + git_dir +
-                          " | grep -i Co-authored-by: | sort -u")
-            signed_entries = _run_shell_command(signed_cmd)
-            if signed_entries:
-                new_entries = "\n".join(
-                    [signed.split(":", 1)[1].strip()
-                     for signed in signed_entries.split("\n") if signed])
-                changelog = "\n".join((changelog, new_entries))
+                           " log --format='%aN <%aE>'"
+                           " | egrep -v '" + ignore_emails + "'")
+            authors += _run_shell_command(git_log_cmd).split('\n')
 
-            mailmap = read_git_mailmap()
+            # get all co-authors from commit messages
+            co_authors_cmd = ("git log --git-dir=" + git_dir +
+                              " | grep -i Co-authored-by:")
+            co_authors = _run_shell_command(co_authors_cmd)
+
+            co_authors = [signed.split(":", 1)[1].strip()
+                          for signed in co_authors.split('\n') if signed]
+
+            authors += co_authors
+
+            # canonicalize emails, remove duplicates and sort
+            mailmap = read_git_mailmap(git_dir)
+            authors = canonicalize_emails('\n'.join(authors), mailmap)
+            authors = authors.split('\n')
+            authors = sorted(set(authors))
+
             with open(new_authors, 'wb') as new_authors_fh:
                 if os.path.exists(old_authors):
                     with open(old_authors, "rb") as old_authors_fh:
                         new_authors_fh.write(old_authors_fh.read())
-                new_authors_fh.write(canonicalize_emails(
-                    changelog, mailmap).encode('utf-8'))
+                new_authors_fh.write(('\n'.join(authors) + '\n')
+                                     .encode('utf-8'))
 
 
 _rst_template = """%(heading)s
