@@ -220,7 +220,7 @@ def _run_shell_command(cmd, throw_on_error=False, buffer=True):
         raise distutils.errors.DistutilsError(
             "%s returned %d" % (cmd, output.returncode))
     if len(out) == 0 or not out[0] or not out[0].strip():
-        return None
+        return ''
     return out[0].strip().decode('utf-8')
 
 
