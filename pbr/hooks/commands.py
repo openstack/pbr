@@ -39,6 +39,7 @@ class CommandsConfig(base.BaseConfig):
         self.commands = "%s\n%s" % (self.commands, command)
 
     def hook(self):
+        self.add_command('pbr.packaging.LocalEggInfo')
         self.add_command('pbr.packaging.LocalSDist')
         self.add_command('pbr.packaging.LocalInstallScripts')
         if os.name != 'nt':
