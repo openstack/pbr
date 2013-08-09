@@ -191,6 +191,14 @@ installed for `pbr.config.drivers`, one called `plain` which maps to the
 `Plain` class in `pbr.cfg.driver` and one called `fancy` which maps to the
 `Fancy` class in `pbr.cfg.driver`.
 
+Packager Notes
+==============
+
+.. toctree::
+   :maxdepth: 1
+
+   packagers
+
 Indices and tables
 ==================
 
