@@ -173,6 +173,13 @@ for PROJECT in $PROJECTS ; do
         continue
     fi
     shortprojectdir=$projectdir/$SHORT_PROJECT
+    sudo chown -R $USER $REPODIR/$SHORT_PROJECT
+    (cd $REPODIR/requirements && python update.py $REPODIR/$SHORT_PROJECT)
+    pushd $REPODIR/$SHORT_PROJECT
+    if ! git diff --quiet ; then
+        git commit -a -m'Update requirements'
+    fi
+    popd
     git clone $REPODIR/$SHORT_PROJECT $shortprojectdir
 
     sdistvenv=$tmpdir/sdist
