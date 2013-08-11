@@ -23,6 +23,7 @@ Utilities with minimum-depends for use in setup.py
 import email
 import os
 import re
+import shlex
 import subprocess
 import sys
 
@@ -95,9 +96,9 @@ def _pip_install(links, requires, root=None, option_dict=dict()):
         return
     root_cmd = ""
     if root:
-        root_cmd = "--root=%s" % root
+        root_cmd = "--root=\"%s\"" % root
     _run_shell_command(
-        "%s -m pip.__init__ install %s %s %s" % (
+        "\"%s\" -m pip.__init__ install %s %s %s" % (
             sys.executable,
             root_cmd,
             " ".join(links),
@@ -210,14 +211,13 @@ def _run_shell_command(cmd, throw_on_error=False, buffer=True):
         out_location = None
         err_location = None
 
-    if os.name == 'nt':
-        output = subprocess.Popen(["cmd.exe", "/C", cmd],
-                                  stdout=out_location,
-                                  stderr=err_location)
-    else:
-        output = subprocess.Popen(["/bin/sh", "-c", cmd],
-                                  stdout=out_location,
-                                  stderr=err_location)
+    # shlex has issues with unicode on older versions
+    if sys.version_info < (2, 7):
+        cmd = cmd.encode('ascii')
+
+    output = subprocess.Popen(shlex.split(cmd),
+                              stdout=out_location,
+                              stderr=err_location)
     out = output.communicate()
     if output.returncode and throw_on_error:
         raise distutils.errors.DistutilsError(
@@ -252,7 +252,7 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
         if git_dir is None:
             git_dir = _get_git_directory()
         if git_dir:
-            git_log_cmd = 'git --git-dir=%s log' % git_dir
+            git_log_cmd = 'git --git-dir=\"%s\" log' % git_dir
             changelog = _run_shell_command(git_log_cmd)
             mailmap = read_git_mailmap()
             with open(new_changelog, "wb") as changelog_file:
@@ -279,18 +279,18 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
             authors = []
 
             # don't include jenkins email address in AUTHORS file
-            git_log_cmd = ("git --git-dir=" + git_dir +
-                           " log --format='%aN <%aE>'"
-                           " | egrep -v '" + ignore_emails + "'")
+            git_log_cmd = ("git --git-dir=\"" + git_dir +
+                           "\" log --format='%aN <%aE>'")
             authors += _run_shell_command(git_log_cmd).split('\n')
+            authors = [a for a in authors if not re.search(ignore_emails, a)]
 
             # get all co-authors from commit messages
-            co_authors_cmd = ("git log --git-dir=" + git_dir +
-                              " | grep -i Co-authored-by:")
-            co_authors = _run_shell_command(co_authors_cmd)
-
+            co_authors_cmd = ("git log --git-dir=\"" + git_dir + "\"")
+            co_authors_out = _run_shell_command(co_authors_cmd)
+            co_authors = re.findall('Co-authored-by:.+', co_authors_out,
+                                    re.MULTILINE)
             co_authors = [signed.split(":", 1)[1].strip()
-                          for signed in co_authors.split('\n') if signed]
+                          for signed in co_authors if signed]
 
             authors += co_authors
 
@@ -319,7 +319,7 @@ def _find_git_files(dirname='', git_dir=None):
         git_dir = _get_git_directory()
     if git_dir:
         log.info("[pbr] In git context, generating filelist from git")
-        git_ls_cmd = "git --git-dir=%s ls-files -z" % git_dir
+        git_ls_cmd = "git --git-dir=\"%s\" ls-files -z" % git_dir
         file_list = _run_shell_command(git_ls_cmd)
         file_list = file_list.split(b'\x00'.decode('utf-8'))
     return [f for f in file_list if f]
@@ -743,13 +743,13 @@ def _get_revno(git_dir):
     of time.
     """
     describe = _run_shell_command(
-        "git --git-dir=%s describe --always" % git_dir)
+        "git --git-dir=\"%s\" describe --always" % git_dir)
     if "-" in describe:
         return describe.rsplit("-", 2)[-2]
 
     # no tags found
     revlist = _run_shell_command(
-        "git --git-dir=%s rev-list --abbrev-commit HEAD" % git_dir)
+        "git --git-dir=\"%s\" rev-list --abbrev-commit HEAD" % git_dir)
     return len(revlist.splitlines())
 
 
@@ -764,15 +764,16 @@ def _get_version_from_git(pre_version):
         if pre_version:
             try:
                 return _run_shell_command(
-                    "git --git-dir=" + git_dir + " describe --exact-match",
+                    "git --git-dir=\"" + git_dir + "\" describe --exact-match",
                     throw_on_error=True).replace('-', '.')
             except Exception:
                 sha = _run_shell_command(
-                    "git --git-dir=" + git_dir + " log -n1 --pretty=format:%h")
+                    "git --git-dir=\"" + git_dir +
+                    "\" log -n1 --pretty=format:%h")
                 return "%s.a%s.g%s" % (pre_version, _get_revno(git_dir), sha)
         else:
             return _run_shell_command(
-                "git --git-dir=" + git_dir + " describe --always").replace(
+                "git --git-dir=\"" + git_dir + "\" describe --always").replace(
                     '-', '.')
     return None
 
