@@ -488,7 +488,7 @@ def override_get_script_args(
                 import_target=ep.attrs[0],
                 invoke_target='.'.join(ep.attrs),
             )
-            yield (name, header+script_text)
+            yield (name, header + script_text)
 
 
 class LocalInstallScripts(install_scripts.install_scripts):
