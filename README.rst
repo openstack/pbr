@@ -26,7 +26,7 @@ Running Tests
 =============
 The testing system is based on a combination of tox and testr. The canonical
 approach to running tests is to simply run the command `tox`. This will
-create virtual environments, populate them with depenedencies and run all of
+create virtual environments, populate them with dependencies and run all of
 the tests that OpenStack CI systems run. Behind the scenes, tox is running
 `testr run --parallel`, but is set up such that you can supply any additional
 testr arguments that are needed to tox. For example, you can run:
@@ -41,7 +41,7 @@ test-requirements.txt. Installing them via pip, for instance, is simply::
 
   pip install -r requirements.txt -r test-requirements.txt
 
-In you go this route, you can interact with the testr command directly.
+If you go this route, you can interact with the testr command directly.
 Running `testr run` will run the entire test suite. `testr run --parallel`
 will run it in parallel (this is the default incantation tox uses.) More
 information about testr can be found at: http://wiki.openstack.org/testr
