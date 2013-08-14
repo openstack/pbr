@@ -199,7 +199,7 @@ class GitLogsTest(tests.BaseTestCase):
 
         self.useFixture(fixtures.FakePopen(lambda proc_args: {
             "stdout": BytesIO(
-                self._fake_log_output(proc_args["args"][2], cmd_map))
+                self._fake_log_output(' '.join(proc_args["args"]), cmd_map))
         }))
 
         with open(os.path.join(self.temp_path, "AUTHORS.in"), "w") as auth_fh:
