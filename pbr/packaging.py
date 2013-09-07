@@ -818,4 +818,5 @@ def get_version(package_name, pre_version=None):
     if version:
         return version
     raise Exception("Versioning for this project requires either an sdist"
-                    " tarball, or access to an upstream git repository.")
+                    " tarball, or access to an upstream git repository."
+                    " Are you sure that git is installed?")
