@@ -761,7 +761,13 @@ def _get_version_from_git(pre_version):
         else:
             return _run_git_command(
                 ['describe', '--always'], git_dir).replace('-', '.')
-    return None
+    # If we don't know the version, return an empty string so at least
+    # the downstream users of the value always have the same type of
+    # object to work with.
+    try:
+        return unicode()
+    except NameError:
+        return ''
 
 
 def _get_version_from_pkg_info(package_name):
@@ -801,6 +807,12 @@ def get_version(package_name, pre_version=None):
     if version:
         return version
     version = _get_version_from_git(pre_version)
+    # Handle http://bugs.python.org/issue11638
+    # version will either be an empty unicode string or a valid
+    # unicode version string, but either way it's unicode and needs to
+    # be encoded.
+    if sys.version_info[0] == 2:
+        version = version.encode('utf-8')
     if version:
         return version
     raise Exception("Versioning for this project requires either an sdist"
