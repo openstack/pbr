@@ -33,10 +33,10 @@ import fixtures
 import testscenarios
 
 from pbr import packaging
-from pbr import tests
+from pbr.tests import base
 
 
-class EmailTestCase(tests.BaseTestCase):
+class EmailTestCase(base.BaseTestCase):
 
     def test_str_dict_replace(self):
         string = 'Johnnie T. Hozer'
@@ -45,7 +45,7 @@ class EmailTestCase(tests.BaseTestCase):
                          packaging.canonicalize_emails(string, mapping))
 
 
-class MailmapTestCase(tests.BaseTestCase):
+class MailmapTestCase(base.BaseTestCase):
 
     def setUp(self):
         super(MailmapTestCase, self).setUp()
@@ -71,7 +71,7 @@ class MailmapTestCase(tests.BaseTestCase):
                          packaging.read_git_mailmap(self.root_dir))
 
 
-class SkipFileWrites(tests.BaseTestCase):
+class SkipFileWrites(base.BaseTestCase):
 
     scenarios = [
         ('changelog_option_true',
@@ -135,7 +135,7 @@ class SkipFileWrites(tests.BaseTestCase):
              or self.env_value is not None))
 
 
-class GitLogsTest(tests.BaseTestCase):
+class GitLogsTest(base.BaseTestCase):
 
     def setUp(self):
         super(GitLogsTest, self).setUp()
@@ -212,7 +212,7 @@ class GitLogsTest(tests.BaseTestCase):
             self.assertTrue(co_author in authors)
 
 
-class BuildSphinxTest(tests.BaseTestCase):
+class BuildSphinxTest(base.BaseTestCase):
 
     scenarios = [
         ('true_autodoc_caps',
@@ -238,7 +238,7 @@ class BuildSphinxTest(tests.BaseTestCase):
         pkg_fixture = fixtures.PythonPackage(
             "fake_package", [("fake_module.py", b"")])
         self.useFixture(pkg_fixture)
-        self.useFixture(tests.DiveDir(pkg_fixture.base))
+        self.useFixture(base.DiveDir(pkg_fixture.base))
 
     def test_build_doc(self):
         if self.has_opt:
@@ -254,7 +254,7 @@ class BuildSphinxTest(tests.BaseTestCase):
                 "api/fake_package.fake_module.rst") == self.has_autodoc)
 
 
-class ParseRequirementsTest(tests.BaseTestCase):
+class ParseRequirementsTest(base.BaseTestCase):
 
     def setUp(self):
         super(ParseRequirementsTest, self).setUp()
@@ -331,7 +331,7 @@ class ParseRequirementsTest(tests.BaseTestCase):
                          packaging.parse_requirements([self.tmp_file]))
 
 
-class ParseDependencyLinksTest(tests.BaseTestCase):
+class ParseDependencyLinksTest(base.BaseTestCase):
 
     def setUp(self):
         super(ParseDependencyLinksTest, self).setUp()
