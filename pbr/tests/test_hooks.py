@@ -41,6 +41,8 @@
 import os
 import textwrap
 
+from testtools.matchers import Contains
+
 from pbr import tests
 from pbr.tests import util
 
@@ -89,3 +91,8 @@ class TestHooks(tests.BaseTestCase):
         """) in stdout  # flake8: noqa
         assert stdout.endswith('build_ext post-hook')
         assert return_code == 0
+
+    def test_custom_commands_known(self):
+        stdout, _, return_code = self.run_setup('--help-commands')
+        self.assertFalse(return_code)
+        self.assertThat(stdout, Contains(" testr "))
