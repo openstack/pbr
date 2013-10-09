@@ -40,6 +40,8 @@
 
 import os
 
+import fixtures
+
 from pbr import tests
 
 
@@ -47,6 +49,9 @@ class TestPackagingInGitRepoWithCommit(tests.BaseTestCase):
 
     def setUp(self):
         super(TestPackagingInGitRepoWithCommit, self).setUp()
+        self.useFixture(fixtures.TempHomeDir())
+        self._run_cmd(
+            'git', ['config', '--global', 'user.email', 'nobody@example.com'])
         self._run_cmd('git', ['init', '.'])
         self._run_cmd('git', ['add', '.'])
         self._run_cmd('git', ['commit', '-m', 'test commit'])
