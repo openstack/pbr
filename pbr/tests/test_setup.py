@@ -170,20 +170,15 @@ class GitLogsTest(tests.BaseTestCase):
         with open(os.path.join(self.temp_path, "ChangeLog"), "r") as ch_fh:
             self.assertTrue("email@foo.com" in ch_fh.read())
 
-    def _fake_log_output(self, cmd, mapping):
-        for (k, v) in mapping.items():
-            if cmd.startswith(k):
-                return v.encode('utf-8')
-        return b""
-
     def test_generate_authors(self):
-        author_old = "Foo Foo <email@foo.com>"
-        author_new = "Bar Bar <email@bar.com>"
-        co_author = "Foo Bar <foo@bar.com>"
-        co_author_by = "Co-authored-by: " + co_author
+        author_old = u"Foo Foo <email@foo.com>"
+        author_new = u"Bar Bar <email@bar.com>"
+        co_author = u"Foo Bar <foo@bar.com>"
+        co_author_by = u"Co-authored-by: " + co_author
 
-        git_log_cmd = ("git --git-dir=%s log --format" % self.git_dir)
-        git_co_log_cmd = ("git log --git-dir=%s" % self.git_dir)
+        git_log_cmd = (
+            "git --git-dir=%s log --format=%%aN <%%aE>" % self.git_dir)
+        git_co_log_cmd = ("git --git-dir=%s log" % self.git_dir)
         git_top_level = "git rev-parse --show-toplevel"
         cmd_map = {
             git_log_cmd: author_new,
@@ -197,10 +192,12 @@ class GitLogsTest(tests.BaseTestCase):
             "os.path.exists",
             lambda path: os.path.abspath(path) in exist_files))
 
-        self.useFixture(fixtures.FakePopen(lambda proc_args: {
-            "stdout": BytesIO(
-                self._fake_log_output(' '.join(proc_args["args"]), cmd_map))
-        }))
+        def _fake_run_shell_command(cmd, **kwargs):
+            return cmd_map[" ".join(cmd)]
+
+        self.useFixture(fixtures.MonkeyPatch(
+            "pbr.packaging._run_shell_command",
+            _fake_run_shell_command))
 
         with open(os.path.join(self.temp_path, "AUTHORS.in"), "w") as auth_fh:
             auth_fh.write("%s\n" % author_old)
