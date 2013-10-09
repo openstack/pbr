@@ -102,15 +102,15 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
                         self.package_dir)
         self.addCleanup(os.chdir, os.getcwd())
         os.chdir(self.package_dir)
+        self.addCleanup(self._discard_testpackage)
 
-    def tearDown(self):
+    def _discard_testpackage(self):
         # Remove pbr.testpackage from sys.modules so that it can be freshly
         # re-imported by the next test
         for k in list(sys.modules):
             if (k == 'pbr_testpackage' or
                     k.startswith('pbr_testpackage.')):
                 del sys.modules[k]
-        super(BaseTestCase, self).tearDown()
 
     def run_setup(self, *args):
         return self._run_cmd(sys.executable, ('setup.py',) + args)
