@@ -21,6 +21,7 @@ Utilities with minimum-depends for use in setup.py
 """
 
 import email
+import io
 import os
 import re
 import subprocess
@@ -37,9 +38,9 @@ from setuptools.command import install_scripts
 from setuptools.command import sdist
 
 try:
-    import cStringIO as io
+    import cStringIO
 except ImportError:
-    import io
+    import io as cStringIO
 
 from pbr import extra_files
 
@@ -236,6 +237,15 @@ def _git_is_installed():
     return True
 
 
+def _get_highest_tag(tags):
+    """Find the highest tag from a list.
+
+    Pass in a list of tag strings and this will return the highest
+    (latest) as sorted by the pkg_resources version parser.
+    """
+    return max(tags, key=pkg_resources.parse_version)
+
+
 def get_boolean_option(option_dict, option_name, env_name):
     return ((option_name in option_dict
              and option_dict[option_name][1].lower() in TRUE_VALUES) or
@@ -257,11 +267,44 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
         if git_dir is None:
             git_dir = _get_git_directory()
         if git_dir:
-            changelog = _run_git_command('log', git_dir)
-            mailmap = read_git_mailmap()
-            with open(new_changelog, "wb") as changelog_file:
-                changelog_file.write(canonicalize_emails(
-                    changelog, mailmap).encode('utf-8'))
+            log_cmd = ['log', '--oneline', '--decorate']
+            changelog = _run_git_command(log_cmd, git_dir)
+            first_line = True
+            with io.open(new_changelog, "w",
+                         encoding="utf-8") as changelog_file:
+                changelog_file.write(u"CHANGES\n=======\n\n")
+                for line in changelog.split('\n'):
+                    line_parts = line.split()
+                    if len(line_parts) < 2:
+                        continue
+                    # Tags are in a list contained in ()'s. If a commit
+                    # subject that is tagged happens to have ()'s in it
+                    # this will fail
+                    if line_parts[1].startswith('(') and ')' in line:
+                        msg = line.split(')')[1].strip()
+                    else:
+                        msg = " ".join(line_parts[1:])
+
+                    if "tag:" in line:
+                        tags = [
+                            tag.split(",")[0]
+                            for tag in line.split(")")[0].split("tag: ")[1:]]
+                        tag = _get_highest_tag(tags)
+
+                        underline = len(tag) * '-'
+                        if not first_line:
+                            changelog_file.write(u'\n')
+                        changelog_file.write(
+                            (u"%(tag)s\n%(underline)s\n\n" %
+                             dict(tag=tag,
+                                  underline=underline)))
+
+                    if not msg.startswith("Merge "):
+                        if msg.endswith("."):
+                            msg = msg[:-1]
+                        changelog_file.write(
+                            (u"* %(msg)s\n" % dict(msg=msg)))
+                    first_line = False
 
 
 def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
@@ -658,7 +701,7 @@ try:
 
         def _sphinx_run(self):
             if not self.verbose:
-                status_stream = io.StringIO()
+                status_stream = cStringIO.StringIO()
             else:
                 status_stream = sys.stdout
             confoverrides = {}
