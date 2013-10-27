@@ -49,7 +49,7 @@ REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
 TEST_REQUIREMENTS_FILES = ('test-requirements.txt', 'tools/test-requires')
 # part of the standard library starting with 2.7
 # adding it to the requirements list screws distro installs
-BROKEN_ON_27 = ('argparse', 'importlib')
+BROKEN_ON_27 = ('argparse', 'importlib', 'ordereddict')
 
 
 def get_requirements_files():
