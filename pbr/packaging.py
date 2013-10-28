@@ -148,6 +148,11 @@ def parse_requirements(requirements_files=None):
         if (not line.strip()) or line.startswith('#'):
             continue
 
+        try:
+            project_name = pkg_resources.Requirement.parse(line).project_name
+        except ValueError:
+            project_name = None
+
         # For the requirements list, we need to inject only the portion
         # after egg= so that distutils knows the package it's looking for
         # such as:
@@ -167,7 +172,8 @@ def parse_requirements(requirements_files=None):
         # -f lines are for index locations, and don't get used here
         elif re.match(r'\s*-f\s+', line):
             pass
-        elif line in BROKEN_ON_27 and sys.version_info >= (2, 7):
+        elif (project_name and
+                project_name in BROKEN_ON_27 and sys.version_info >= (2, 7)):
             pass
         else:
             requirements.append(line)
