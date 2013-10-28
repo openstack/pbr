@@ -42,10 +42,10 @@ import os
 
 import fixtures
 
-from pbr import tests
+from pbr.tests import base
 
 
-class TestPackagingInGitRepoWithCommit(tests.BaseTestCase):
+class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
 
     def setUp(self):
         super(TestPackagingInGitRepoWithCommit, self).setUp()
@@ -71,7 +71,7 @@ class TestPackagingInGitRepoWithCommit(tests.BaseTestCase):
         self.assertNotEqual(body, '')
 
 
-class TestPackagingInGitRepoWithoutCommit(tests.BaseTestCase):
+class TestPackagingInGitRepoWithoutCommit(base.BaseTestCase):
 
     def setUp(self):
         super(TestPackagingInGitRepoWithoutCommit, self).setUp()
@@ -93,7 +93,7 @@ class TestPackagingInGitRepoWithoutCommit(tests.BaseTestCase):
         self.assertEqual(body, '')
 
 
-class TestPackagingInPlainDirectory(tests.BaseTestCase):
+class TestPackagingInPlainDirectory(base.BaseTestCase):
 
     def setUp(self):
         super(TestPackagingInPlainDirectory, self).setUp()

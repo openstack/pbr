@@ -43,11 +43,11 @@ import textwrap
 
 from testtools.matchers import Contains
 
-from pbr import tests
+from pbr.tests import base
 from pbr.tests import util
 
 
-class TestHooks(tests.BaseTestCase):
+class TestHooks(base.BaseTestCase):
     def setUp(self):
         super(TestHooks, self).setUp()
         with util.open_config(
