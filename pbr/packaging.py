@@ -225,6 +225,10 @@ def _get_git_directory():
     return _run_shell_command(['git', 'rev-parse', '--git-dir'])
 
 
+def _git_is_installed():
+    return _run_shell_command(['which', 'git'])
+
+
 def get_boolean_option(option_dict, option_name, env_name):
     return ((option_name in option_dict
              and option_dict[option_name][1].lower() in TRUE_VALUES) or
@@ -306,7 +310,7 @@ def _find_git_files(dirname='', git_dir=None):
     at absurd times. We only want to do this when we are building an sdist.
     """
     file_list = []
-    if git_dir is None:
+    if git_dir is None and _git_is_installed():
         git_dir = _get_git_directory()
     if git_dir:
         log.info("[pbr] In git context, generating filelist from git")
