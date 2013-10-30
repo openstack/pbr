@@ -159,24 +159,26 @@ def parse_requirements(requirements_files=None):
         # -e git://github.com/openstack/nova/master#egg=nova
         # -e git://github.com/openstack/nova/master#egg=nova-1.2.3
         if re.match(r'\s*-e\s+', line):
-            requirements.append(re.sub(r'\s*-e\s+.*#egg=(.*)$',
-                                       egg_fragment,
-                                       line))
+            line = re.sub(r'\s*-e\s+.*#egg=(.*)$', egg_fragment, line)
         # such as:
         # http://github.com/openstack/nova/zipball/master#egg=nova
         # http://github.com/openstack/nova/zipball/master#egg=nova-1.2.3
         elif re.match(r'\s*https?:', line):
-            requirements.append(re.sub(r'\s*https?:.*#egg=(.*)$',
-                                       egg_fragment,
-                                       line))
+            line = re.sub(r'\s*https?:.*#egg=(.*)$', egg_fragment, line)
         # -f lines are for index locations, and don't get used here
         elif re.match(r'\s*-f\s+', line):
-            pass
+            line = None
+            reason = 'Index Location'
         elif (project_name and
                 project_name in BROKEN_ON_27 and sys.version_info >= (2, 7)):
-            pass
-        else:
+            line = None
+            reason = 'Python 2.6 only dependency'
+
+        if line is not None:
             requirements.append(line)
+        else:
+            log.info(
+                '[pbr] Excluding %s: %s' % (project_name, reason))
 
     return requirements
 
