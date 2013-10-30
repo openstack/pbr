@@ -7,8 +7,35 @@ function mkvenv {
     virtualenv $venv
     $venv/bin/pip install -U pip wheel
 }
-
 export PIP_USE_WHEEL=true
+
+# This function takes a list of files that contains
+# a list of python packages (in pip freeze format) and
+# strips the version info from each entry.
+# $1 - The files containing python packages (with version).
+function gen_bare_package_list () {
+    set +x
+    IN_FILES=$1
+    for FILE in $IN_FILES
+    do
+        while read line; do
+              if [[ "$line" == "" ]] || [[ "$line" == \#* ]] || [[ "$line" == \-f* ]]; then
+                  continue
+              elif [[ "$line" == \-e* ]]; then
+                  echo "${line#*=}"
+              elif [[ "$line" == *\>* ]]; then
+                  echo "${line%%>*}"
+              elif [[ "$line" == *\=* ]]; then
+                  echo "${line%%=*}"
+              elif [[ "$line" == *\<* ]]; then
+                  echo "${line%%<*}"
+              else
+                  echo "${line%%#*}"
+              fi
+        done < $FILE
+    done
+    set -x
+}
 
 # BASE should be a directory with a subdir called "new" and in that
 #      dir, there should be a git repository for every entry in PROJECTS
@@ -87,7 +114,13 @@ pbrsdistdir=$tmpdir/pbrsdist
 git clone $REPODIR/pbr $pbrsdistdir
 cd $pbrsdistdir
 
-$pypimirrorvenv/bin/run-mirror -b remotes/origin/master --verbose -c $tmpdir/mirror.yaml --no-process
+$pypimirrorvenv/bin/run-mirror -b remotes/origin/master --verbose -c $tmpdir/mirror.yaml --no-process --export=$HOME/mirror_package_list.txt
+# Compare packages in the mirror with the list of requirements
+gen_bare_package_list "$REPODIR/requirements/global-requirements.txt $REPODIR/requirements/dev-requirements.txt" > bare_all_requirements.txt
+gen_bare_package_list $HOME/mirror_package_list.txt > bare_mirror_package_list.txt
+echo "Diff between python mirror packages and requirements packages:"
+grep -v -f bare_all_requirements.txt bare_mirror_package_list.txt > diff_requirements_mirror.txt
+cat diff_requirements_mirror.txt
 
 $pypimirrorvenv/bin/pip install -i http://pypi.python.org/simple -d $tmpdownload/pip/openstack 'pip==1.0' 'setuptools>=0.7'
 
