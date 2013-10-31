@@ -3,7 +3,6 @@
 function mkvenv {
     venv=$1
     setuptools=$2
-    pip=$3
 
     rm -rf $venv
     if [ "$setuptools" == 'distribute' ] ; then
@@ -14,7 +13,7 @@ function mkvenv {
         virtualenv $venv
         $venv/bin/pip install -v -U $setuptools
     fi
-    $venv/bin/pip install $pip
+    $venv/bin/pip install -U pip
 }
 
 # BASE should be a directory with a subdir called "new" and in that
@@ -50,7 +49,7 @@ EOF
 pypimirrorsourcedir=$tmpdir/pypimirrorsourcedir
 git clone $REPODIR/pypi-mirror $pypimirrorsourcedir
 
-mkvenv $pypimirrorvenv setuptools pip
+mkvenv $pypimirrorvenv setuptools
 $pypimirrorvenv/bin/pip install -e $pypimirrorsourcedir
 
 cat <<EOF > $tmpdir/mirror.yaml
@@ -128,7 +127,7 @@ def main():
 EOF
 
 epvenv=$eptest/venv
-mkvenv $epvenv setuptools pip
+mkvenv $epvenv setuptools
 
 eppbrdir=$tmpdir/eppbrdir
 git clone $REPODIR/pbr $eppbrdir
@@ -170,26 +169,26 @@ for PROJECT in $PROJECTS ; do
     sdistvenv=$tmpdir/sdist
 
     # Test that we can make a tarball from scratch
-    mkvenv $sdistvenv distribute pip
+    mkvenv $sdistvenv distribute
     cd $shortprojectdir
     $sdistvenv/bin/python setup.py sdist
 
     # Test that the tarball installs
     cd $tmpdir
     tarballvenv=$tmpdir/tarball
-    mkvenv $tarballvenv setuptools pip
+    mkvenv $tarballvenv setuptools
     $tarballvenv/bin/pip install $shortprojectdir/dist/*tar.gz
 
     # Test pip installing
     pipvenv=$tmpdir/pip
-    mkvenv $pipvenv setuptools 'pip==1.0'
+    mkvenv $pipvenv setuptools
     cd $tmpdir
     echo $pipvenv/bin/pip install git+file://$REPODIR/$SHORT_PROJECT
     $pipvenv/bin/pip install git+file://$REPODIR/$SHORT_PROJECT
 
     # Test python setup.py install
     installvenv=$tmpdir/install
-    mkvenv $installvenv setuptools pip
+    mkvenv $installvenv setuptools
     installprojectdir=$projectdir/install$SHORT_PROJECT
     git clone $REPODIR/$SHORT_PROJECT $installprojectdir
     cd $installprojectdir
@@ -204,7 +203,7 @@ for PROJECT in $PROJECTS ; do
     # easy_install to a file:/// can't handle name case insensitivity
     # Test python setup.py develop
     # developvenv=$tmpdir/develop
-    # mkvenv $developvenv setuptools pip
+    # mkvenv $developvenv setuptools
     # developprojectdir=$projectdir/develop$SHORT_PROJECT
     # git clone $REPODIR/$SHORT_PROJECT $developprojectdir
     # cd $developprojectdir
