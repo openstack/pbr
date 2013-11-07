@@ -226,7 +226,14 @@ def _get_git_directory():
 
 
 def _git_is_installed():
-    return _run_shell_command(['which', 'git'])
+    try:
+        # We cannot use 'which git' as it may not be available
+        # in some distributions, So just try 'git --version'
+        # to see if we run into trouble
+        _run_shell_command(['git', '--version'])
+    except OSError:
+        return False
+    return True
 
 
 def get_boolean_option(option_dict, option_name, env_name):

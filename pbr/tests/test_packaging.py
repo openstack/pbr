@@ -41,7 +41,9 @@
 import os
 
 import fixtures
+import mock
 
+from pbr import packaging
 from pbr.tests import base
 
 
@@ -109,3 +111,18 @@ class TestPackagingInPlainDirectory(base.BaseTestCase):
         # Not a git repo, no ChangeLog created
         filename = os.path.join(self.package_dir, 'ChangeLog')
         self.assertFalse(os.path.exists(filename))
+
+
+class TestPresenceOfGit(base.BaseTestCase):
+
+    def testGitIsInstalled(self):
+        with mock.patch.object(packaging,
+                               '_run_shell_command') as _command:
+            _command.return_value = 'git version 1.8.4.1'
+            self.assertEqual(True, packaging._git_is_installed())
+
+    def testGitIsNotInstalled(self):
+        with mock.patch.object(packaging,
+                               '_run_shell_command') as _command:
+            _command.side_effect = OSError
+            self.assertEqual(False, packaging._git_is_installed())
