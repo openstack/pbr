@@ -22,6 +22,8 @@ when that library itself will alter how the setup is processed. As Metadata
 2.0 and other modern Python packaging PEPs come out, `pbr` aims to support
 them as quickly as possible.
 
+You can read more in `the documentation`_.
+
 Running Tests
 =============
 The testing system is based on a combination of tox and testr. The canonical
@@ -45,3 +47,5 @@ In you go this route, you can interact with the testr command directly.
 Running `testr run` will run the entire test suite. `testr run --parallel`
 will run it in parallel (this is the default incantation tox uses.) More
 information about testr can be found at: http://wiki.openstack.org/testr
+
+.. _`the documentation`: http://docs.openstack.org/developer/pbr/
