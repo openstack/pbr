@@ -32,6 +32,8 @@ will be very similar to git describe. If you do, then we'll assume that's the
 version you are working towards, and will generate alpha version strings
 based on commits since last tag and the current git sha.
 
+The versions are expected to be compliant with :doc:`semver`.
+
 AUTHORS and ChangeLog
 ---------------------
 
@@ -191,13 +193,14 @@ installed for `pbr.config.drivers`, one called `plain` which maps to the
 `Plain` class in `pbr.cfg.driver` and one called `fancy` which maps to the
 `Fancy` class in `pbr.cfg.driver`.
 
-Packager Notes
-==============
+Additional Docs
+===============
 
 .. toctree::
    :maxdepth: 1
 
    packagers
+   semver
 
 Indices and tables
 ==================
