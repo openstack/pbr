@@ -62,6 +62,10 @@ mirrors:
     output: $pypidir
 EOF
 
+# wheel mirrors are below a dir level containing distro and release
+# because the wheel format itself does not distinguish
+distro=`lsb_release -i -r -s | xargs | tr ' ' '-'`
+
 # PROJECTS is a list of projects that we're testing
 PROJECTS=$*
 
@@ -91,6 +95,7 @@ EOF
 cat <<EOF > ~/.pip/pip.conf
 [global]
 index-url = $pypiurl
+extra-index-url = $pypiurl/$distro
 extra-index-url = http://pypi.openstack.org/openstack
 log = $HOME/pip.log
 EOF
