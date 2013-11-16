@@ -35,7 +35,7 @@ mkdir -p $tmpdownload
 pypidir=$tmpdir/pypi
 mkdir -p $pypidir
 
-jeepybvenv=$tmpdir/jeepyb
+pypimirrorvenv=$tmpdir/pypi-mirror
 
 sudo touch $HOME/pip.log
 sudo chown $USER $HOME/pip.log
@@ -47,11 +47,11 @@ cat <<EOF > ~/.pip/pip.conf
 log = $HOME/pip.log
 EOF
 
-jeepybsourcedir=$tmpdir/jeepybsourcedir
-git clone $REPODIR/jeepyb $jeepybsourcedir
+pypimirrorsourcedir=$tmpdir/pypimirrorsourcedir
+git clone $REPODIR/pypi-mirror $pypimirrorsourcedir
 
-mkvenv $jeepybvenv setuptools pip
-$jeepybvenv/bin/pip install -e $jeepybsourcedir
+mkvenv $pypimirrorvenv setuptools pip
+$pypimirrorvenv/bin/pip install -e $pypimirrorsourcedir
 
 cat <<EOF > $tmpdir/mirror.yaml
 cache-root: $tmpdownload
@@ -70,14 +70,14 @@ pbrsdistdir=$tmpdir/pbrsdist
 git clone $REPODIR/pbr $pbrsdistdir
 cd $pbrsdistdir
 
-$jeepybvenv/bin/run-mirror -b remotes/origin/master --verbose -c $tmpdir/mirror.yaml --no-process
+$pypimirrorvenv/bin/run-mirror -b remotes/origin/master --verbose -c $tmpdir/mirror.yaml --no-process
 
-$jeepybvenv/bin/pip install -i http://pypi.python.org/simple -d $tmpdownload/pip/openstack 'pip==1.0' 'setuptools>=0.7'
+$pypimirrorvenv/bin/pip install -i http://pypi.python.org/simple -d $tmpdownload/pip/openstack 'pip==1.0' 'setuptools>=0.7'
 
-$jeepybvenv/bin/pip install -i http://pypi.python.org/simple -d $tmpdownload/pip/openstack -r requirements.txt
-$jeepybvenv/bin/python setup.py sdist -d $tmpdownload/pip/openstack
+$pypimirrorvenv/bin/pip install -i http://pypi.python.org/simple -d $tmpdownload/pip/openstack -r requirements.txt
+$pypimirrorvenv/bin/python setup.py sdist -d $tmpdownload/pip/openstack
 
-$jeepybvenv/bin/run-mirror -b remotes/origin/master --verbose -c $tmpdir/mirror.yaml --no-download
+$pypimirrorvenv/bin/run-mirror -b remotes/origin/master --verbose -c $tmpdir/mirror.yaml --no-download
 
 find $pypidir
 
