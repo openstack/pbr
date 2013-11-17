@@ -5,8 +5,10 @@ function mkvenv {
 
     rm -rf $venv
     virtualenv $venv
-    $venv/bin/pip install -U pip
+    $venv/bin/pip install -U pip wheel
 }
+
+export PIP_USE_WHEEL=true
 
 # BASE should be a directory with a subdir called "new" and in that
 #      dir, there should be a git repository for every entry in PROJECTS
