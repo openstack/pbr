@@ -2,17 +2,9 @@
 
 function mkvenv {
     venv=$1
-    setuptools=$2
 
     rm -rf $venv
-    if [ "$setuptools" == 'distribute' ] ; then
-        virtualenv --distribute $venv
-    elif [ "$setuptools" == 'setuptools' ] ; then
-        virtualenv $venv
-    else
-        virtualenv $venv
-        $venv/bin/pip install -v -U $setuptools
-    fi
+    virtualenv $venv
     $venv/bin/pip install -U pip
 }
 
@@ -50,7 +42,7 @@ EOF
 pypimirrorsourcedir=$tmpdir/pypimirrorsourcedir
 git clone $REPODIR/pypi-mirror $pypimirrorsourcedir
 
-mkvenv $pypimirrorvenv setuptools
+mkvenv $pypimirrorvenv
 $pypimirrorvenv/bin/pip install -e $pypimirrorsourcedir
 
 cat <<EOF > $tmpdir/mirror.yaml
@@ -155,7 +147,7 @@ def main():
 EOF
 
 epvenv=$eptest/venv
-mkvenv $epvenv setuptools
+mkvenv $epvenv
 
 eppbrdir=$tmpdir/eppbrdir
 git clone $REPODIR/pbr $eppbrdir
@@ -171,9 +163,17 @@ mkdir -p $projectdir
 
 for PROJECT in $PROJECTS ; do
     SHORT_PROJECT=$(basename $PROJECT)
-    if ! grep 'pbr' $REPODIR/$SHORT_PROJECT/requirements.txt >/dev/null 2>&1
+    if ! grep 'pbr' $REPODIR/$SHORT_PROJECT/setup.py >/dev/null 2>&1
     then
         # project doesn't use pbr
+        continue
+    fi
+    if [ $SHORT_PROJECT = 'pypi-mirror' ]; then
+        # pypi-mirror doesn't consume the mirror
+        continue
+    fi
+    if [ $SHORT_PROJECT = 'jeepyb' ]; then
+        # pypi-mirror doesn't consume the mirror
         continue
     fi
     if [ $SHORT_PROJECT = 'tempest' ]; then
@@ -184,7 +184,8 @@ for PROJECT in $PROJECTS ; do
         # requirements doesn't really install
         continue
     fi
-    shortprojectdir=$projectdir/$SHORT_PROJECT
+
+    # set up the project synced with the global requirements
     sudo chown -R $USER $REPODIR/$SHORT_PROJECT
     (cd $REPODIR/requirements && python update.py $REPODIR/$SHORT_PROJECT)
     pushd $REPODIR/$SHORT_PROJECT
@@ -192,61 +193,40 @@ for PROJECT in $PROJECTS ; do
         git commit -a -m'Update requirements'
     fi
     popd
+
+    # Clone from synced repo
+    shortprojectdir=$projectdir/$SHORT_PROJECT
     git clone $REPODIR/$SHORT_PROJECT $shortprojectdir
 
-    sdistvenv=$tmpdir/sdist
-
     # Test that we can make a tarball from scratch
-    mkvenv $sdistvenv distribute
-    (cd $REPODIR/requirements && python update.py $shortprojectdir)
+    sdistvenv=$tmpdir/sdist
+    mkvenv $sdistvenv
     cd $shortprojectdir
-    if ! git diff --quiet ; then
-        git commit -a -m"Update requirements"
-    fi
     $sdistvenv/bin/python setup.py sdist
 
-    # Test that the tarball installs
     cd $tmpdir
+
+    # Test that the tarball installs
     tarballvenv=$tmpdir/tarball
-    mkvenv $tarballvenv setuptools
+    mkvenv $tarballvenv
     $tarballvenv/bin/pip install $shortprojectdir/dist/*tar.gz
 
     # Test pip installing
     pipvenv=$tmpdir/pip
-    mkvenv $pipvenv setuptools
-    cd $tmpdir
-    echo $pipvenv/bin/pip install git+file://$REPODIR/$SHORT_PROJECT
-    $pipvenv/bin/pip install git+file://$REPODIR/$SHORT_PROJECT
+    mkvenv $pipvenv
+    $pipvenv/bin/pip install git+file://$shortprojectdir
 
     # Test python setup.py install
     installvenv=$tmpdir/install
-    mkvenv $installvenv setuptools
+    mkvenv $installvenv
+
     installprojectdir=$projectdir/install$SHORT_PROJECT
-    git clone $REPODIR/$SHORT_PROJECT $installprojectdir
+    git clone $shortprojectdir $installprojectdir
     cd $installprojectdir
-    if ! git diff --quiet ; then
-        git commit -a -m"Update requirements"
-    fi
     $installvenv/bin/python setup.py install
 
     # Ensure the install_package_data is doing the thing it should do
     if [ $SHORT_PROJECT = 'nova' ]; then
         find $installvenv | grep migrate.cfg
     fi
-
-    # TODO(mordred): extend script to do a better job with the mirrir
-    # easy_install to a file:/// can't handle name case insensitivity
-    # Test python setup.py develop
-    # developvenv=$tmpdir/develop
-    # mkvenv $developvenv setuptools
-    # developprojectdir=$projectdir/develop$SHORT_PROJECT
-    # git clone $REPODIR/$SHORT_PROJECT $developprojectdir
-    # cd $developprojectdir
-    # $developvenv/bin/python setup.py develop
-
-    # TODO(mordred): need to implement egg filtering
-    # Because install will have caused eggs to be locally downloaded
-    # pbr can get excluded from being in the actual venv
-    # test that this did not happen
-    # $tempvenv/bin/python -c 'import pkg_resources as p; import sys; pbr=p.working_set.find(p.Requirement.parse("pbr")) is None; sys.exit(pbr or 0)'
 done
