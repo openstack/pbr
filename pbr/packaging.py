@@ -94,7 +94,7 @@ def _pip_install(links, requires, root=None, option_dict=dict()):
         cmd.append(link)
     _run_shell_command(
         cmd + requires,
-        throw_on_error=True, buffer=False)
+        throw_on_error=True, buffer=False, env=dict(PIP_USE_WHEEL="true"))
 
 
 def _any_existing(file_list):
@@ -189,7 +189,7 @@ def _run_git_command(cmd, git_dir, **kwargs):
         ['git', '--git-dir=%s' % git_dir] + cmd, **kwargs)
 
 
-def _run_shell_command(cmd, throw_on_error=False, buffer=True):
+def _run_shell_command(cmd, throw_on_error=False, buffer=True, env=None):
     if buffer:
         out_location = subprocess.PIPE
         err_location = subprocess.PIPE
@@ -197,9 +197,14 @@ def _run_shell_command(cmd, throw_on_error=False, buffer=True):
         out_location = None
         err_location = None
 
+    newenv = os.environ.copy()
+    if env:
+        newenv.update(env)
+
     output = subprocess.Popen(cmd,
                               stdout=out_location,
-                              stderr=err_location)
+                              stderr=err_location,
+                              env=newenv)
     out = output.communicate()
     if output.returncode and throw_on_error:
         raise distutils.errors.DistutilsError(

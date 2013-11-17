@@ -7,7 +7,6 @@ function mkvenv {
     virtualenv $venv
     $venv/bin/pip install -U pip wheel
 }
-export PIP_USE_WHEEL=true
 
 # This function takes a list of files that contains
 # a list of python packages (in pip freeze format) and
