@@ -276,7 +276,7 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
                 and not os.access(new_authors, os.W_OK)):
             return
         log.info('[pbr] Generating AUTHORS')
-        ignore_emails = '(jenkins@review|infra@lists)'
+        ignore_emails = '(jenkins@review|infra@lists|jenkins@openstack)'
         if git_dir is None:
             git_dir = _get_git_directory()
         if git_dir:
