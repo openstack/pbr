@@ -253,6 +253,39 @@ class BuildSphinxTest(base.BaseTestCase):
             os.path.exists(
                 "api/fake_package.fake_module.rst") == self.has_autodoc)
 
+    def test_builders_config(self):
+        if self.has_opt:
+            self.distr.command_options["pbr"] = {
+                "autodoc_index_modules": ('setup.cfg', self.autodoc)}
+
+        build_doc = packaging.LocalBuildDoc(self.distr)
+        build_doc.finalize_options()
+
+        self.assertEqual(2, len(build_doc.builders))
+        self.assertIn('html', build_doc.builders)
+        self.assertIn('man', build_doc.builders)
+
+        build_doc = packaging.LocalBuildDoc(self.distr)
+        build_doc.builders = ''
+        build_doc.finalize_options()
+
+        self.assertEqual('', build_doc.builders)
+
+        build_doc = packaging.LocalBuildDoc(self.distr)
+        build_doc.builders = 'man'
+        build_doc.finalize_options()
+
+        self.assertEqual(1, len(build_doc.builders))
+        self.assertIn('man', build_doc.builders)
+
+        build_doc = packaging.LocalBuildDoc(self.distr)
+        build_doc.builders = 'html,man,doctest'
+        build_doc.finalize_options()
+
+        self.assertIn('html', build_doc.builders)
+        self.assertIn('man', build_doc.builders)
+        self.assertIn('doctest', build_doc.builders)
+
 
 class ParseRequirementsTest(base.BaseTestCase):
 

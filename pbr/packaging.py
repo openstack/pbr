@@ -721,6 +721,13 @@ try:
                 else:
                     setup_command.BuildDoc.run(self)
 
+        def finalize_options(self):
+            # Not a new style class, super keyword does not work.
+            setup_command.BuildDoc.finalize_options(self)
+            # Allow builders to be configurable - as a comma separated list.
+            if not isinstance(self.builders, list) and self.builders:
+                self.builders = self.builders.split(',')
+
     class LocalBuildLatex(LocalBuildDoc):
         builders = ['latex']
         command_name = 'build_sphinx_latex'
