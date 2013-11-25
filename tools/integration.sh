@@ -31,8 +31,9 @@ whoami=$(whoami)
 tmpdownload=$tmpdir/download
 mkdir -p $tmpdownload
 
-pypidir=$tmpdir/pypi
-mkdir -p $pypidir
+pypidir=/var/www/pypi
+sudo mkdir -p $pypidir
+sudo chown $USER $pypidir
 
 pypimirrorvenv=$tmpdir/pypi-mirror
 
@@ -66,6 +67,25 @@ EOF
 # because the wheel format itself does not distinguish
 distro=`lsb_release -i -r -s | xargs | tr ' ' '-'`
 
+# set up local apache to serve the mirror we're about to create
+if [ ! -d /etc/apache2/sites-enabled/ ] ; then
+    echo "Apache does not seem to be installed!!!"
+    exit 1
+fi
+
+sudo rm /etc/apache2/sites-enabled/*
+cat <<EOF > $tmpdir/pypi.conf
+<VirtualHost *:80>
+    ServerAdmin webmaster@localhost
+    DocumentRoot /var/www
+    Options Indexes FollowSymLinks
+</VirtualHost>
+EOF
+sudo mv $tmpdir/pypi.conf /etc/apache2/sites-available/pypi
+sudo chown root:root /etc/apache2/sites-available/pypi
+sudo a2ensite pypi
+sudo service apache2 reload
+
 # PROJECTS is a list of projects that we're testing
 PROJECTS=$*
 
@@ -82,10 +102,13 @@ $pypimirrorvenv/bin/python setup.py sdist -d $tmpdownload/pip/openstack
 
 $pypimirrorvenv/bin/run-mirror -b remotes/origin/master --verbose -c $tmpdir/mirror.yaml --no-download
 
+find $pypidir -type f -name '*.html' -delete
 find $pypidir
 
+
 # Make pypi thing
-pypiurl=file://$pypidir
+pypiurl=http://localhost/pypi
+export no_proxy=$no_proxy${no_proxy:+,}localhost
 
 cat <<EOF > ~/.pydistutils.cfg
 [easy_install]
@@ -175,7 +198,11 @@ for PROJECT in $PROJECTS ; do
 
     # Test that we can make a tarball from scratch
     mkvenv $sdistvenv distribute
+    (cd $REPODIR/requirements && python update.py $shortprojectdir)
     cd $shortprojectdir
+    if ! git diff --quiet ; then
+        git commit -a -m"Update requirements"
+    fi
     $sdistvenv/bin/python setup.py sdist
 
     # Test that the tarball installs
@@ -197,6 +224,9 @@ for PROJECT in $PROJECTS ; do
     installprojectdir=$projectdir/install$SHORT_PROJECT
     git clone $REPODIR/$SHORT_PROJECT $installprojectdir
     cd $installprojectdir
+    if ! git diff --quiet ; then
+        git commit -a -m"Update requirements"
+    fi
     $installvenv/bin/python setup.py install
 
     # Ensure the install_package_data is doing the thing it should do
