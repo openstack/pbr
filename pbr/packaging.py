@@ -97,27 +97,6 @@ def _pip_install(links, requires, root=None, option_dict=dict()):
         throw_on_error=True, buffer=False)
 
 
-def read_git_mailmap(root_dir=None, mailmap='.mailmap'):
-    if not root_dir:
-        root_dir = _run_shell_command(
-            ['git', 'rev-parse', '--show-toplevel'])
-
-    mailmap = os.path.join(root_dir, mailmap)
-    if os.path.exists(mailmap):
-        return _parse_mailmap(open(mailmap, 'r').readlines())
-
-    return dict()
-
-
-def canonicalize_emails(changelog, mapping):
-    """Takes in a string and an email alias mapping and replaces all
-       instances of the aliases in the string with their real email.
-    """
-    for alias, email_address in mapping.items():
-        changelog = changelog.replace(alias, email_address)
-    return changelog
-
-
 def _any_existing(file_list):
     return [f for f in file_list if os.path.exists(f)]
 
@@ -334,7 +313,7 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
             authors = []
 
             # don't include jenkins email address in AUTHORS file
-            git_log_cmd = ['log', '--format=%aN <%aE>']
+            git_log_cmd = ['log', '--use-mailmap', '--format=%aN <%aE>']
             authors += _run_git_command(git_log_cmd, git_dir).split('\n')
             authors = [a for a in authors if not re.search(ignore_emails, a)]
 
@@ -346,11 +325,6 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
                           for signed in co_authors if signed]
 
             authors += co_authors
-
-            # canonicalize emails, remove duplicates and sort
-            mailmap = read_git_mailmap(git_dir)
-            authors = canonicalize_emails('\n'.join(authors), mailmap)
-            authors = authors.split('\n')
             authors = sorted(set(authors))
 
             with open(new_authors, 'wb') as new_authors_fh:

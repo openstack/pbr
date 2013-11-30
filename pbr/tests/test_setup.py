@@ -36,41 +36,6 @@ from pbr import packaging
 from pbr.tests import base
 
 
-class EmailTestCase(base.BaseTestCase):
-
-    def test_str_dict_replace(self):
-        string = 'Johnnie T. Hozer'
-        mapping = {'T.': 'The'}
-        self.assertEqual('Johnnie The Hozer',
-                         packaging.canonicalize_emails(string, mapping))
-
-
-class MailmapTestCase(base.BaseTestCase):
-
-    def setUp(self):
-        super(MailmapTestCase, self).setUp()
-        self.root_dir = self.useFixture(fixtures.TempDir()).path
-        self.mailmap = os.path.join(self.root_dir, '.mailmap')
-
-    def test_mailmap_with_fullname(self):
-        with open(self.mailmap, 'w') as mm_fh:
-            mm_fh.write("Foo Bar <email@foo.com> Foo Bar <email@bar.com>\n")
-        self.assertEqual({'<email@bar.com>': '<email@foo.com>'},
-                         packaging.read_git_mailmap(self.root_dir))
-
-    def test_mailmap_with_firstname(self):
-        with open(self.mailmap, 'w') as mm_fh:
-            mm_fh.write("Foo <email@foo.com> Foo <email@bar.com>\n")
-        self.assertEqual({'<email@bar.com>': '<email@foo.com>'},
-                         packaging.read_git_mailmap(self.root_dir))
-
-    def test_mailmap_with_noname(self):
-        with open(self.mailmap, 'w') as mm_fh:
-            mm_fh.write("<email@foo.com> <email@bar.com>\n")
-        self.assertEqual({'<email@bar.com>': '<email@foo.com>'},
-                         packaging.read_git_mailmap(self.root_dir))
-
-
 class SkipFileWrites(base.BaseTestCase):
 
     scenarios = [
@@ -186,7 +151,8 @@ class GitLogsTest(base.BaseTestCase):
         co_author_by = u"Co-authored-by: " + co_author
 
         git_log_cmd = (
-            "git --git-dir=%s log --format=%%aN <%%aE>" % self.git_dir)
+            "git --git-dir=%s log --use-mailmap --format=%%aN <%%aE>"
+            % self.git_dir)
         git_co_log_cmd = ("git --git-dir=%s log" % self.git_dir)
         git_top_level = "git rev-parse --show-toplevel"
         cmd_map = {
