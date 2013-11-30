@@ -92,7 +92,7 @@ class TestPackagingInGitRepoWithoutCommit(base.BaseTestCase):
         # No commits, nothing should be in the ChangeLog list
         with open(os.path.join(self.package_dir, 'ChangeLog'), 'r') as f:
             body = f.read()
-        self.assertEqual(body, '')
+        self.assertEqual(body, 'CHANGES\n=======\n\n')
 
 
 class TestPackagingInPlainDirectory(base.BaseTestCase):

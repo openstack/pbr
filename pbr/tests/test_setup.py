@@ -134,6 +134,18 @@ class SkipFileWrites(base.BaseTestCase):
             (self.option_value.lower() in packaging.TRUE_VALUES
              or self.env_value is not None))
 
+_changelog_content = """04316fe (review/monty_taylor/27519) Make python
+378261a Add an integration test script.
+3c373ac (HEAD, tag: 2013.2.rc2, tag: 2013.2, milestone-proposed) Merge "Lib
+182feb3 (tag: 0.5.17) Fix pip invocation for old versions of pip.
+fa4f46e (tag: 0.5.16) Remove explicit depend on distribute.
+d1c53dd Use pip instead of easy_install for installation.
+a793ea1 Merge "Skip git-checkout related tests when .git is missing"
+6c27ce7 Skip git-checkout related tests when .git is missing
+04984a5 Refactor hooks file.
+a65e8ee (tag: 0.5.14, tag: 0.5.13) Remove jinja pin.
+"""
+
 
 class GitLogsTest(base.BaseTestCase):
 
@@ -148,27 +160,24 @@ class GitLogsTest(base.BaseTestCase):
             fixtures.EnvironmentVariable('SKIP_WRITE_GIT_CHANGELOG'))
 
     def test_write_git_changelog(self):
-        exist_files = [os.path.join(self.root_dir, f)
-                       for f in (".git", ".mailmap")]
-        self.useFixture(fixtures.MonkeyPatch(
-            "os.path.exists",
-            lambda path: os.path.abspath(path) in exist_files))
         self.useFixture(fixtures.FakePopen(lambda _: {
-            "stdout": BytesIO("Author: Foo Bar "
-                              "<email@bar.com>\n".encode('utf-8'))
+            "stdout": BytesIO(_changelog_content.encode('utf-8'))
         }))
-
-        def _fake_read_git_mailmap(*args):
-            return {"email@bar.com": "email@foo.com"}
-
-        self.useFixture(fixtures.MonkeyPatch("pbr.packaging.read_git_mailmap",
-                                             _fake_read_git_mailmap))
 
         packaging.write_git_changelog(git_dir=self.git_dir,
                                       dest_dir=self.temp_path)
 
         with open(os.path.join(self.temp_path, "ChangeLog"), "r") as ch_fh:
-            self.assertTrue("email@foo.com" in ch_fh.read())
+            changelog_contents = ch_fh.read()
+            self.assertIn("2013.2", changelog_contents)
+            self.assertIn("0.5.17", changelog_contents)
+            self.assertIn("------", changelog_contents)
+            self.assertIn("Refactor hooks file", changelog_contents)
+            self.assertNotIn("Refactor hooks file.", changelog_contents)
+            self.assertNotIn("182feb3", changelog_contents)
+            self.assertNotIn("review/monty_taylor/27519", changelog_contents)
+            self.assertNotIn("0.5.13", changelog_contents)
+            self.assertNotIn('Merge "', changelog_contents)
 
     def test_generate_authors(self):
         author_old = u"Foo Foo <email@foo.com>"
