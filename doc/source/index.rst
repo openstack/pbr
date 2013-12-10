@@ -1,6 +1,6 @@
-===================================
- pbr - Python Build Reasonableness
-===================================
+=================================
+pbr - Python Build Reasonableness
+=================================
 
 A library for managing setuptools packaging needs in a consistent manner.
 
@@ -143,7 +143,7 @@ fundamental keys one is likely to care about, `packages`,
 
 `packages` is a list of top-level packages that should be installed. The
 behavior of packages is similar to `setuptools.find_packages` in that it
-recurses the python package heirarchy below the given top level and installs
+recurses the python package hierarchy below the given top level and installs
 all of it. If `packages` is not specified, it defaults to the name given
 in the `[metadata]` section.
 
