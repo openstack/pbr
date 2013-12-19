@@ -352,6 +352,22 @@ class ParseRequirementsTest(base.BaseTestCase):
         self.assertEqual(['foobar', 'foobaz'],
                          packaging.parse_requirements([self.tmp_file]))
 
+    def test_parse_requirements_python_version(self):
+        with open("requirements-py%d.txt" % sys.version_info[0],
+                  "w") as fh:
+            fh.write("# this is a comment\nfoobar\n# and another one\nfoobaz")
+        self.assertEqual(['foobar', 'foobaz'],
+                         packaging.parse_requirements())
+
+    def test_parse_requirements_right_python_version(self):
+        with open("requirements-py1.txt", "w") as fh:
+            fh.write("thisisatrap")
+        with open("requirements-py%d.txt" % sys.version_info[0],
+                  "w") as fh:
+            fh.write("# this is a comment\nfoobar\n# and another one\nfoobaz")
+        self.assertEqual(['foobar', 'foobaz'],
+                         packaging.parse_requirements())
+
 
 class ParseDependencyLinksTest(base.BaseTestCase):
 

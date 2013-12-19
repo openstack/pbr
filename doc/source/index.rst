@@ -67,6 +67,21 @@ your project, will parse them and split them up approprirately, and inject
 them into the install_requires and/or tests_require and/or dependency_links
 arguments to setup. Voila!
 
+You can also have a requirement file for each specific major version of
+Python. If you want to have a different package list for Python 3, just drop
+a requirements-py3.txt, and it will be used instead.
+
+The requirement files are tried in that order (N being the Python major
+version number used to install the package):
+
+* requirements-pyN.txt
+* tools/pip-requires-py3
+* requirements.txt
+* tools/pip-requires
+
+Only the first file found is used to install the list of packages it
+contains.
+
 long_description
 ----------------
 

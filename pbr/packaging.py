@@ -57,7 +57,13 @@ def get_requirements_files():
     files = os.environ.get("PBR_REQUIREMENTS_FILES")
     if files:
         return tuple(f.strip() for f in files.split(','))
-    return REQUIREMENTS_FILES
+    # Returns a list composed of:
+    # - REQUIREMENTS_FILES with -py2 or -py3 in the name
+    #   (e.g. requirements-py3.txt)
+    # - REQUIREMENTS_FILES
+    return (list(map(('-py' + str(sys.version_info[0])).join,
+                     map(os.path.splitext, REQUIREMENTS_FILES)))
+            + list(REQUIREMENTS_FILES))
 
 
 def append_text_list(config, key, text_list):
