@@ -44,7 +44,6 @@ except ImportError:
 
 from pbr import extra_files
 
-log.set_verbosity(log.INFO)
 TRUE_VALUES = ('true', '1', 'yes')
 REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
 TEST_REQUIREMENTS_FILES = ('test-requirements.txt', 'tools/test-requires')
