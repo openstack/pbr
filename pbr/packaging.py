@@ -20,6 +20,8 @@
 Utilities with minimum-depends for use in setup.py
 """
 
+from __future__ import unicode_literals
+
 import email
 import io
 import os
@@ -269,7 +271,7 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
             first_line = True
             with io.open(new_changelog, "w",
                          encoding="utf-8") as changelog_file:
-                changelog_file.write(u"CHANGES\n=======\n\n")
+                changelog_file.write("CHANGES\n=======\n\n")
                 for line in changelog.split('\n'):
                     line_parts = line.split()
                     if len(line_parts) < 2:
@@ -292,7 +294,7 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
                         if not first_line:
                             changelog_file.write(u'\n')
                         changelog_file.write(
-                            (u"%(tag)s\n%(underline)s\n\n" %
+                            ("%(tag)s\n%(underline)s\n\n" %
                              dict(tag=tag,
                                   underline=underline)))
 
@@ -300,7 +302,7 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
                         if msg.endswith("."):
                             msg = msg[:-1]
                         changelog_file.write(
-                            (u"* %(msg)s\n" % dict(msg=msg)))
+                            ("* %(msg)s\n" % dict(msg=msg)))
                     first_line = False
 
 
