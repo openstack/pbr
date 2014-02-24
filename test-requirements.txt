@@ -1,11 +1,11 @@
 coverage>=3.6
 discover
-fixtures>=0.3.12
+fixtures>=0.3.14
 flake8==2.0
 mock>=1.0
-python-subunit
+python-subunit>=0.0.18
 sphinx>=1.1.2,<1.2
-testrepository>=0.0.17
-testresources<0.3
-testscenarios>=0.4,<0.5
-testtools>=0.9.32
+testrepository>=0.0.18
+testresources>=0.2.4
+testscenarios>=0.4
+testtools>=0.9.34
