@@ -77,18 +77,6 @@ def append_text_list(config, key, text_list):
     config[key] = '\n'.join(new_value)
 
 
-def _parse_mailmap(mailmap_info):
-    mapping = dict()
-    for l in mailmap_info:
-        try:
-            canonical_email, alias = re.match(
-                r'[^#]*?(<.+>).*(<.+>).*', l).groups()
-        except AttributeError:
-            continue
-        mapping[alias] = canonical_email
-    return mapping
-
-
 def _pip_install(links, requires, root=None, option_dict=dict()):
     if get_boolean_option(
             option_dict, 'skip_pip_install', 'SKIP_PIP_INSTALL'):
