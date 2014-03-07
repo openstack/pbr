@@ -694,6 +694,7 @@ try:
             if self.today:
                 confoverrides['today'] = self.today
             sphinx_config = config.Config(self.config_dir, 'conf.py', {}, [])
+            sphinx_config.init_values()
             if self.builder == 'man' and len(sphinx_config.man_pages) == 0:
                 return
             app = application.Sphinx(
