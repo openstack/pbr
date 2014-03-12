@@ -40,7 +40,8 @@ class VersionInfo(object):
 
     def __repr__(self):
         """Include the name."""
-        return "VersionInfo(%s:%s)" % (self.package, self.version_string())
+        return "pbr.version.VersionInfo(%s:%s)" % (
+            self.package, self.version_string())
 
     def _get_version_from_pkg_resources(self):
         """Obtain a version from pkg_resources or setup-time logic if missing.
