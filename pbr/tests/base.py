@@ -92,6 +92,10 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
         self.log_fixture = self.useFixture(
             fixtures.FakeLogger('pbr'))
 
+        # Older git does not have config --local, so create a temporary home
+        # directory to permit using git config --global without stepping on
+        # developer configuration.
+        self.useFixture(fixtures.TempHomeDir())
         self.useFixture(fixtures.NestedTempfile())
         self.useFixture(fixtures.FakeLogger())
         self.useFixture(fixtures.EnvironmentVariable('PBR_VERSION', '0.0'))
