@@ -106,6 +106,8 @@ sudo chown root:root /etc/apache2/sites-available/pypi
 sudo a2ensite pypi
 sudo service apache2 reload
 
+#BRANCH
+BRANCH=${OVERRIDE_ZUUL_BRANCH=:-master}
 # PROJECTS is a list of projects that we're testing
 PROJECTS=$*
 
@@ -117,7 +119,7 @@ cd $pbrsdistdir
 # --no-update is passed as well. The one thing the -b
 # does give us is it makes run-mirror install dependencies
 # once instead of over and over for all branches it can find.
-$pypimirrorvenv/bin/run-mirror -b remotes/origin/master --no-update --verbose -c $tmpdir/mirror.yaml --no-process --export=$HOME/mirror_package_list.txt
+$pypimirrorvenv/bin/run-mirror -b remotes/origin/$BRANCH --no-update --verbose -c $tmpdir/mirror.yaml --no-process --export=$HOME/mirror_package_list.txt
 # Compare packages in the mirror with the list of requirements
 gen_bare_package_list "$REPODIR/requirements/global-requirements.txt $REPODIR/requirements/dev-requirements.txt" > bare_all_requirements.txt
 gen_bare_package_list $HOME/mirror_package_list.txt > bare_mirror_package_list.txt
@@ -130,7 +132,7 @@ $pypimirrorvenv/bin/pip install -i http://pypi.python.org/simple -d $tmpdownload
 $pypimirrorvenv/bin/pip install -i http://pypi.python.org/simple -d $tmpdownload/pip/openstack -r requirements.txt
 $pypimirrorvenv/bin/python setup.py sdist -d $tmpdownload/pip/openstack
 
-$pypimirrorvenv/bin/run-mirror -b remotes/origin/master --no-update --verbose -c $tmpdir/mirror.yaml --no-download
+$pypimirrorvenv/bin/run-mirror -b remotes/origin/$BRANCH --no-update --verbose -c $tmpdir/mirror.yaml --no-download
 
 find $pypidir -type f -name '*.html' -delete
 find $pypidir
