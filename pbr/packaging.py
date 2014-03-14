@@ -44,6 +44,7 @@ from setuptools.command import install_scripts
 from setuptools.command import sdist
 
 from pbr import extra_files
+from pbr import version
 
 TRUE_VALUES = ('true', '1', 'yes')
 REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
@@ -784,7 +785,7 @@ def _get_revno(git_dir):
     """
     describe = _run_git_command(['describe', '--always'], git_dir)
     if "-" in describe:
-        return describe.rsplit("-", 2)[-2]
+        return int(describe.rsplit("-", 2)[-2])
 
     # no tags found
     revlist = _run_git_command(
@@ -792,12 +793,31 @@ def _get_revno(git_dir):
     return len(revlist.splitlines())
 
 
-def _get_version_from_git(pre_version):
-    """Return a version which is equal to the tag that's on the current
-    revision if there is one, or tag plus number of additional revisions
-    if the current revision has no tag.
-    """
+def _get_version_from_git_target(semver, git_dir):
+    """Calculate a version from a target version in git_dir.
 
+    :param semver: The version we will release next.
+    :param git_dir: The git directory we're working from.
+    :return: A version string like 1.2.3.dev1.g123124
+    """
+    # Drop any RC etc versions.
+    sha = _run_git_command(
+        ['log', '-n1', '--pretty=format:%h'], git_dir)
+    return semver.to_dev(_get_revno(git_dir), sha)
+
+
+def _get_version_from_git(pre_version=None):
+    """Calculate a version string from git.
+
+    If the revision is tagged, return that. Otherwise calculate a semantic
+    version description of the tree.
+
+    The number of revisions since the last tag is included in the dev counter
+    in the version for untagged versions.
+
+    :param pre_version: If supplied use this as the target version rather than
+        inferring one from the last tag + commit messages.
+    """
     git_dir = _get_git_directory()
     if git_dir and _git_is_installed():
         if pre_version:
@@ -806,16 +826,24 @@ def _get_version_from_git(pre_version):
                     ['describe', '--exact-match'], git_dir,
                     throw_on_error=True).replace('-', '.')
             except Exception:
-                sha = _run_git_command(
-                    ['log', '-n1', '--pretty=format:%h'], git_dir)
-                return "%s.dev%s.g%s" % (pre_version, _get_revno(git_dir), sha)
+                # not released yet - use pre_version as the target
+                semver = version.SemanticVersion.from_pip_string(pre_version)
+                return _get_version_from_git_target(
+                    semver, git_dir).release_string()
         else:
-            description = _run_git_command(
-                ['describe', '--always'], git_dir).replace('-', '.')
-            if '.' not in description:
-                # Untagged tree.
-                description = '0.g%s' % description
-            return description
+            try:
+                return _run_git_command(
+                    ['describe', '--exact-match'], git_dir,
+                    throw_on_error=True).replace('-', '.')
+            except Exception:
+                last_version = _run_git_command(
+                    ['describe', '--abbrev=0'], git_dir)
+                if not last_version:
+                    # Untagged tree.
+                    last_version = '0'
+                semver = version.SemanticVersion.from_pip_string(last_version)
+                return _get_version_from_git_target(
+                    semver.increment(), git_dir).release_string()
     # If we don't know the version, return an empty string so at least
     # the downstream users of the value always have the same type of
     # object to work with.
@@ -852,6 +880,9 @@ def get_version(package_name, pre_version=None):
     that a source tarball be made from our git repo - or that if someone wants
     to make a source tarball from a fork of our repo with additional tags in it
     that they understand and desire the results of doing that.
+
+    :param pre_version: The version field from setup.cfg - if set then this
+        version will be the next release.
     """
     version = os.environ.get(
         "PBR_VERSION",

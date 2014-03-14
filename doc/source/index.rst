@@ -26,11 +26,17 @@ PBR can and does do a bunch of things for you:
 Version
 -------
 
-Version strings will be inferred from git. If a given revision is tagged,
-that's the version. If it's not, and you don't provide a version, the version
-will be very similar to git describe. If you do, then we'll assume that's the
-version you are working towards, and will generate alpha version strings
-based on commits since last tag and the current git sha.
+Versions can be managed two ways - postversioning and preversioning.
+Postversioning is the default, and preversioning is enabeld by setting
+``version`` in the setup.cfg ``metadata`` section. In both cases
+version strings are inferred from git.
+
+If a given revision is tagged, that's the version. If it's not, then either
+the current version is incremented to get a target version (postversioning) or
+the version set in setup.cfg metadata (preversioning) is used as the target
+version. We then generate dev version strings based on the commits since the
+last release and include the current git sha to disambiguate multiple dev
+versions with the same number of commits since the release.
 
 .. note::
 

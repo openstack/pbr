@@ -44,6 +44,7 @@ import tempfile
 import fixtures
 import mock
 import testscenarios
+from testtools import matchers
 
 from pbr import packaging
 from pbr.tests import base
@@ -67,10 +68,52 @@ class TestRepo(fixtures.Fixture):
         base._run_cmd(
             ['git', 'config', '--global', 'user.email', 'example@example.com'],
             self._basedir)
+        base._run_cmd(
+            ['git', 'config', '--global', 'user.signingkey',
+             'example@example.com'], self._basedir)
         base._run_cmd(['git', 'add', '.'], self._basedir)
 
     def commit(self):
+        files = len(os.listdir(self._basedir))
+        path = self._basedir + '/%d' % files
+        open(path, 'wt').close()
+        base._run_cmd(['git', 'add', path], self._basedir)
         base._run_cmd(['git', 'commit', '-m', 'test commit'], self._basedir)
+
+    def tag(self, version):
+        base._run_cmd(
+            ['git', 'tag', '-sm', 'test tag', version], self._basedir)
+
+
+class GPGKeyFixture(fixtures.Fixture):
+    """Creates a GPG key for testing.
+
+    It's recommended that this be used in concert with a unique home
+    directory.
+    """
+
+    def setUp(self):
+        super(GPGKeyFixture, self).setUp()
+        tempdir = self.useFixture(fixtures.TempDir())
+        config_file = tempdir.path + '/key-config'
+        f = open(config_file, 'wt')
+        try:
+            f.write("""
+            #%no-protection -- these would be ideal but they are documented
+            #%transient-key -- but not implemented in gnupg!
+            %no-ask-passphrase
+            Key-Type: RSA
+            Name-Real: Example Key
+            Name-Comment: N/A
+            Name-Email: example@example.com
+            Expire-Date: 2d
+            Preferences: (setpref)
+            %commit
+            """)
+        finally:
+            f.close()
+        base._run_cmd(
+            ['gpg', '--gen-key', '--batch', config_file], tempdir.path)
 
 
 class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
@@ -171,6 +214,35 @@ class TestNestedRequirements(base.BaseTestCase):
             f.write('pbr')
         result = packaging.parse_requirements([requirements])
         self.assertEqual(result, ['pbr'])
+
+
+class TestVersions(base.BaseTestCase):
+
+    def setUp(self):
+        super(TestVersions, self).setUp()
+        self.repo = self.useFixture(TestRepo(self.package_dir))
+        self.useFixture(GPGKeyFixture())
+        self.useFixture(base.DiveDir(self.package_dir))
+
+    def test_tagged_version_has_tag_version(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3')
+        version = packaging._get_version_from_git('1.2.3')
+        self.assertEqual('1.2.3', version)
+
+    def test_untagged_version_has_dev_version_postversion(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3')
+        self.repo.commit()
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('1.2.4.dev1.g'))
+
+    def test_untagged_version_has_dev_version_preversion(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3')
+        self.repo.commit()
+        version = packaging._get_version_from_git('1.2.5')
+        self.assertThat(version, matchers.StartsWith('1.2.5.dev1.g'))
 
 
 def load_tests(loader, in_tests, pattern):

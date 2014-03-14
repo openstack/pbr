@@ -147,7 +147,8 @@ def _run_cmd(args, cwd):
     :return: ((stdout, stderr), returncode)
     """
     p = subprocess.Popen(
-        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=cwd)
+        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE, cwd=cwd)
     streams = tuple(s.decode('latin1').strip() for s in p.communicate())
     for content in streams:
         print(content)
