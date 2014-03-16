@@ -40,6 +40,7 @@
 
 from distutils import core
 from distutils import errors
+import logging
 import os
 import sys
 import warnings
@@ -103,6 +104,10 @@ def pbr(dist, attr, value):
             attrs = util.cfg_to_args(path)
         except Exception:
             e = sys.exc_info()[1]
+            # NB: This will output to the console if no explicit logging has
+            # been setup - but thats fine, this is a fatal distutils error, so
+            # being pretty isn't the #1 goal.. being diagnosable is.
+            logging.exception('Error parsing')
             raise errors.DistutilsSetupError(
                 'Error parsing %s: %s: %s' % (path, e.__class__.__name__, e))
 
