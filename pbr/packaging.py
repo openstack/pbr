@@ -87,9 +87,11 @@ def _pip_install(links, requires, root=None, option_dict=dict()):
     for link in links:
         cmd.append("-f")
         cmd.append(link)
+
+    # NOTE(ociuhandu): popen on Windows does not accept unicode strings
     _run_shell_command(
         cmd + requires,
-        throw_on_error=True, buffer=False, env=dict(PIP_USE_WHEEL="true"))
+        throw_on_error=True, buffer=False, env=dict(PIP_USE_WHEEL=b"true"))
 
 
 def _any_existing(file_list):
