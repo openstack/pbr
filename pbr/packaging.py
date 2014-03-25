@@ -38,6 +38,7 @@ from setuptools.command import egg_info
 from setuptools.command import install
 from setuptools.command import install_scripts
 from setuptools.command import sdist
+from pip import req
 
 try:
     import cStringIO
@@ -101,8 +102,7 @@ def _any_existing(file_list):
 # Get requirements from the first file that exists
 def get_reqs_from_files(requirements_files):
     for requirements_file in _any_existing(requirements_files):
-        with open(requirements_file, 'r') as fil:
-            return fil.read().split('\n')
+        return list(req.parse_requirements(requirements_file))
     return []
 
 
