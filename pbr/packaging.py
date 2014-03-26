@@ -125,6 +125,13 @@ def parse_requirements(requirements_files=None):
         if (not line.strip()) or line.startswith('#'):
             continue
 
+        # Handle nested requirements files such as:
+        # -r other-requirements.txt
+        if line.startswith('-r'):
+            req_file = line.partition(' ')[2]
+            requirements += parse_requirements([req_file])
+            continue
+
         try:
             project_name = pkg_resources.Requirement.parse(line).project_name
         except ValueError:
