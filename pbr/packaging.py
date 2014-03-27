@@ -282,7 +282,7 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
 
                         underline = len(tag) * '-'
                         if not first_line:
-                            changelog_file.write(u'\n')
+                            changelog_file.write('\n')
                         changelog_file.write(
                             ("%(tag)s\n%(underline)s\n\n" %
                              dict(tag=tag,
