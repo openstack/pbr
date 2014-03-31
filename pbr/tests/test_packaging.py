@@ -39,6 +39,7 @@
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
 
 import os
+import tempfile
 
 import fixtures
 import mock
@@ -145,3 +146,17 @@ class TestPresenceOfGit(base.BaseTestCase):
                                '_run_shell_command') as _command:
             _command.side_effect = OSError
             self.assertEqual(False, packaging._git_is_installed())
+
+
+class TestNestedRequirements(base.BaseTestCase):
+
+    def test_nested_requirement(self):
+        tempdir = tempfile.mkdtemp()
+        requirements = os.path.join(tempdir, 'requirements.txt')
+        nested = os.path.join(tempdir, 'nested.txt')
+        with open(requirements, 'w') as f:
+            f.write('-r ' + nested)
+        with open(nested, 'w') as f:
+            f.write('pbr')
+        result = packaging.parse_requirements([requirements])
+        self.assertEqual(result, ['pbr'])
