@@ -669,9 +669,9 @@ try:
             autoindex_filename = os.path.join(source_dir, 'autoindex.rst')
             with open(autoindex_filename, 'w') as autoindex:
                 autoindex.write(""".. toctree::
-    :maxdepth: 1
+   :maxdepth: 1
 
-    """)
+""")
                 for module in module_list:
                     output_filename = os.path.join(source_dir,
                                                    "%s.rst" % module)
