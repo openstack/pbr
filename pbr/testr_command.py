@@ -54,7 +54,8 @@ class Testr(cmd.Command):
         ('coverage', None, "Replace PYTHON with coverage and merge coverage "
          "from each testr worker."),
         ('testr-args=', 't', "Run 'testr' with these args"),
-        ('omit=', 'o', 'Files to omit from coverage calculations'),
+        ('omit=', 'o', "Files to omit from coverage calculations"),
+        ('coverage-package-name=', None, "Use this name for coverage package"),
         ('slowest', None, "Show slowest test times after tests complete."),
         ('no-parallel', None, "Run testr serially"),
     ]
@@ -70,6 +71,7 @@ class Testr(cmd.Command):
         self.coverage = None
         self.omit = ""
         self.slowest = None
+        self.coverage_package_name = None
         self.no_parallel = None
 
     def finalize_options(self):
@@ -104,7 +106,11 @@ class Testr(cmd.Command):
         package = self.distribution.get_name()
         if package.startswith('python-'):
             package = package[7:]
-        options = "--source %s --parallel-mode" % package
+
+        # Use this as coverage package name
+        if self.coverage_package_name:
+            package = self.coverage_package_name
+        options = "--source %s --parallel-mode" % self.coverage_package_name
         os.environ['PYTHON'] = ("coverage run %s" % options)
 
     def _coverage_after(self):
