@@ -120,7 +120,7 @@ document are to be interpreted as described in `RFC
     version. Examples: 1.0.0.a1, 1.0.0.b99, 1.0.0.rc1000.
 
 #.  A development version MAY be denoted by appending a dot separated
-    indentifier immediately following the patch version.
+    identifier immediately following the patch version.
     The identifier MUST comprise the string dev followed by non-negative
     integer value. The identifier MUST NOT be empty. Development versions
     have a lower precedence than the associated normal version. A development
