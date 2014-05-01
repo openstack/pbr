@@ -57,3 +57,25 @@ source tarball to be skipped. Beware though, that because `pbr` packages
 automatically find all of the files, most of them do not have a complete
 `MANIFEST.in` file, so its possible that a tarball produced in that way will
 be missing files.
+
+AUTHORS and ChangeLog
+=====================
+
+`pbr` generates AUTHORS and ChangeLog files from git information. This
+can cause problem in distro packaging if packager is using git
+repository for packaging source. If that is the case setting
+`SKIP_GENERATE_AUTHORS`
+
+::
+
+   SKIP_GENERATE_AUTHORS=1
+
+will cause logic around generating AUTHORS using git information to be
+skipped. Similarly setting `SKIP_WRITE_GIT_CHANGELOG`
+
+::
+
+   SKIP_WRITE_GIT_CHANGELOG=1
+
+will cause logic around generating ChangeLog file using git
+information to be skipped.

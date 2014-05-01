@@ -32,6 +32,11 @@ will be very similar to git describe. If you do, then we'll assume that's the
 version you are working towards, and will generate alpha version strings
 based on commits since last tag and the current git sha.
 
+.. note::
+
+   Note that `pbr` expects git tags to be signed, for using it to
+   calculate version.
+
 The versions are expected to be compliant with :doc:`semver`.
 
 AUTHORS and ChangeLog
