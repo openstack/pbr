@@ -57,7 +57,7 @@ numbers and the way they change convey meaning about the underlying code
 and what has been modified from one version to the next.
 
 Linux Compatible Semantic Versioning is different from Semantic
-Versioning in that it does not employ the use of the hypen in ways that
+Versioning in that it does not employ the use of the hyphen in ways that
 are ambiguous when used with or adjacent to software packaged with dpkg or
 rpm. Instead, it draws from PEP440's approach of indicating pre-releases
 with leading characters in the version segment.

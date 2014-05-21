@@ -65,10 +65,10 @@ Requirements
 You may not have noticed, but there are differences in how pip
 requirements.txt files work and how distutils wants to be told about
 requirements. The pip way is nicer, because it sure does make it easier to
-popuplate a virtualenv for testing, or to just install everything you need.
+populate a virtualenv for testing, or to just install everything you need.
 Duplicating the information, though, is super lame. So PBR will let you
 keep requirements.txt format files around describing the requirements for
-your project, will parse them and split them up approprirately, and inject
+your project, will parse them and split them up appropriately, and inject
 them into the install_requires and/or tests_require and/or dependency_links
 arguments to setup. Voila!
 
@@ -100,14 +100,14 @@ Usage
 pbr requires a distribution to use distribute.  Your distribution
 must include a distutils2-like setup.cfg file, and a minimal setup.py script.
 
-A simple sample can be found in pbr s own setup.cfg
+A simple sample can be found in pbr's own setup.cfg
 (it uses its own machinery to install itself)::
 
  [metadata]
  name = pbr
  author = OpenStack Foundation
  author-email = openstack-dev@lists.openstack.org
- summary = OpenStack's setup automation in a reuable form
+ summary = OpenStack's setup automation in a reusable form
  description-file = README
  license = Apache-2
  classifier =
