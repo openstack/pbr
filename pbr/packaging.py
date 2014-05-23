@@ -322,7 +322,7 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
             authors = []
 
             # don't include jenkins email address in AUTHORS file
-            git_log_cmd = ['log', '--use-mailmap', '--format=%aN <%aE>']
+            git_log_cmd = ['log', '--format=%aN <%aE>']
             authors += _run_git_command(git_log_cmd, git_dir).split('\n')
             authors = [a for a in authors if not re.search(ignore_emails, a)]
 

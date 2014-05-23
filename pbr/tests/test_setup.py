@@ -151,7 +151,7 @@ class GitLogsTest(base.BaseTestCase):
         co_author_by = u"Co-authored-by: " + co_author
 
         git_log_cmd = (
-            "git --git-dir=%s log --use-mailmap --format=%%aN <%%aE>"
+            "git --git-dir=%s log --format=%%aN <%%aE>"
             % self.git_dir)
         git_co_log_cmd = ("git --git-dir=%s log" % self.git_dir)
         git_top_level = "git rev-parse --show-toplevel"
