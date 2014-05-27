@@ -116,17 +116,20 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
                     k.startswith('pbr_testpackage.')):
                 del sys.modules[k]
 
-    def run_setup(self, *args):
-        return self._run_cmd(sys.executable, ('setup.py',) + args)
+    def run_setup(self, *args, **kwargs):
+        return self._run_cmd(sys.executable, ('setup.py',) + args, **kwargs)
 
-    def _run_cmd(self, cmd, args=[]):
+    def _run_cmd(self, cmd, args=[], allow_fail=True):
         """Run a command in the root of the test working copy.
 
         Runs a command, with the given argument list, in the root of the test
         working copy--returns the stdout and stderr streams and the exit code
         from the subprocess.
         """
-        return _run_cmd([cmd] + list(args), cwd=self.package_dir)
+        result = _run_cmd([cmd] + list(args), cwd=self.package_dir)
+        if result[2] and not allow_fail:
+            raise Exception("Command failed retcode=%s" % result[2])
+        return result
 
 
 def _run_cmd(args, cwd):

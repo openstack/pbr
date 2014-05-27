@@ -78,8 +78,7 @@ class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
         super(TestPackagingInGitRepoWithCommit, self).setUp()
         repo = self.useFixture(TestRepo(self.package_dir))
         repo.commit()
-        self.run_setup('sdist')
-        return
+        self.run_setup('sdist', allow_fail=False)
 
     def test_authors(self):
         # One commit, something should be in the authors list
@@ -99,8 +98,7 @@ class TestPackagingInGitRepoWithoutCommit(base.BaseTestCase):
     def setUp(self):
         super(TestPackagingInGitRepoWithoutCommit, self).setUp()
         self.useFixture(TestRepo(self.package_dir))
-        self.run_setup('sdist')
-        return
+        self.run_setup('sdist', allow_fail=False)
 
     def test_authors(self):
         # No commits, no authors in list
@@ -119,8 +117,7 @@ class TestPackagingInPlainDirectory(base.BaseTestCase):
 
     def setUp(self):
         super(TestPackagingInPlainDirectory, self).setUp()
-        self.run_setup('sdist')
-        return
+        self.run_setup('sdist', allow_fail=False)
 
     def test_authors(self):
         # Not a git repo, no AUTHORS file created
