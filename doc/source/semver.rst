@@ -131,7 +131,7 @@ document are to be interpreted as described in `RFC
     communication of not-yet-released ideas. Example: 1.0.0.dev1.
 
 #.  git version metadata MAY be denoted by appending a dot separated
-    identifier immediately following a development version.
+    identifier immediately following a development or pre-release version.
     The identifier MUST comprise the character g followed by a seven
     character git short-sha. The sha MUST NOT be empty. git version
     metadata MUST be ignored when determining version precedence. Thus
