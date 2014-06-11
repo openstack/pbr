@@ -125,7 +125,7 @@ class Testr(cmd.Command):
         # Use this as coverage package name
         if self.coverage_package_name:
             package = self.coverage_package_name
-        options = "--source %s --parallel-mode" % self.coverage_package_name
+        options = "--source %s --parallel-mode" % package
         os.environ['PYTHON'] = ("coverage run %s" % options)
         logger.debug("os.environ['PYTHON'] = %r", os.environ['PYTHON'])
 
