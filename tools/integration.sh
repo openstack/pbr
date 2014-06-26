@@ -43,7 +43,14 @@ BASE=${BASE:-/opt/stack}
 REPODIR=${REPODIR:-$BASE/new}
 
 # TODO: Figure out how to get this on to the box properly
-sudo apt-get install -y --force-yes libxml2-dev libxslt-dev libmysqlclient-dev libpq-dev libnspr4-dev pkg-config libsqlite3-dev libzmq-dev libffi-dev libldap2-dev libsasl2-dev
+sudo apt-get install -y --force-yes libxml2-dev libxslt-dev libmysqlclient-dev libpq-dev libnspr4-dev pkg-config libsqlite3-dev libzmq-dev libffi-dev libldap2-dev libsasl2-dev ccache
+
+# FOR numpy / pyyaml
+sudo apt-get build-dep -y --force-yes python-numpy
+sudo apt-get build-dep -y --force-yes python-yaml
+
+# And use ccache explitly
+export PATH=/usr/lib/ccache:$PATH
 
 tmpdir=$(mktemp -d)
 
@@ -93,7 +100,7 @@ if [ ! -d /etc/apache2/sites-enabled/ ] ; then
     exit 1
 fi
 
-sudo rm /etc/apache2/sites-enabled/*
+sudo rm -f /etc/apache2/sites-enabled/*
 cat <<EOF > $tmpdir/pypi.conf
 <VirtualHost *:80>
     ServerAdmin webmaster@localhost
@@ -101,8 +108,21 @@ cat <<EOF > $tmpdir/pypi.conf
     Options Indexes FollowSymLinks
 </VirtualHost>
 EOF
-sudo mv $tmpdir/pypi.conf /etc/apache2/sites-available/pypi
-sudo chown root:root /etc/apache2/sites-available/pypi
+
+# NOTE(dhellmann): This logic is copied from apache_site_config_for
+# devstack/lib/apache with non-Ubuntu OSes left out because we don't
+# run this integration test anywhere else for now.
+apache_version=$(/usr/sbin/apache2ctl -v | awk '/Server version/ {print $3}' | cut -f2 -d/)
+if [[ "$apache_version" =~ ^2\.2\. ]]
+then
+    # Ubuntu 12.04 - Apache 2.2
+    apache_conf=/etc/apache2/sites-available/pypi
+else
+    # Ubuntu 14.04 - Apache 2.4
+    apache_conf=/etc/apache2/sites-available/pypi.conf
+fi
+sudo mv $tmpdir/pypi.conf $apache_conf
+sudo chown root:root $apache_conf
 sudo a2ensite pypi
 sudo service apache2 reload
 
