@@ -24,6 +24,20 @@ about whether its in its own git repo or not, you can set `PBR_VERSION`:
 and all version calculation logic will be completely skipped and the supplied
 version will be considered absolute.
 
+Distribution version numbers
+============================
+
+`pbr` will automatically calculate upstream version numbers for dpkg and rpm
+using systems. Releases are easy (and obvious). When packaging preleases though
+things get more complex. Firstly, semver does not provide for any sort order
+between pre-releases and development snapshots, so it can be complex (perhaps
+intractable) to package both into one repository - we recommend with either
+packaging pre-release releases (alpha/beta/rc's) or dev snapshots but not both.
+Secondly, as pre-releases and snapshots have the same major/minor/patch version
+as the version they lead up to, but have to sort before it, we cannot map their
+version naturally into the rpm version namespace: instead we represent their
+versions as versions of the release before.
+
 Dependencies
 ============
 

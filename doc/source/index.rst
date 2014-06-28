@@ -39,6 +39,11 @@ based on commits since last tag and the current git sha.
 
 The versions are expected to be compliant with :doc:`semver`.
 
+The ``version.SemanticVersion`` class can be used to query versions of a
+package and present it in various forms - ``debian_version()``,
+``release_string()``, ``rpm_string()``, ``version_string()``, or
+``version_tuple()``.
+
 AUTHORS and ChangeLog
 ---------------------
 
