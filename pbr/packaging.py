@@ -807,7 +807,7 @@ def _get_version_from_git(pre_version):
     """
 
     git_dir = _get_git_directory()
-    if git_dir:
+    if git_dir and _git_is_installed():
         if pre_version:
             try:
                 return _run_git_command(
