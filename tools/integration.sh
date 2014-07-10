@@ -8,34 +8,6 @@ function mkvenv {
     $venv/bin/pip install -U pip wheel
 }
 
-# This function takes a list of files that contains
-# a list of python packages (in pip freeze format) and
-# strips the version info from each entry.
-# $1 - The files containing python packages (with version).
-function gen_bare_package_list () {
-    set +x
-    IN_FILES=$1
-    for FILE in $IN_FILES
-    do
-        while read line; do
-              if [[ "$line" == "" ]] || [[ "$line" == \#* ]] || [[ "$line" == \-f* ]]; then
-                  continue
-              elif [[ "$line" == \-e* ]]; then
-                  echo "${line#*=}"
-              elif [[ "$line" == *\>* ]]; then
-                  echo "${line%%>*}"
-              elif [[ "$line" == *\=* ]]; then
-                  echo "${line%%=*}"
-              elif [[ "$line" == *\<* ]]; then
-                  echo "${line%%<*}"
-              else
-                  echo "${line%%#*}"
-              fi
-        done < $FILE
-    done
-    set -x
-}
-
 # BASE should be a directory with a subdir called "new" and in that
 #      dir, there should be a git repository for every entry in PROJECTS
 BASE=${BASE:-/opt/stack}
@@ -54,78 +26,6 @@ export PATH=/usr/lib/ccache:$PATH
 
 tmpdir=$(mktemp -d)
 
-whoami=$(whoami)
-tmpdownload=$tmpdir/download
-mkdir -p $tmpdownload
-
-pypidir=/var/www/pypi
-sudo mkdir -p $pypidir
-sudo chown $USER $pypidir
-
-pypimirrorvenv=$tmpdir/pypi-mirror
-
-sudo touch $HOME/pip.log
-sudo chown $USER $HOME/pip.log
-
-rm -f ~/.pip/pip.conf ~/.pydistutils.cfg
-mkdir -p ~/.pip
-cat <<EOF > ~/.pip/pip.conf
-[global]
-log = $HOME/pip.log
-EOF
-
-pypimirrorsourcedir=$tmpdir/pypimirrorsourcedir
-git clone $REPODIR/pypi-mirror $pypimirrorsourcedir
-
-mkvenv $pypimirrorvenv
-$pypimirrorvenv/bin/pip install -e $pypimirrorsourcedir
-
-cat <<EOF > $tmpdir/mirror.yaml
-cache-root: $tmpdownload
-
-mirrors:
-  - name: openstack
-    projects:
-      - file://$REPODIR/requirements
-    output: $pypidir
-EOF
-
-# wheel mirrors are below a dir level containing distro and release
-# because the wheel format itself does not distinguish
-distro=`lsb_release -i -r -s | xargs | tr ' ' '-'`
-
-# set up local apache to serve the mirror we're about to create
-if [ ! -d /etc/apache2/sites-enabled/ ] ; then
-    echo "Apache does not seem to be installed!!!"
-    exit 1
-fi
-
-sudo rm -f /etc/apache2/sites-enabled/*
-cat <<EOF > $tmpdir/pypi.conf
-<VirtualHost *:80>
-    ServerAdmin webmaster@localhost
-    DocumentRoot /var/www
-    Options Indexes FollowSymLinks
-</VirtualHost>
-EOF
-
-# NOTE(dhellmann): This logic is copied from apache_site_config_for
-# devstack/lib/apache with non-Ubuntu OSes left out because we don't
-# run this integration test anywhere else for now.
-apache_version=$(/usr/sbin/apache2ctl -v | awk '/Server version/ {print $3}' | cut -f2 -d/)
-if [[ "$apache_version" =~ ^2\.2\. ]]
-then
-    # Ubuntu 12.04 - Apache 2.2
-    apache_conf=/etc/apache2/sites-available/pypi
-else
-    # Ubuntu 14.04 - Apache 2.4
-    apache_conf=/etc/apache2/sites-available/pypi.conf
-fi
-sudo mv $tmpdir/pypi.conf $apache_conf
-sudo chown root:root $apache_conf
-sudo a2ensite pypi
-sudo service apache2 reload
-
 #BRANCH
 BRANCH=${OVERRIDE_ZUUL_BRANCH=:-master}
 # PROJECTS is a list of projects that we're testing
@@ -134,46 +34,6 @@ PROJECTS=$*
 pbrsdistdir=$tmpdir/pbrsdist
 git clone $REPODIR/pbr $pbrsdistdir
 cd $pbrsdistdir
-
-# Note the -b argument here is essentially a noop as
-# --no-update is passed as well. The one thing the -b
-# does give us is it makes run-mirror install dependencies
-# once instead of over and over for all branches it can find.
-$pypimirrorvenv/bin/run-mirror -b remotes/origin/$BRANCH --no-update --verbose -c $tmpdir/mirror.yaml --no-process --export=$HOME/mirror_package_list.txt
-# Compare packages in the mirror with the list of requirements
-gen_bare_package_list "$REPODIR/requirements/global-requirements.txt $REPODIR/requirements/dev-requirements.txt" > bare_all_requirements.txt
-gen_bare_package_list $HOME/mirror_package_list.txt > bare_mirror_package_list.txt
-echo "Diff between python mirror packages and requirements packages:"
-grep -v -f bare_all_requirements.txt bare_mirror_package_list.txt > diff_requirements_mirror.txt
-cat diff_requirements_mirror.txt
-
-$pypimirrorvenv/bin/pip install -i http://pypi.python.org/simple -d $tmpdownload/pip/openstack 'pip==1.0' 'setuptools>=0.7' 'd2to1'
-
-$pypimirrorvenv/bin/pip install -i http://pypi.python.org/simple -d $tmpdownload/pip/openstack -r requirements.txt
-$pypimirrorvenv/bin/python setup.py sdist -d $tmpdownload/pip/openstack
-
-$pypimirrorvenv/bin/run-mirror -b remotes/origin/$BRANCH --no-update --verbose -c $tmpdir/mirror.yaml --no-download
-
-find $pypidir -type f -name '*.html' -delete
-find $pypidir
-
-
-# Make pypi thing
-pypiurl=http://localhost/pypi
-export no_proxy=$no_proxy${no_proxy:+,}localhost
-
-cat <<EOF > ~/.pydistutils.cfg
-[easy_install]
-index_url = $pypiurl
-EOF
-
-cat <<EOF > ~/.pip/pip.conf
-[global]
-index-url = $pypiurl
-extra-index-url = $pypiurl/$distro
-extra-index-url = http://pypi.openstack.org/openstack
-log = $HOME/pip.log
-EOF
 
 eptest=$tmpdir/eptest
 mkdir $eptest
