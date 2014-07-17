@@ -606,6 +606,12 @@ class LocalEggInfo(egg_info.egg_info):
     """Override the egg_info command to regenerate SOURCES.txt sensibly."""
 
     command_name = 'egg_info'
+    
+    def finalize_options(self):
+        """Override the egg_info finalize command to populate the actual version number
+        in the event that we are also release tagging so we pickup the next release version"""
+        self.distribution.metadata.version = get_version(self.distribution.get_name())
+        egg_info.egg_info.finalize_options(self)
 
     def find_sources(self):
         """Generate SOURCES.txt only if there isn't one already.
