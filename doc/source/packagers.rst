@@ -24,6 +24,19 @@ about whether its in its own git repo or not, you can set `PBR_VERSION`:
 and all version calculation logic will be completely skipped and the supplied
 version will be considered absolute.
 
+Automatic Versioning
+====================
+
+There is a setup.py command that can be used to automatically add a git tag
+for the next release version.  It has flags for the 3 types --major --minor --patch
+--patch is the default option if no other option is specified
+
+::
+
+  python setup.py tag --minor
+  or
+  python setup.py tag register sdist bdist upload
+
 Dependencies
 ============
 
