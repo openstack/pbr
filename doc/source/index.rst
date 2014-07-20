@@ -31,12 +31,22 @@ Postversioning is the default, and preversioning is enabeld by setting
 ``version`` in the setup.cfg ``metadata`` section. In both cases
 version strings are inferred from git.
 
-If a given revision is tagged, that's the version. If it's not, then either
-the current version is incremented to get a target version (postversioning) or
-the version set in setup.cfg metadata (preversioning) is used as the target
-version. We then generate dev version strings based on the commits since the
-last release and include the current git sha to disambiguate multiple dev
-versions with the same number of commits since the release.
+If a given revision is tagged, that's the version.
+
+If it's not, then we take the last tagged version number and increment it to
+get a minimum target version.
+
+If postversioning is in use, we use the resulting version number as the target
+version.
+
+If preversioning is in use - that is if there is a version set in setup.cfg
+metadata - then we check that that version is higher than the target version
+we inferred above. If it is not, we raise an error, otherwise we use the
+version from setup.cfg as the target.
+
+We then generate dev version strings based on the commits since the last
+release and include the current git sha to disambiguate multiple dev versions
+with the same number of commits since the release.
 
 .. note::
 

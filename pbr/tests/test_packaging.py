@@ -244,6 +244,18 @@ class TestVersions(base.BaseTestCase):
         version = packaging._get_version_from_git('1.2.5')
         self.assertThat(version, matchers.StartsWith('1.2.5.dev1.g'))
 
+    def test_preversion_too_low(self):
+        # That is, the target version is either already released or not high
+        # enough for the semver requirements given api breaks etc.
+        self.repo.commit()
+        self.repo.tag('1.2.3')
+        self.repo.commit()
+        # Note that we can't target 1.2.3 anymore - with 1.2.3 released we
+        # need to be working on 1.2.4.
+        err = self.assertRaises(
+            ValueError, packaging._get_version_from_git, '1.2.3')
+        self.assertThat(err.args[0], matchers.StartsWith('git history'))
+
 
 def load_tests(loader, in_tests, pattern):
     return testscenarios.load_tests_apply_scenarios(loader, in_tests, pattern)
