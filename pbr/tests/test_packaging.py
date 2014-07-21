@@ -73,12 +73,15 @@ class TestRepo(fixtures.Fixture):
              'example@example.com'], self._basedir)
         base._run_cmd(['git', 'add', '.'], self._basedir)
 
-    def commit(self):
+    def commit(self, message_content='test commit'):
         files = len(os.listdir(self._basedir))
         path = self._basedir + '/%d' % files
         open(path, 'wt').close()
         base._run_cmd(['git', 'add', path], self._basedir)
-        base._run_cmd(['git', 'commit', '-m', 'test commit'], self._basedir)
+        base._run_cmd(['git', 'commit', '-m', message_content], self._basedir)
+
+    def uncommit(self):
+        base._run_cmd(['git', 'reset', '--hard', 'HEAD^'], self._basedir)
 
     def tag(self, version):
         base._run_cmd(
@@ -237,6 +240,20 @@ class TestVersions(base.BaseTestCase):
         version = packaging._get_version_from_git()
         self.assertThat(version, matchers.StartsWith('1.2.4.dev1.g'))
 
+    def test_untagged_version_minor_bump(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3')
+        self.repo.commit('sem-ver: deprecation')
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('1.3.0.dev1.g'))
+
+    def test_untagged_version_major_bump(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3')
+        self.repo.commit('sem-ver: api-break')
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('2.0.0.dev1.g'))
+
     def test_untagged_version_has_dev_version_preversion(self):
         self.repo.commit()
         self.repo.tag('1.2.3')
@@ -244,7 +261,7 @@ class TestVersions(base.BaseTestCase):
         version = packaging._get_version_from_git('1.2.5')
         self.assertThat(version, matchers.StartsWith('1.2.5.dev1.g'))
 
-    def test_preversion_too_low(self):
+    def test_preversion_too_low_simple(self):
         # That is, the target version is either already released or not high
         # enough for the semver requirements given api breaks etc.
         self.repo.commit()
@@ -255,6 +272,42 @@ class TestVersions(base.BaseTestCase):
         err = self.assertRaises(
             ValueError, packaging._get_version_from_git, '1.2.3')
         self.assertThat(err.args[0], matchers.StartsWith('git history'))
+
+    def test_preversion_too_low_semver_headers(self):
+        # That is, the target version is either already released or not high
+        # enough for the semver requirements given api breaks etc.
+        self.repo.commit()
+        self.repo.tag('1.2.3')
+        self.repo.commit('sem-ver: feature')
+        # Note that we can't target 1.2.4, the feature header means we need
+        # to be working on 1.3.0 or above.
+        err = self.assertRaises(
+            ValueError, packaging._get_version_from_git, '1.2.4')
+        self.assertThat(err.args[0], matchers.StartsWith('git history'))
+
+    def test_get_kwargs_corner_cases(self):
+        # No tags:
+        git_dir = self.repo._basedir + '/.git'
+        get_kwargs = lambda tag: packaging._get_increment_kwargs(git_dir, tag)
+
+        def _check_combinations(tag):
+            self.repo.commit()
+            self.assertEqual(dict(), get_kwargs(tag))
+            self.repo.commit('sem-ver: bugfix')
+            self.assertEqual(dict(), get_kwargs(tag))
+            self.repo.commit('sem-ver: feature')
+            self.assertEqual(dict(minor=True), get_kwargs(tag))
+            self.repo.uncommit()
+            self.repo.commit('sem-ver: deprecation')
+            self.assertEqual(dict(minor=True), get_kwargs(tag))
+            self.repo.uncommit()
+            self.repo.commit('sem-ver: api-break')
+            self.assertEqual(dict(major=True), get_kwargs(tag))
+            self.repo.commit('sem-ver: deprecation')
+            self.assertEqual(dict(major=True, minor=True), get_kwargs(tag))
+        _check_combinations('')
+        self.repo.tag('1.2.3')
+        _check_combinations('1.2.3')
 
 
 def load_tests(loader, in_tests, pattern):

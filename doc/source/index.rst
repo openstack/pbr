@@ -36,6 +36,16 @@ If a given revision is tagged, that's the version.
 If it's not, then we take the last tagged version number and increment it to
 get a minimum target version.
 
+We then walk git history back to the last release. Within each commit we look
+for a sem-ver: pseudo header, and if found parse it looking for keywords.
+Unknown symbols are not an error (so that folk can't wedge pbr or break their
+tree), but we will emit an info level warning message.  Known symbols:
+``feature``, ``api-break``, ``deprecation``, ``bugfix``. A missing
+sem-ver line is equivalent to ``sem-ver: bugfix``. The ``bugfix`` symbol causes
+a patch level increment to the version. The ``feature`` and ``deprecation``
+symbols cause a minor version increment. The ``api-break`` symbol causes a
+major version increment.
+
 If postversioning is in use, we use the resulting version number as the target
 version.
 
