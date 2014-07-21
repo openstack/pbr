@@ -241,62 +241,108 @@ def get_boolean_option(option_dict, option_name, env_name):
             str(os.getenv(env_name)).lower() in TRUE_VALUES)
 
 
-def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
-                        option_dict=dict()):
-    """Write a changelog based on the git changelog."""
+def _iter_changelog(changelog):
+    """Convert a oneline log iterator to formatted strings.
+
+    :param changelog: An iterator of one line log entries like
+        that given by _iter_log_oneline.
+    :return: An iterator over (release, formatted changelog) tuples.
+    """
+    first_line = True
+    current_release = None
+    yield current_release, "CHANGES\n=======\n\n"
+    for hash, tags, msg in changelog:
+        if tags:
+            current_release = _get_highest_tag(tags)
+            underline = len(current_release) * '-'
+            if not first_line:
+                yield current_release, '\n'
+            yield current_release, (
+                "%(tag)s\n%(underline)s\n\n" %
+                dict(tag=current_release, underline=underline))
+
+        if not msg.startswith("Merge "):
+            if msg.endswith("."):
+                msg = msg[:-1]
+            yield current_release, "* %(msg)s\n" % dict(msg=msg)
+        first_line = False
+
+
+def _iter_log_oneline(git_dir=None, option_dict=None):
+    """Iterate over --oneline log entries if possible.
+
+    This parses the output into a structured form but does not apply
+    presentation logic to the output - making it suitable for different
+    uses.
+
+    :return: An iterator of (hash, tags_set, 1st_line) tuples, or None if
+        changelog generation is disabled / not available.
+    """
+    if not option_dict:
+        option_dict = {}
     should_skip = get_boolean_option(option_dict, 'skip_changelog',
                                      'SKIP_WRITE_GIT_CHANGELOG')
     if should_skip:
         return
+    if git_dir is None:
+        git_dir = _get_git_directory()
+    if not git_dir:
+        return
+    return _iter_log_inner(git_dir)
+
+
+def _iter_log_inner(git_dir):
+    """Iterate over --oneline log entries.
+
+    This parses the output intro a structured form but does not apply
+    presentation logic to the output - making it suitable for different
+    uses.
+
+    :return: An iterator of (hash, tags_set, 1st_line) tuples.
+    """
+    log.info('[pbr] Generating ChangeLog')
+    log_cmd = ['log', '--oneline', '--decorate']
+    changelog = _run_git_command(log_cmd, git_dir)
+    for line in changelog.split('\n'):
+        line_parts = line.split()
+        if len(line_parts) < 2:
+            continue
+        # Tags are in a list contained in ()'s. If a commit
+        # subject that is tagged happens to have ()'s in it
+        # this will fail
+        if line_parts[1].startswith('(') and ')' in line:
+            msg = line.split(')')[1].strip()
+        else:
+            msg = " ".join(line_parts[1:])
+
+        if "tag:" in line:
+            tags = set([
+                tag.split(",")[0]
+                for tag in line.split(")")[0].split("tag: ")[1:]])
+        else:
+            tags = set()
+
+        yield line_parts[0], tags, msg
+
+
+def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
+                        option_dict=dict(), changelog=None):
+    """Write a changelog based on the git changelog."""
+    if not changelog:
+        changelog = _iter_log_oneline(git_dir=git_dir, option_dict=option_dict)
+        if changelog:
+            changelog = _iter_changelog(changelog)
+    if not changelog:
+        return
+    log.info('[pbr] Writing ChangeLog')
     new_changelog = os.path.join(dest_dir, 'ChangeLog')
     # If there's already a ChangeLog and it's not writable, just use it
     if (os.path.exists(new_changelog)
             and not os.access(new_changelog, os.W_OK)):
         return
-    log.info('[pbr] Writing ChangeLog')
-    if git_dir is None:
-        git_dir = _get_git_directory()
-    if not git_dir:
-        return
-
-    log_cmd = ['log', '--oneline', '--decorate']
-    changelog = _run_git_command(log_cmd, git_dir)
-    first_line = True
-    with io.open(new_changelog, "w",
-                 encoding="utf-8") as changelog_file:
-        changelog_file.write("CHANGES\n=======\n\n")
-        for line in changelog.split('\n'):
-            line_parts = line.split()
-            if len(line_parts) < 2:
-                continue
-            # Tags are in a list contained in ()'s. If a commit
-            # subject that is tagged happens to have ()'s in it
-            # this will fail
-            if line_parts[1].startswith('(') and ')' in line:
-                msg = line.split(')')[1].strip()
-            else:
-                msg = " ".join(line_parts[1:])
-
-            if "tag:" in line:
-                tags = [
-                    tag.split(",")[0]
-                    for tag in line.split(")")[0].split("tag: ")[1:]]
-                tag = _get_highest_tag(tags)
-
-                underline = len(tag) * '-'
-                if not first_line:
-                    changelog_file.write('\n')
-                changelog_file.write(
-                    ("%(tag)s\n%(underline)s\n\n" %
-                     dict(tag=tag,
-                          underline=underline)))
-
-            if not msg.startswith("Merge "):
-                if msg.endswith("."):
-                    msg = msg[:-1]
-                changelog_file.write(
-                    ("* %(msg)s\n" % dict(msg=msg)))
-            first_line = False
+    with io.open(new_changelog, "w", encoding="utf-8") as changelog_file:
+        for release, content in changelog:
+            changelog_file.write(content)
 
 
 def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
@@ -626,7 +672,10 @@ class LocalSDist(sdist.sdist):
 
     def run(self):
         option_dict = self.distribution.get_option_dict('pbr')
-        write_git_changelog(option_dict=option_dict)
+        changelog = _iter_log_oneline(option_dict=option_dict)
+        if changelog:
+            changelog = _iter_changelog(changelog)
+        write_git_changelog(option_dict=option_dict, changelog=changelog)
         generate_authors(option_dict=option_dict)
         # sdist.sdist is an old style class, can't use super()
         sdist.sdist.run(self)
