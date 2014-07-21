@@ -304,20 +304,6 @@ class ParseRequirementsTest(base.BaseTestCase):
             fh.write("-f foobar")
         self.assertEqual([], packaging.parse_requirements([self.tmp_file]))
 
-    def test_parse_requirements_removes_versioned_ordereddict(self):
-        self.useFixture(fixtures.MonkeyPatch('sys.version_info', (2, 7)))
-        with open(self.tmp_file, 'w') as fh:
-            fh.write("ordereddict==1.0.1")
-        self.assertEqual([], packaging.parse_requirements([self.tmp_file]))
-
-    def test_parse_requirements_keeps_versioned_ordereddict(self):
-        self.useFixture(fixtures.MonkeyPatch('sys.version_info', (2, 6)))
-        with open(self.tmp_file, 'w') as fh:
-            fh.write("ordereddict==1.0.1")
-        self.assertEqual([
-            "ordereddict==1.0.1"],
-            packaging.parse_requirements([self.tmp_file]))
-
     def test_parse_requirements_override_with_env(self):
         with open(self.tmp_file, 'w') as fh:
             fh.write("foo\nbar")

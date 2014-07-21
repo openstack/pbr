@@ -49,9 +49,6 @@ from pbr import extra_files
 TRUE_VALUES = ('true', '1', 'yes')
 REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
 TEST_REQUIREMENTS_FILES = ('test-requirements.txt', 'tools/test-requires')
-# part of the standard library starting with 2.7
-# adding it to the requirements list screws distro installs
-BROKEN_ON_27 = ('importlib', 'ordereddict')
 
 
 def get_requirements_files():
@@ -153,10 +150,6 @@ def parse_requirements(requirements_files=None):
         elif re.match(r'\s*-f\s+', line):
             line = None
             reason = 'Index Location'
-        elif (project_name and
-                project_name in BROKEN_ON_27 and sys.version_info >= (2, 7)):
-            line = None
-            reason = 'Python 2.6 only dependency'
 
         if line is not None:
             requirements.append(line)
