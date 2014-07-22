@@ -96,7 +96,7 @@ class Testr(cmd.Command):
         logger.debug("finalize_options: self.__dict__ = %r", self.__dict__)
 
     def run(self):
-        """Set up testr repo, then run testr"""
+        """Set up testr repo, then run testr."""
         logger.debug("run called")
         if not os.path.isdir(".testrepository"):
             self._run_testr("init")

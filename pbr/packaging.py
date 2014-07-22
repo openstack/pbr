@@ -22,27 +22,26 @@ Utilities with minimum-depends for use in setup.py
 
 from __future__ import unicode_literals
 
+from distutils.command import install as du_install
+import distutils.errors
+from distutils import log
 import email
 import io
 import os
 import re
 import subprocess
 import sys
+try:
+    import cStringIO
+except ImportError:
+    import io as cStringIO
 
-from distutils.command import install as du_install
-import distutils.errors
-from distutils import log
 import pkg_resources
 from setuptools.command import easy_install
 from setuptools.command import egg_info
 from setuptools.command import install
 from setuptools.command import install_scripts
 from setuptools.command import sdist
-
-try:
-    import cStringIO
-except ImportError:
-    import io as cStringIO
 
 from pbr import extra_files
 
@@ -737,7 +736,7 @@ try:
                                             'autodoc_index_modules',
                                             'AUTODOC_INDEX_MODULES')
             if not os.getenv('SPHINX_DEBUG'):
-                #NOTE(afazekas): These options can be used together,
+                # NOTE(afazekas): These options can be used together,
                 # but they do a very similar thing in a difffernet way
                 if tree_index:
                     self._sphinx_tree()
