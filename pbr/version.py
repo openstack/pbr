@@ -140,18 +140,37 @@ class SemanticVersion(object):
 
     @classmethod
     def from_pip_string(klass, version_string):
-        """Create a SemanticVersion from a version string.
+        """Create a SemanticVersion from a pip version string.
 
         This method will parse a version like 1.3.0 into a SemanticVersion.
 
-        For compatibility 1.3.0a1 versions are handled, though SemanticVersion
-        will output them as 1.3.0.0a1 for PEP-440 compatability, and similarly
-        pre-pbr-semver dev versions like 0.10.1.3.g83bef74 will be parsed but
+        This method is responsible for accepting any version string that any
+        older version of pbr ever created.
+
+        Therefore: versions like 1.3.0a1 versions are handled, parsed into a
+        canonical form and then output - resulting in 1.3.0.0a1.
+        Pre pbr-semver dev versions like 0.10.1.3.g83bef74 will be parsed but
         output as 0.10.1.dev3.g83bef74.
+
+        :raises ValueError: Never tagged versions sdisted by old pbr result in
+            just the git hash, e.g. '1234567' which poses a substantial problem
+            since they collide with the semver versions when all the digits are
+            numerals. Such versions will result in a ValueError being thrown if
+            any non-numeric digits are present. They are an exception to the
+            general case of accepting anything we ever output, since they were
+            never intended and would permanently mess up versions on PyPI if
+            ever released - we're treating that as a critical bug that we ever
+            made them and have stopped doing that.
         """
-        components = version_string.split('.')
-        if len(components) < 3:
-            components.extend([0] * (3 - len(components)))
+        input_components = version_string.split('.')
+        # decimals first (keep pre-release and dev/hashes to the right)
+        components = [c for c in input_components if c.isdigit()]
+        digit_len = len(components)
+        if digit_len == 0:
+            raise ValueError("Invalid version %r" % version_string)
+        elif digit_len < 3:
+            components.extend([0] * (3 - digit_len))
+        components.extend(input_components[digit_len:])
         major = int(components[0])
         minor = int(components[1])
         dev_count = None
@@ -191,7 +210,15 @@ class SemanticVersion(object):
                 prerelease_type, prerelease = _parse_type(remainder[0])
                 remainder = remainder[1:]
             if remainder:
-                dev_count = int(remainder[0][3:])
+                component = remainder[0]
+                if component.startswith('dev'):
+                    dev_count = int(component[3:])
+                elif component.startswith('g'):
+                    # git hash - so use a dev_count of 1 as we have to have one
+                    dev_count = 1
+                    githash = component[1:]
+                else:
+                    raise ValueError('Unknown remainder %r' % (remainder,))
         if len(remainder) > 1:
                 githash = remainder[1][1:]
         return SemanticVersion(

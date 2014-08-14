@@ -43,6 +43,7 @@ import tempfile
 
 import fixtures
 import mock
+import testscenarios
 
 from pbr import packaging
 from pbr.tests import base
@@ -74,10 +75,23 @@ class TestRepo(fixtures.Fixture):
 
 class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
 
+    scenarios = [
+        ('preversioned', dict(preversioned=True)),
+        ('postversioned', dict(preversioned=False)),
+    ]
+
     def setUp(self):
         super(TestPackagingInGitRepoWithCommit, self).setUp()
         repo = self.useFixture(TestRepo(self.package_dir))
         repo.commit()
+        if not self.preversioned:
+            self.useFixture(fixtures.EnvironmentVariable('PBR_VERSION'))
+            setup_cfg_path = os.path.join(self.package_dir, 'setup.cfg')
+            with open(setup_cfg_path, 'rt') as cfg:
+                content = cfg.read()
+            content = content.replace(u'version = 0.1.dev', u'')
+            with open(setup_cfg_path, 'wt') as cfg:
+                cfg.write(content)
         self.run_setup('sdist', allow_fail=False)
 
     def test_authors(self):
@@ -157,3 +171,7 @@ class TestNestedRequirements(base.BaseTestCase):
             f.write('pbr')
         result = packaging.parse_requirements([requirements])
         self.assertEqual(result, ['pbr'])
+
+
+def load_tests(loader, in_tests, pattern):
+    return testscenarios.load_tests_apply_scenarios(loader, in_tests, pattern)

@@ -810,8 +810,12 @@ def _get_version_from_git(pre_version):
                     ['log', '-n1', '--pretty=format:%h'], git_dir)
                 return "%s.dev%s.g%s" % (pre_version, _get_revno(git_dir), sha)
         else:
-            return _run_git_command(
+            description = _run_git_command(
                 ['describe', '--always'], git_dir).replace('-', '.')
+            if '.' not in description:
+                # Untagged tree.
+                description = '0.g%s' % description
+            return description
     # If we don't know the version, return an empty string so at least
     # the downstream users of the value always have the same type of
     # object to work with.

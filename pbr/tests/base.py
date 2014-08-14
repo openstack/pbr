@@ -98,6 +98,9 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
         self.useFixture(fixtures.TempHomeDir())
         self.useFixture(fixtures.NestedTempfile())
         self.useFixture(fixtures.FakeLogger())
+        # TODO(lifeless) we should remove PBR_VERSION from the environment.
+        # rather than setting it, because thats not representative - we need to
+        # test non-preversioned codepaths too!
         self.useFixture(fixtures.EnvironmentVariable('PBR_VERSION', '0.0'))
 
         self.temp_dir = self.useFixture(fixtures.TempDir()).path

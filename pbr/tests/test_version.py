@@ -119,11 +119,30 @@ class TestSemanticVersion(base.BaseTestCase):
         parsed = from_pip_string('0.10.1.3.g83bef74')
         self.assertEqual(expected, parsed)
 
+    def test_from_pip_string_legacy_corner_case_dev(self):
+        # If the last tag is missing, or if the last tag has less than 3
+        # components, we need to 0 extend on parsing.
+        expected = version.SemanticVersion(
+            0, 0, 0, dev_count=1, githash='83bef74')
+        parsed = from_pip_string('0.0.g83bef74')
+        self.assertEqual(expected, parsed)
+
+    def test_from_pip_string_legacy_short_dev(self):
+        # If the last tag is missing, or if the last tag has less than 3
+        # components, we need to 0 extend on parsing.
+        expected = version.SemanticVersion(
+            0, 0, 0, dev_count=1, githash='83bef74')
+        parsed = from_pip_string('0.g83bef74')
+        self.assertEqual(expected, parsed)
+
     def test_from_pip_string_dev_missing_patch_version(self):
         expected = version.SemanticVersion(
             2014, 2, dev_count=21, githash='c4c8d0b')
         parsed = from_pip_string('2014.2.dev21.gc4c8d0b')
         self.assertEqual(expected, parsed)
+
+    def test_from_pip_string_pure_git_hash(self):
+        self.assertRaises(ValueError, from_pip_string, '6eed5ae')
 
     def test_final_version(self):
         semver = version.SemanticVersion(1, 2, 3)
