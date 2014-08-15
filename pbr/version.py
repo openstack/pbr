@@ -76,6 +76,9 @@ class SemanticVersion(object):
             return False
         return self.__dict__ == other.__dict__
 
+    def __hash__(self):
+        return sum(map(hash, self.__dict__.values()))
+
     def __lt__(self, other):
         """Compare self and other, another Semantic Version."""
         # NB(lifeless) this could perhaps be rewritten as

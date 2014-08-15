@@ -870,15 +870,18 @@ def _get_revno_and_last_tag(git_dir):
     tags then we fall back to counting commits since the beginning
     of time.
     """
-    describe = _run_git_command(['describe', '--always'], git_dir)
-    if "-" in describe:
-        tag, count, hash = describe.split("-")
-        return tag, int(count)
-
-    # no tags found
-    revlist = _run_git_command(
-        ['rev-list', '--abbrev-commit', 'HEAD'], git_dir)
-    return "", len(revlist.splitlines())
+    changelog = _iter_log_oneline(git_dir=git_dir)
+    row_count = 0
+    for row_count, (ignored, tag_set, ignored) in enumerate(changelog):
+        version_tags = set()
+        for tag in list(tag_set):
+            try:
+                version_tags.add(version.SemanticVersion.from_pip_string(tag))
+            except Exception:
+                pass
+        if version_tags:
+            return max(version_tags).release_string(), row_count
+    return "", row_count
 
 
 def _get_version_from_git_target(git_dir, target_version):
@@ -900,7 +903,11 @@ def _get_version_from_git_target(git_dir, target_version):
         ['log', '-n1', '--pretty=format:%h'], git_dir)
     tag, distance = _get_revno_and_last_tag(git_dir)
     last_semver = version.SemanticVersion.from_pip_string(tag or '0')
-    new_version = last_semver.increment(**_get_increment_kwargs(git_dir, tag))
+    if distance == 0:
+        new_version = last_semver
+    else:
+        new_version = last_semver.increment(
+            **_get_increment_kwargs(git_dir, tag))
     if target_version is not None and new_version > target_version:
         raise ValueError(
             "git history requires a target version of %(new)s, but target "
@@ -927,9 +934,10 @@ def _get_version_from_git(pre_version=None):
     git_dir = _get_git_directory()
     if git_dir and _git_is_installed():
         try:
-            return _run_git_command(
+            tagged = _run_git_command(
                 ['describe', '--exact-match'], git_dir,
                 throw_on_error=True).replace('-', '.')
+            target_version = version.SemanticVersion.from_pip_string(tagged)
         except Exception:
             if pre_version:
                 # not released yet - use pre_version as the target

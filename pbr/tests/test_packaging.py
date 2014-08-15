@@ -130,14 +130,6 @@ class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
         super(TestPackagingInGitRepoWithCommit, self).setUp()
         repo = self.useFixture(TestRepo(self.package_dir))
         repo.commit()
-        if not self.preversioned:
-            self.useFixture(fixtures.EnvironmentVariable('PBR_VERSION'))
-            setup_cfg_path = os.path.join(self.package_dir, 'setup.cfg')
-            with open(setup_cfg_path, 'rt') as cfg:
-                content = cfg.read()
-            content = content.replace(u'version = 0.1.dev', u'')
-            with open(setup_cfg_path, 'wt') as cfg:
-                cfg.write(content)
         self.run_setup('sdist', allow_fail=False)
 
     def test_authors(self):
@@ -220,6 +212,11 @@ class TestNestedRequirements(base.BaseTestCase):
 
 
 class TestVersions(base.BaseTestCase):
+
+    scenarios = [
+        ('preversioned', dict(preversioned=True)),
+        ('postversioned', dict(preversioned=False)),
+    ]
 
     def setUp(self):
         super(TestVersions, self).setUp()
@@ -322,6 +319,42 @@ class TestVersions(base.BaseTestCase):
         _check_combinations('')
         self.repo.tag('1.2.3')
         _check_combinations('1.2.3')
+
+    def test_invalid_tag_ignored(self):
+        # Fix for bug 1356784 - we treated any tag as a version, not just those
+        # that are valid versions.
+        self.repo.commit()
+        self.repo.tag('1')
+        self.repo.commit()
+        # when the tree is tagged and its wrong:
+        self.repo.tag('badver')
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('1.0.1.dev1.g'))
+        # When the tree isn't tagged, we also fall through.
+        self.repo.commit()
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('1.0.1.dev2.g'))
+        # We don't fall through x.y versions
+        self.repo.commit()
+        self.repo.tag('1.2')
+        self.repo.commit()
+        self.repo.tag('badver2')
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('1.2.1.dev1.g'))
+        # Or x.y.z versions
+        self.repo.commit()
+        self.repo.tag('1.2.3')
+        self.repo.commit()
+        self.repo.tag('badver3')
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('1.2.4.dev1.g'))
+        # Or alpha/beta/pre versions
+        self.repo.commit()
+        self.repo.tag('1.2.4.0a1')
+        self.repo.commit()
+        self.repo.tag('badver4')
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('1.2.4.dev1.g'))
 
 
 def load_tests(loader, in_tests, pattern):
