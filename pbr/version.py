@@ -169,6 +169,16 @@ class SemanticVersion(object):
         if digit_len == 0:
             raise ValueError("Invalid version %r" % version_string)
         elif digit_len < 3:
+            if (digit_len < len(input_components) and
+                    input_components[digit_len][0].isdigit()):
+                # Handle X.YaZ - Y is a digit not a leadin to pre-release.
+                mixed_component = input_components[digit_len]
+                last_component = ''.join(itertools.takewhile(
+                    lambda x: x.isdigit(), mixed_component))
+                components.append(last_component)
+                input_components[digit_len:digit_len + 1] = [
+                    last_component, mixed_component[len(last_component):]]
+                digit_len += 1
             components.extend([0] * (3 - digit_len))
         components.extend(input_components[digit_len:])
         major = int(components[0])
@@ -205,7 +215,7 @@ class SemanticVersion(object):
             dev_count = int(remainder[0])
         else:
             if remainder and (remainder[0][0] == '0' or
-                              remainder[0][0] in ('a', 'b', 'rc')):
+                              remainder[0][0] in ('a', 'b', 'r')):
                 # Current RC/beta layout
                 prerelease_type, prerelease = _parse_type(remainder[0])
                 remainder = remainder[1:]
@@ -218,7 +228,9 @@ class SemanticVersion(object):
                     dev_count = 1
                     githash = component[1:]
                 else:
-                    raise ValueError('Unknown remainder %r' % (remainder,))
+                    raise ValueError(
+                        'Unknown remainder %r in %r'
+                        % (remainder, version_string))
         if len(remainder) > 1:
                 githash = remainder[1][1:]
         return SemanticVersion(

@@ -107,6 +107,31 @@ class TestSemanticVersion(base.BaseTestCase):
         parsed = from_pip_string('1.2.0rc1')
         self.assertEqual(expected, parsed)
 
+    def test_from_pip_string_legacy_nonzero_lead_in(self):
+        # reported in bug 1361251
+        expected = version.SemanticVersion(
+            0, 0, 1, prerelease_type='a', prerelease=2)
+        parsed = from_pip_string('0.0.1a2')
+        self.assertEqual(expected, parsed)
+
+    def test_from_pip_string_legacy_short_nonzero_lead_in(self):
+        expected = version.SemanticVersion(
+            0, 1, 0, prerelease_type='a', prerelease=2)
+        parsed = from_pip_string('0.1a2')
+        self.assertEqual(expected, parsed)
+
+    def test_from_pip_string_legacy_no_0_prerelease(self):
+        expected = version.SemanticVersion(
+            2, 1, 0, prerelease_type='rc', prerelease=1)
+        parsed = from_pip_string('2.1.0.rc1')
+        self.assertEqual(expected, parsed)
+
+    def test_from_pip_string_legacy_no_0_prerelease_2(self):
+        expected = version.SemanticVersion(
+            2, 0, 0, prerelease_type='rc', prerelease=1)
+        parsed = from_pip_string('2.0.0.rc1')
+        self.assertEqual(expected, parsed)
+
     def test_from_pip_string_legacy_non_440_beta(self):
         expected = version.SemanticVersion(
             2014, 2, prerelease_type='b', prerelease=2)
@@ -152,6 +177,12 @@ class TestSemanticVersion(base.BaseTestCase):
         self.assertEqual("1.2.3", semver.release_string())
         self.assertEqual("1.2.3", semver.rpm_string())
         self.assertEqual(semver, from_pip_string("1.2.3"))
+
+    def test_parsing_short_forms(self):
+        semver = version.SemanticVersion(1, 0, 0)
+        self.assertEqual(semver, from_pip_string("1"))
+        self.assertEqual(semver, from_pip_string("1.0"))
+        self.assertEqual(semver, from_pip_string("1.0.0"))
 
     def test_dev_version(self):
         semver = version.SemanticVersion(1, 2, 4, dev_count=5, githash='12')
