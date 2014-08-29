@@ -776,8 +776,8 @@ def have_sphinx():
     return _have_sphinx
 
 
-def _get_revno(git_dir):
-    """Return the number of commits since the most recent tag.
+def _get_revno_and_last_tag(git_dir):
+    """Return the commit data about the most recent tag.
 
     We use git-describe to find this out, but if there are no
     tags then we fall back to counting commits since the beginning
@@ -785,25 +785,44 @@ def _get_revno(git_dir):
     """
     describe = _run_git_command(['describe', '--always'], git_dir)
     if "-" in describe:
-        return int(describe.rsplit("-", 2)[-2])
+        tag, count, hash = describe.split("-")
+        return tag, int(count)
 
     # no tags found
     revlist = _run_git_command(
         ['rev-list', '--abbrev-commit', 'HEAD'], git_dir)
-    return len(revlist.splitlines())
+    return "", len(revlist.splitlines())
 
 
-def _get_version_from_git_target(semver, git_dir):
+def _get_version_from_git_target(git_dir, target_version):
     """Calculate a version from a target version in git_dir.
 
-    :param semver: The version we will release next.
+    This is used for untagged versions only. A new version is calculated as
+    necessary based on git metadata - distance to tags, current hash, contents
+    of commit messages.
+
     :param git_dir: The git directory we're working from.
-    :return: A version string like 1.2.3.dev1.g123124
+    :param target_version: If None, the last tagged version (or 0 if there are
+        no tags yet) is incremented as needed to produce an appropriate target
+        version following semver rules. Otherwise target_version is used as a
+        constraint - if semver rules would result in a newer version then an
+        exception is raised.
+    :return: A semver version object.
     """
-    # Drop any RC etc versions.
     sha = _run_git_command(
         ['log', '-n1', '--pretty=format:%h'], git_dir)
-    return semver.to_dev(_get_revno(git_dir), sha)
+    tag, distance = _get_revno_and_last_tag(git_dir)
+    last_semver = version.SemanticVersion.from_pip_string(tag or '0')
+    new_version = last_semver.increment()
+    if target_version is not None and new_version > target_version:
+        raise ValueError(
+            "git history requires a target version of %(new)s, but target "
+            "version is %(target)s" %
+            dict(new=new_version, target=target_version))
+    if target_version is not None:
+        return target_version.to_dev(distance, sha)
+    else:
+        return new_version.to_dev(distance, sha)
 
 
 def _get_version_from_git(pre_version=None):
@@ -820,30 +839,20 @@ def _get_version_from_git(pre_version=None):
     """
     git_dir = _get_git_directory()
     if git_dir and _git_is_installed():
-        if pre_version:
-            try:
-                return _run_git_command(
-                    ['describe', '--exact-match'], git_dir,
-                    throw_on_error=True).replace('-', '.')
-            except Exception:
+        try:
+            return _run_git_command(
+                ['describe', '--exact-match'], git_dir,
+                throw_on_error=True).replace('-', '.')
+        except Exception:
+            if pre_version:
                 # not released yet - use pre_version as the target
-                semver = version.SemanticVersion.from_pip_string(pre_version)
-                return _get_version_from_git_target(
-                    semver, git_dir).release_string()
-        else:
-            try:
-                return _run_git_command(
-                    ['describe', '--exact-match'], git_dir,
-                    throw_on_error=True).replace('-', '.')
-            except Exception:
-                last_version = _run_git_command(
-                    ['describe', '--abbrev=0'], git_dir)
-                if not last_version:
-                    # Untagged tree.
-                    last_version = '0'
-                semver = version.SemanticVersion.from_pip_string(last_version)
-                return _get_version_from_git_target(
-                    semver.increment(), git_dir).release_string()
+                target_version = version.SemanticVersion.from_pip_string(
+                    pre_version)
+            else:
+                # not released yet - just calculate from git history
+                target_version = None
+        result = _get_version_from_git_target(git_dir, target_version)
+        return result.release_string()
     # If we don't know the version, return an empty string so at least
     # the downstream users of the value always have the same type of
     # object to work with.
