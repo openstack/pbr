@@ -750,7 +750,7 @@ try:
                 self.project = self.distribution.get_name()
                 self.version = self.distribution.get_version()
                 self.release = self.distribution.get_version()
-                if 'warnerrors' in option_dict:
+                if get_boolean_option(option_dict, 'warnerrors', 'WARNERRORS'):
                     self._sphinx_run()
                 else:
                     setup_command.BuildDoc.run(self)
