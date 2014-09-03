@@ -776,6 +776,43 @@ def have_sphinx():
     return _have_sphinx
 
 
+def _get_increment_kwargs(git_dir, tag):
+    """Calculate the sort of semver increment needed from git history.
+
+    Every commit from HEAD to tag is consider for sem-ver metadata lines.
+    See the pbr docs for their syntax.
+
+    :return: a dict of kwargs for passing into SemanticVersion.increment.
+    """
+    result = {}
+    if tag:
+        version_spec = tag + "..HEAD"
+    else:
+        version_spec = "HEAD"
+    changelog = _run_git_command(['log', version_spec], git_dir)
+    header_len = len('    sem-ver:')
+    commands = [line[header_len:].strip() for line in changelog.split('\n')
+                if line.startswith('    sem-ver:')]
+    symbols = set()
+    for command in commands:
+        symbols.update([symbol.strip() for symbol in command.split(',')])
+
+    def _handle_symbol(symbol, symbols, impact):
+        if symbol in symbols:
+            result[impact] = True
+            symbols.discard(symbol)
+    _handle_symbol('bugfix', symbols, 'patch')
+    _handle_symbol('feature', symbols, 'minor')
+    _handle_symbol('deprecation', symbols, 'minor')
+    _handle_symbol('api-break', symbols, 'major')
+    for symbol in symbols:
+        log.info('[pbr] Unknown sem-ver symbol %r' % symbol)
+    # We don't want patch in the kwargs since it is not a keyword argument -
+    # its the default minimum increment.
+    result.pop('patch', None)
+    return result
+
+
 def _get_revno_and_last_tag(git_dir):
     """Return the commit data about the most recent tag.
 
@@ -813,7 +850,7 @@ def _get_version_from_git_target(git_dir, target_version):
         ['log', '-n1', '--pretty=format:%h'], git_dir)
     tag, distance = _get_revno_and_last_tag(git_dir)
     last_semver = version.SemanticVersion.from_pip_string(tag or '0')
-    new_version = last_semver.increment()
+    new_version = last_semver.increment(**_get_increment_kwargs(git_dir, tag))
     if target_version is not None and new_version > target_version:
         raise ValueError(
             "git history requires a target version of %(new)s, but target "
