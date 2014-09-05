@@ -227,6 +227,20 @@ class TestVersions(base.BaseTestCase):
         self.useFixture(GPGKeyFixture())
         self.useFixture(base.DiveDir(self.package_dir))
 
+    def test_capitalized_headers(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3')
+        self.repo.commit('Sem-Ver: api-break')
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('2.0.0.dev1.g'))
+
+    def test_capitalized_headers_partial(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3')
+        self.repo.commit('Sem-ver: api-break')
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('2.0.0.dev1.g'))
+
     def test_tagged_version_has_tag_version(self):
         self.repo.commit()
         self.repo.tag('1.2.3')

@@ -779,7 +779,7 @@ def have_sphinx():
 def _get_increment_kwargs(git_dir, tag):
     """Calculate the sort of semver increment needed from git history.
 
-    Every commit from HEAD to tag is consider for sem-ver metadata lines.
+    Every commit from HEAD to tag is consider for Sem-Ver metadata lines.
     See the pbr docs for their syntax.
 
     :return: a dict of kwargs for passing into SemanticVersion.increment.
@@ -792,7 +792,7 @@ def _get_increment_kwargs(git_dir, tag):
     changelog = _run_git_command(['log', version_spec], git_dir)
     header_len = len('    sem-ver:')
     commands = [line[header_len:].strip() for line in changelog.split('\n')
-                if line.startswith('    sem-ver:')]
+                if line.lower().startswith('    sem-ver:')]
     symbols = set()
     for command in commands:
         symbols.update([symbol.strip() for symbol in command.split(',')])
@@ -806,7 +806,7 @@ def _get_increment_kwargs(git_dir, tag):
     _handle_symbol('deprecation', symbols, 'minor')
     _handle_symbol('api-break', symbols, 'major')
     for symbol in symbols:
-        log.info('[pbr] Unknown sem-ver symbol %r' % symbol)
+        log.info('[pbr] Unknown Sem-Ver symbol %r' % symbol)
     # We don't want patch in the kwargs since it is not a keyword argument -
     # its the default minimum increment.
     result.pop('patch', None)
