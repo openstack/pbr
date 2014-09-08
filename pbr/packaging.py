@@ -248,7 +248,6 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
                                      'SKIP_WRITE_GIT_CHANGELOG')
     if should_skip:
         return
-
     new_changelog = os.path.join(dest_dir, 'ChangeLog')
     # If there's already a ChangeLog and it's not writable, just use it
     if (os.path.exists(new_changelog)
@@ -306,7 +305,6 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
                                      'SKIP_GENERATE_AUTHORS')
     if should_skip:
         return
-
     old_authors = os.path.join(dest_dir, 'AUTHORS.in')
     new_authors = os.path.join(dest_dir, 'AUTHORS')
     # If there's already an AUTHORS file and it's not writable, just use it
@@ -730,6 +728,9 @@ try:
 
         def run(self):
             option_dict = self.distribution.get_option_dict('pbr')
+            if _git_is_installed():
+                write_git_changelog(option_dict=option_dict)
+                generate_authors(option_dict=option_dict)
             tree_index = get_boolean_option(option_dict,
                                             'autodoc_tree_index_modules',
                                             'AUTODOC_TREE_INDEX_MODULES')
