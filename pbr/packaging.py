@@ -738,7 +738,7 @@ try:
                                             'AUTODOC_INDEX_MODULES')
             if not os.getenv('SPHINX_DEBUG'):
                 # NOTE(afazekas): These options can be used together,
-                # but they do a very similar thing in a difffernet way
+                # but they do a very similar thing in a different way
                 if tree_index:
                     self._sphinx_tree()
                 if auto_index:
