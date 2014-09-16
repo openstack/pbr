@@ -110,6 +110,16 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
         self.addCleanup(os.chdir, os.getcwd())
         os.chdir(self.package_dir)
         self.addCleanup(self._discard_testpackage)
+        # Tests can opt into non-PBR_VERSION by setting preversioned=False as
+        # an attribute.
+        if not getattr(self, 'preversioned', True):
+            self.useFixture(fixtures.EnvironmentVariable('PBR_VERSION'))
+            setup_cfg_path = os.path.join(self.package_dir, 'setup.cfg')
+            with open(setup_cfg_path, 'rt') as cfg:
+                content = cfg.read()
+            content = content.replace(u'version = 0.1.dev', u'')
+            with open(setup_cfg_path, 'wt') as cfg:
+                cfg.write(content)
 
     def _discard_testpackage(self):
         # Remove pbr.testpackage from sys.modules so that it can be freshly
