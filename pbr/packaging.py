@@ -957,27 +957,35 @@ def _get_version_from_git(pre_version=None):
         return ''
 
 
-def _get_version_from_pkg_info(package_name):
-    """Get the version from PKG-INFO file if we can."""
-    try:
-        pkg_info_file = open('PKG-INFO', 'r')
-    except (IOError, OSError):
-        return None
-    try:
-        pkg_info = email.message_from_file(pkg_info_file)
-    except email.MessageError:
-        return None
+def _get_version_from_pkg_metadata(package_name):
+    """Get the version from package metadata if present.
+
+    This looks for PKG-INFO if present (for sdists), and if not looks
+    for METADATA (for wheels) and failing that will return None.
+    """
+    pkg_metadata_filenames = ['PKG-INFO', 'METADATA']
+    pkg_metadata = {}
+    for filename in pkg_metadata_filenames:
+        try:
+            pkg_metadata_file = open(filename, 'r')
+        except (IOError, OSError):
+            continue
+        try:
+            pkg_metadata = email.message_from_file(pkg_metadata_file)
+        except email.MessageError:
+            continue
+
     # Check to make sure we're in our own dir
-    if pkg_info.get('Name', None) != package_name:
+    if pkg_metadata.get('Name', None) != package_name:
         return None
-    return pkg_info.get('Version', None)
+    return pkg_metadata.get('Version', None)
 
 
 def get_version(package_name, pre_version=None):
-    """Get the version of the project. First, try getting it from PKG-INFO, if
-    it exists. If it does, that means we're in a distribution tarball or that
-    install has happened. Otherwise, if there is no PKG-INFO file, pull the
-    version from git.
+    """Get the version of the project. First, try getting it from PKG-INFO or
+    METADATA, if it exists. If it does, that means we're in a distribution
+    tarball or that install has happened. Otherwise, if there is no PKG-INFO
+    or METADATA file, pull the version from git.
 
     We do not support setup.py version sanity in git archive tarballs, nor do
     we support packagers directly sucking our git repo into theirs. We expect
@@ -993,7 +1001,7 @@ def get_version(package_name, pre_version=None):
         os.environ.get("OSLO_PACKAGE_VERSION", None))
     if version:
         return version
-    version = _get_version_from_pkg_info(package_name)
+    version = _get_version_from_pkg_metadata(package_name)
     if version:
         return version
     version = _get_version_from_git(pre_version)
