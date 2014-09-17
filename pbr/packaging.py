@@ -701,7 +701,7 @@ try:
                 os.makedirs(source_dir)
             return source_dir
 
-        def generate_autoindex(self):
+        def generate_autoindex(self, excluded_modules=None):
             log.info("[pbr] Autodocumenting from %s"
                      % os.path.abspath(os.curdir))
             modules = {}
@@ -710,8 +710,10 @@ try:
                 if '.' not in pkg:
                     for dirpath, dirnames, files in os.walk(pkg):
                         _find_modules(modules, dirpath, files)
-            module_list = list(modules.keys())
-            module_list.sort()
+            module_list = set(modules.keys())
+            if excluded_modules is not None:
+                module_list -= set(excluded_modules)
+            module_list = sorted(module_list)
             autoindex_filename = os.path.join(source_dir, 'autoindex.rst')
             with open(autoindex_filename, 'w') as autoindex:
                 autoindex.write(""".. toctree::
@@ -792,7 +794,10 @@ try:
                 if tree_index:
                     self._sphinx_tree()
                 if auto_index:
-                    self.generate_autoindex()
+                    self.generate_autoindex(
+                        option_dict.get(
+                            "autodoc_exclude_modules",
+                            [None, ""])[1].split())
 
             for builder in self.builders:
                 self.builder = builder
