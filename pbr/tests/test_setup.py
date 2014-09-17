@@ -214,11 +214,11 @@ class BuildSphinxTest(base.BaseTestCase):
             "fake_package", [("fake_module.py", b"")])
         self.useFixture(pkg_fixture)
         self.useFixture(base.DiveDir(pkg_fixture.base))
-
-    def test_build_doc(self):
         if self.has_opt:
             self.distr.command_options["pbr"] = {
                 "autodoc_index_modules": ('setup.cfg', self.autodoc)}
+
+    def test_build_doc(self):
         build_doc = packaging.LocalBuildDoc(self.distr)
         build_doc.run()
 
@@ -229,10 +229,6 @@ class BuildSphinxTest(base.BaseTestCase):
                 "api/fake_package.fake_module.rst") == self.has_autodoc)
 
     def test_builders_config(self):
-        if self.has_opt:
-            self.distr.command_options["pbr"] = {
-                "autodoc_index_modules": ('setup.cfg', self.autodoc)}
-
         build_doc = packaging.LocalBuildDoc(self.distr)
         build_doc.finalize_options()
 
