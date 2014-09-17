@@ -913,6 +913,8 @@ def _get_version_from_git_target(git_dir, target_version):
             "git history requires a target version of %(new)s, but target "
             "version is %(target)s" %
             dict(new=new_version, target=target_version))
+    if distance == 0:
+        return last_semver
     if target_version is not None:
         return target_version.to_dev(distance, sha)
     else:

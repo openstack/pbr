@@ -356,6 +356,15 @@ class TestVersions(base.BaseTestCase):
         version = packaging._get_version_from_git()
         self.assertThat(version, matchers.StartsWith('1.2.4.dev1.g'))
 
+    def test_valid_tag_honoured(self):
+        # Fix for bug 1370608 - we converted any target into a 'dev version'
+        # even if there was a distance of 0 - indicating that we were on the
+        # tag itself.
+        self.repo.commit()
+        self.repo.tag('1.3.0.0a1')
+        version = packaging._get_version_from_git()
+        self.assertEqual('1.3.0.0a1', version)
+
 
 def load_tests(loader, in_tests, pattern):
     return testscenarios.load_tests_apply_scenarios(loader, in_tests, pattern)
