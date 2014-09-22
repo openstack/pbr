@@ -69,6 +69,9 @@ class TestRepo(fixtures.Fixture):
             ['git', 'config', '--global', 'user.email', 'example@example.com'],
             self._basedir)
         base._run_cmd(
+            ['git', 'config', '--global', 'user.name', 'OpenStack Developer'],
+            self._basedir)
+        base._run_cmd(
             ['git', 'config', '--global', 'user.signingkey',
              'example@example.com'], self._basedir)
         base._run_cmd(['git', 'add', '.'], self._basedir)
