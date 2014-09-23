@@ -167,6 +167,15 @@ class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
         # One commit, something should be in the ChangeLog list
         self.assertNotEqual(body, '')
 
+    def test_manifest_exclude_honoured(self):
+        with open(os.path.join(
+                self.package_dir,
+                'pbr_testpackage.egg-info/SOURCES.txt'), 'r') as f:
+            body = f.read()
+        self.assertThat(
+            body, matchers.Not(matchers.Contains('pbr_testpackage/extra.py')))
+        self.assertThat(body, matchers.Contains('pbr_testpackage/__init__.py'))
+
 
 class TestPackagingInGitRepoWithoutCommit(base.BaseTestCase):
 
