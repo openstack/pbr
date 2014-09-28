@@ -44,12 +44,10 @@ import logging
 import os
 import sys
 
-from testrepository import commands
-
 logger = logging.getLogger(__name__)
 
 
-class Testr(cmd.Command):
+class TestrReal(cmd.Command):
 
     description = "Run unit tests using testr"
 
@@ -133,3 +131,26 @@ class Testr(cmd.Command):
         logger.debug("_coverage_after called")
         os.system("coverage combine")
         os.system("coverage html -d ./cover %s" % self.omit)
+
+
+class TestrFake(cmd.Command):
+    description = "Run unit tests using testr"
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        print("Install testrepository to run 'testr' command properly.")
+
+
+try:
+    from testrepository import commands
+    have_testr = True
+    Testr = TestrReal
+except ImportError:
+    have_testr = False
+    Testr = TestrFake
