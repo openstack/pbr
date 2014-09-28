@@ -1,24 +1,33 @@
-Linux Compatible Semantic Versioning 3.0.0
-==========================================
+Linux/Python Compatible Semantic Versioning 3.0.0
+=================================================
 
 This is a fork of Semantic Versioning 2.0. The specific changes have to do
 with the format of pre-release and build labels, specifically to make them
-not confusing when co-existing with Linux Distribution packaging.
-Inspiration for the format of the pre-release and build labels came from
-Python's PEP440.
+not confusing when co-existing with Linux distribution packaging and Python
+packaging. Inspiration for the format of the pre-release and build labels
+came from Python's PEP440.
+
+Changes vs SemVer 2.0
+---------------------
+
+#. dev versions are defined. These are extremely useful when
+   dealing with CI and CD systems when 'every commit is a release' is not
+   feasible.
+
+#. All versions have been made PEP-440 compatible, because of our deep
+   roots in Python. Pre-release versions are now separated by . not -, and
+   use a/b/c rather than alpha/beta etc.
 
 Summary
 -------
 
-Given a version number MAJOR.MINOR.PATCH, increment the:
+Given a version number MAJOR.MINOR.PATCH,
+increment the:
 
 #. MAJOR version when you make incompatible API changes,
 #. MINOR version when you add functionality in a backwards-compatible
    manner, and
 #. PATCH version when you make backwards-compatible bug fixes.
-
-Additional labels for pre-release and build metadata are available as
-extensions to the MAJOR.MINOR.PATCH format.
 
 Introduction
 ------------
@@ -55,12 +64,6 @@ increment the major version.
 I call this system "Semantic Versioning." Under this scheme, version
 numbers and the way they change convey meaning about the underlying code
 and what has been modified from one version to the next.
-
-Linux Compatible Semantic Versioning is different from Semantic
-Versioning in that it does not employ the use of the hyphen in ways that
-are ambiguous when used with or adjacent to software packaged with dpkg or
-rpm. Instead, it draws from PEP440's approach of indicating pre-releases
-with leading characters in the version segment.
 
 Semantic Versioning Specification (SemVer)
 ------------------------------------------
@@ -111,24 +114,27 @@ document are to be interpreted as described in `RFC
 
 #.  A pre-release version MAY be denoted by appending a dot
     separated identifier immediately following the patch version.
-    The identifier MUST comprise only a, b, rc followed by non-negative
+    The identifier MUST comprise only a, b, c followed by non-negative
     integer value. The identifier MUST NOT be empty.
     Pre-release versions have a lower precedence than the associated normal
     version. A pre-release version indicates that
     the version is unstable and might not satisfy the intended
     compatibility requirements as denoted by its associated normal
-    version. Examples: 1.0.0.a1, 1.0.0.b99, 1.0.0.rc1000.
+    version. Examples: 1.0.0.a1, 1.0.0.b99, 1.0.0.c1000.
 
 #.  A development version MAY be denoted by appending a dot separated
     identifier immediately following the patch version.
     The identifier MUST comprise the string dev followed by non-negative
     integer value. The identifier MUST NOT be empty. Development versions
-    have a lower precedence than the associated normal version. A development
-    version is a completely unsupported and conveys no API promises when
-    related to other versions. They are more useful as communication
-    vehicles between developers of a community, whereas pre-releases, while
-    potentially prone to break still, are intended for externally facing
-    communication of not-yet-released ideas. Example: 1.0.0.dev1.
+    have a lower precedence than the associated normal version or pre-release
+    version. A development version is a completely unsupported and conveys no
+    API promises when related to other versions. They are more useful as
+    communication vehicles between developers of a community, whereas
+    pre-releases, while potentially prone to break still, are intended for
+    externally facing communication of not-yet-released ideas. Dev versions
+    are not public artifacts and should never be placed in public
+    repositories: they are intended as developer-local resources. Examples:
+    1.0.0.dev1, 1.0.0.a1.dev1
 
 #.  git version metadata MAY be denoted by appending a dot separated
     identifier immediately following a development or pre-release version.
@@ -149,23 +155,26 @@ document are to be interpreted as described in `RFC
 
 #.  Precedence refers to how versions are compared to each other when
     ordered. Precedence MUST be calculated by separating the version
-    into major, minor, patch and pre-release identifiers in that order
-    (Build metadata does not figure into precedence). Precedence is
-    determined by the first difference when comparing each of these
+    into major, minor, patch, pre-release, and development identifiers in
+    that order (Build metadata does not figure into precedence). Precedence
+    is determined by the first difference when comparing each of these
     identifiers from left to right as follows: Major, minor, and patch
     versions are always compared numerically. Example: 1.0.0 < 2.0.0 <
     2.1.0 < 2.1.1. When major, minor, and patch are equal, a pre-release
     version has lower precedence than a normal version. Example:
-    1.0.0.a1 < 1.0.0. When major, minor, and patch are equal, a development
-    version as a lower precedence than a normal version and of a pre-release
-    version. Example: 1.0.0.dev1 < 1.0.0 and 1.0.0dev9 < 1.0.0a1.
-    Precedence for two pre-release or development versions with
-    the same major, minor, and patch version MUST be determined by
-    comparing the identifier to the right of the patch version as follows:
+    1.0.0.a1 < 1.0.0. When major, minor, patch and pre-release are equal, a
+    development version has a lower precedence than a normal version and of a
+    pre-release version. Example: 1.0.0.dev1 < 1.0.0 and 1.0.0.dev9 <
+    1.0.0.a1 and 1.0.0.a1 < 1.0.0.a2.dev4. Precedence for two pre-release
+    versions with the same major, minor, and patch version MUST be determined
+    by comparing the identifier to the right of the patch version as follows:
     if the alpha portion matches, the numeric portion is compared in
-    numerical sort order. If the alpha portion does not match, the sort
-    order is dev < a < b < rc. Example: 1.0.0.dev8 < 1.0.0.dev9
-    1.0.0.a1 < 1.0.0.b2 < 1.0.0.rc1 < 1.0.0.
+    numerical sort order. If the alpha portion does not match, the sort order
+    is dev < a < b < c. Example: 1.0.0.dev8 < 1.0.0.dev9 < 1.0.0.a1.dev3 <
+    1.0.0.a1 < 1.0.0.b2 < 1.0.0.c1 < 1.0.0.  Precedence for dev versions if
+    all other components are equal is done by comparing their numeric
+    component. If all other components are not equal, predence is determined
+    by comparing the other components.
 
 Why Use Semantic Versioning?
 ----------------------------
@@ -302,23 +311,15 @@ limits on the size of the string.
 About
 -----
 
-The Linux Compatible Semantic Versioning specification was modified by
-`Monty Taylor <http://inaugust.com>`__, member of `The Satori
-Group <http://satori-group.com>`__, co-founder of OpenStack and Free
-Software Hacker.
+The Linux/Python Compatible Semantic Versioning specification is maintained
+by the `OpenStack <http://openstack.org>`_ project.
 
-It was based on The Semantic Versioning specification, which was
+It is based on The Semantic Versioning specification, which was
 authored by `Tom Preston-Werner <http://tom.preston-werner.com>`__,
-inventor of Gravatars and cofounder of GitHub, with inputs from `PEP
-440 <http://www.python.org/dev/peps/pep-0440/>`__ which was authored by
-`Nick Coughlan <http://www.boredomandlaziness.org>`__ who is a core
-Python developer and generally a great guy. I don't really know which
-things Nick invented or co-founded, and I'm not really sure why we'd
-need to list those here, but Tom did, so I figured coding style is
-usually about sticking to the style that was there before you showed up.
+with inputs from `PEP 440 <http://www.python.org/dev/peps/pep-0440/>`_
 
-If you'd like to leave feedback, please `open an issue on
-GitHub <https://github.com/emonty/semver/issues>`__.
+If you'd like to leave feedback, please `open an issue
+<https://bugs.launchpad.net/pbr/+filebug>`_.
 
 License
 -------

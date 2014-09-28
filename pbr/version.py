@@ -20,6 +20,7 @@ Utilities for consuming the version from pkg_resources.
 
 import itertools
 import operator
+import sys
 
 import pkg_resources
 
@@ -51,11 +52,6 @@ class SemanticVersion(object):
         :param prerelease: For prerelease versions, what number prerelease.
             Defaults to 0.
         :param dev_count: How many commits since the last release.
-
-        :raises: ValueError if both a prerelease version and dev_count is
-        supplied. This is because semver (see the pbr semver documentation)
-        does not permit both a prerelease version and a dev marker at the same
-        time.
         """
         self._major = major
         self._minor = minor
@@ -64,11 +60,7 @@ class SemanticVersion(object):
         self._prerelease = prerelease
         if self._prerelease_type and not self._prerelease:
             self._prerelease = 0
-        self._dev_count = dev_count
-        if prerelease_type is not None and dev_count is not None:
-            raise ValueError(
-                "invalid version: cannot have prerelease and dev strings %s %s"
-                % (prerelease_type, dev_count))
+        self._dev_count = dev_count or 0  # Normalise 0 to None.
 
     def __eq__(self, other):
         if not isinstance(other, SemanticVersion):
@@ -78,6 +70,29 @@ class SemanticVersion(object):
     def __hash__(self):
         return sum(map(hash, self.__dict__.values()))
 
+    def _sort_key(self):
+        """Return a key for sorting SemanticVersion's on."""
+        # key things:
+        # - final is after rc's, so we make that a/b/rc/z
+        # - dev==None is after all other devs, so we use sys.maxsize there.
+        # - unqualified dev releases come before any pre-releases.
+        # So we do:
+        # (major, minor, patch) - gets the major grouping.
+        # (0|1) unqualified dev flag
+        # (a/b/rc/z) - release segment grouping
+        # pre-release level
+        # dev count, maxsize for releases.
+        rc_lookup = {'a': 'a', 'b': 'b', 'rc': 'rc', None: 'z'}
+        if self._dev_count and not self._prerelease_type:
+            uq_dev = 0
+        else:
+            uq_dev = 1
+        return (
+            self._major, self._minor, self._patch,
+            uq_dev,
+            rc_lookup[self._prerelease_type], self._prerelease,
+            self._dev_count or sys.maxsize)
+
     def __lt__(self, other):
         """Compare self and other, another Semantic Version."""
         # NB(lifeless) this could perhaps be rewritten as
@@ -86,39 +101,7 @@ class SemanticVersion(object):
         # if this ever becomes performance sensitive.
         if not isinstance(other, SemanticVersion):
             raise TypeError("ordering to non-SemanticVersion is undefined")
-        this_tuple = (self._major, self._minor, self._patch)
-        other_tuple = (other._major, other._minor, other._patch)
-        if this_tuple < other_tuple:
-            return True
-        elif this_tuple > other_tuple:
-            return False
-        if self._prerelease_type:
-            if other._prerelease_type:
-                # Use the a < b < rc cheat
-                this_tuple = (self._prerelease_type, self._prerelease)
-                other_tuple = (other._prerelease_type, other._prerelease)
-                return this_tuple < other_tuple
-            elif other._dev_count:
-                raise TypeError(
-                    "ordering pre-release with dev builds is undefined")
-            else:
-                return True
-        elif self._dev_count:
-            if other._dev_count:
-                if self._dev_count < other._dev_count:
-                    return True
-                else:
-                    return False
-            elif other._prerelease_type:
-                raise TypeError(
-                    "ordering pre-release with dev builds is undefined")
-            else:
-                return True
-        else:
-            # This is not pre-release.
-            # If the other is pre-release or dev, we are greater, which is ! <
-            # If the other is not pre-release, we are equal, which is ! <
-            return False
+        return self._sort_key() < other._sort_key()
 
     def __le__(self, other):
         return self == other or self < other
@@ -181,6 +164,7 @@ class SemanticVersion(object):
         major = int(components[0])
         minor = int(components[1])
         dev_count = None
+        post_count = None
         prerelease_type = None
         prerelease = None
 
@@ -215,17 +199,28 @@ class SemanticVersion(object):
                 # Current RC/beta layout
                 prerelease_type, prerelease = _parse_type(remainder[0])
                 remainder = remainder[1:]
-            if remainder:
+            while remainder:
                 component = remainder[0]
                 if component.startswith('dev'):
                     dev_count = int(component[3:])
+                elif component.startswith('post'):
+                    dev_count = None
+                    post_count = int(component[4:])
                 else:
                     raise ValueError(
                         'Unknown remainder %r in %r'
                         % (remainder, version_string))
-        return SemanticVersion(
+                remainder = remainder[1:]
+        result = SemanticVersion(
             major, minor, patch, prerelease_type=prerelease_type,
             prerelease=prerelease, dev_count=dev_count)
+        if post_count:
+            if dev_count:
+                raise ValueError(
+                    'Cannot combine postN and devN - no mapping in %r'
+                    % (version_string,))
+            result = result.increment().to_dev(post_count)
+        return result
 
     def brief_string(self):
         """Return the short version minus any alpha/beta tags."""
@@ -239,7 +234,7 @@ class SemanticVersion(object):
         """
         return self._long_version("~")
 
-    def decrement(self, minor=False, major=False):
+    def decrement(self):
         """Return a decremented SemanticVersion.
 
         Decrementing versions doesn't make a lot of sense - this method only
@@ -329,7 +324,10 @@ class SemanticVersion(object):
                 "%s%s%s%s" % (pre_separator, rc_marker, self._prerelease_type,
                               self._prerelease))
         if self._dev_count:
-            segments.append(pre_separator)
+            if not self._prerelease_type:
+                segments.append(pre_separator)
+            else:
+                segments.append('.')
             segments.append('dev')
             segments.append(self._dev_count)
         return "".join(str(s) for s in segments)
@@ -357,15 +355,8 @@ class SemanticVersion(object):
         :param dev_count: The number of commits since the last release.
         """
         return SemanticVersion(
-            self._major, self._minor, self._patch, dev_count=dev_count)
-
-    def to_release(self):
-        """Discard any pre-release or dev metadata.
-
-        :return: A new SemanticVersion with major/minor/patch the same as this
-            one.
-        """
-        return SemanticVersion(self._major, self._minor, self._patch)
+            self._major, self._minor, self._patch, self._prerelease_type,
+            self._prerelease, dev_count=dev_count)
 
     def version_tuple(self):
         """Present the version as a version_info tuple.
@@ -374,7 +365,10 @@ class SemanticVersion(object):
         documentation for sys.version_info.
 
         Since semver and PEP-440 represent overlapping but not subsets of
-        versions, we have to have some heuristic / mapping rules:
+        versions, we have to have some heuristic / mapping rules, and have
+        extended the releaselevel field to have alphadev, betadev and
+        candidatedev values. When they are present the dev count is used
+        to provide the serial.
          - a/b/rc take precedence.
          - if there is no pre-release version the dev version is used.
          - serial is taken from the dev/a/b/c component.
@@ -382,12 +376,16 @@ class SemanticVersion(object):
         """
         segments = [self._major, self._minor, self._patch]
         if self._prerelease_type:
-            type_map = {'a': 'alpha',
-                        'b': 'beta',
-                        'rc': 'candidate',
+            type_map = {('a', False): 'alpha',
+                        ('b', False): 'beta',
+                        ('rc', False): 'candidate',
+                        ('a', True): 'alphadev',
+                        ('b', True): 'betadev',
+                        ('rc', True): 'candidatedev',
                         }
-            segments.append(type_map[self._prerelease_type])
-            segments.append(self._prerelease)
+            segments.append(
+                type_map[(self._prerelease_type, bool(self._dev_count))])
+            segments.append(self._dev_count or self._prerelease)
         elif self._dev_count:
             segments.append('dev')
             segments.append(self._dev_count - 1)

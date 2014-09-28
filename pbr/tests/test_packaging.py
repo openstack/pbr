@@ -300,6 +300,13 @@ class TestVersions(base.BaseTestCase):
         version = packaging._get_version_from_git()
         self.assertThat(version, matchers.StartsWith('1.2.4.dev1'))
 
+    def test_untagged_pre_release_has_pre_dev_version_postversion(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3.0a1')
+        self.repo.commit()
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('1.2.3.0a2.dev1'))
+
     def test_untagged_version_minor_bump(self):
         self.repo.commit()
         self.repo.tag('1.2.3')
@@ -317,6 +324,13 @@ class TestVersions(base.BaseTestCase):
     def test_untagged_version_has_dev_version_preversion(self):
         self.repo.commit()
         self.repo.tag('1.2.3')
+        self.repo.commit()
+        version = packaging._get_version_from_git('1.2.5')
+        self.assertThat(version, matchers.StartsWith('1.2.5.dev1'))
+
+    def test_untagged_version_after_pre_has_dev_version_preversion(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3.0a1')
         self.repo.commit()
         version = packaging._get_version_from_git('1.2.5')
         self.assertThat(version, matchers.StartsWith('1.2.5.dev1'))
@@ -403,7 +417,7 @@ class TestVersions(base.BaseTestCase):
         self.repo.commit()
         self.repo.tag('badver4')
         version = packaging._get_version_from_git()
-        self.assertThat(version, matchers.StartsWith('1.2.4.dev1'))
+        self.assertThat(version, matchers.StartsWith('1.2.4.0a2.dev1'))
 
     def test_valid_tag_honoured(self):
         # Fix for bug 1370608 - we converted any target into a 'dev version'
