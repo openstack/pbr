@@ -39,6 +39,7 @@ from pbr import extra_files
 from pbr import git
 from pbr import options
 import pbr.pbr_json
+from pbr import testr_command
 from pbr import version
 
 REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
@@ -246,27 +247,20 @@ class _PipInstallTestRequires(object):
             self.install_test_requirements()
             _copy_test_requires_to(self.egg_info)
 
-try:
-    from pbr import testr_command
 
-    class TestrTest(testr_command.Testr, _PipInstallTestRequires):
-        """Make setup.py test do the right thing."""
+class TestrTest(testr_command.Testr):
+    """Make setup.py test do the right thing."""
 
-        command_name = 'test'
+    command_name = 'test'
 
-        def run(self):
-            self.pre_run()
-            # Can't use super - base class old-style class
-            testr_command.Testr.run(self)
-
-    _have_testr = True
-
-except ImportError:
-    _have_testr = False
+    def run(self):
+        # Can't use super - base class old-style class
+        testr_command.Testr.run(self)
 
 
 def have_testr():
-    return _have_testr
+    return testr_command.have_testr
+
 
 try:
     from nose import commands
