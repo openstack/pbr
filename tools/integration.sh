@@ -55,9 +55,25 @@ EOF
 cat <<EOF > setup.py
 import setuptools
 
-setuptools.setup(
-    setup_requires=['pbr'],
-    pbr=True)
+try:
+    from requests import Timeout
+except ImportError:
+    from pip._vendor.requests import Timeout
+
+from socket import error as SocketError
+
+# Some environments have network issues that drop connections to pypi
+# when running integration tests, so we retry here so that hour-long
+# test runs are less likely to fail randomly.
+try:
+    setuptools.setup(
+        setup_requires=['pbr'],
+        pbr=True)
+except (SocketError, Timeout):
+    setuptools.setup(
+        setup_requires=['pbr'],
+        pbr=True)
+
 EOF
 
 mkdir test_project
