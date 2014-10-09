@@ -192,6 +192,10 @@ class BuildSphinxTest(base.BaseTestCase):
     scenarios = [
         ('true_autodoc_caps',
          dict(has_opt=True, autodoc='True', has_autodoc=True)),
+        ('true_autodoc_caps_with_excludes',
+         dict(has_opt=True, autodoc='True', has_autodoc=True,
+              excludes="fake_package.fake_private_module\n"
+              "fake_package.unknown_module")),
         ('true_autodoc_lower',
          dict(has_opt=True, autodoc='true', has_autodoc=True)),
         ('false_autodoc',
@@ -211,12 +215,19 @@ class BuildSphinxTest(base.BaseTestCase):
         self.distr.command_options["build_sphinx"] = {
             "source_dir": ["a", "."]}
         pkg_fixture = fixtures.PythonPackage(
-            "fake_package", [("fake_module.py", b"")])
+            "fake_package", [("fake_module.py", b""),
+                             ("fake_private_module.py", b"")])
         self.useFixture(pkg_fixture)
         self.useFixture(base.DiveDir(pkg_fixture.base))
+        self.distr.command_options["pbr"] = {}
+        if hasattr(self, "excludes"):
+            self.distr.command_options["pbr"]["autodoc_exclude_modules"] = (
+                'setup.cfg',
+                "fake_package.fake_private_module\n"
+                "fake_package.unknown_module")
         if self.has_opt:
-            self.distr.command_options["pbr"] = {
-                "autodoc_index_modules": ('setup.cfg', self.autodoc)}
+            options = self.distr.command_options["pbr"]
+            options["autodoc_index_modules"] = ('setup.cfg', self.autodoc)
 
     def test_build_doc(self):
         build_doc = packaging.LocalBuildDoc(self.distr)
@@ -227,6 +238,13 @@ class BuildSphinxTest(base.BaseTestCase):
         self.assertTrue(
             os.path.exists(
                 "api/fake_package.fake_module.rst") == self.has_autodoc)
+        if not self.has_autodoc or hasattr(self, "excludes"):
+            assertion = self.assertFalse
+        else:
+            assertion = self.assertTrue
+        assertion(
+            os.path.exists(
+                "api/fake_package.fake_private_module.rst"))
 
     def test_builders_config(self):
         build_doc = packaging.LocalBuildDoc(self.distr)
