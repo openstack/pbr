@@ -252,6 +252,7 @@ Additional Docs
 
    packagers
    semver
+   testing
 
 Indices and tables
 ==================
