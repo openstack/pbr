@@ -734,7 +734,8 @@ try:
 
         def _sphinx_tree(self):
                 source_dir = self._get_source_dir()
-                apidoc.main(['apidoc', '.', '-H', 'Modules', '-o', source_dir])
+                cmd = ['apidoc', '.', '-H', 'Modules', '-o', source_dir]
+                apidoc.main(cmd + self.autodoc_tree_excludes)
 
         def _sphinx_run(self):
             if not self.verbose:
@@ -808,12 +809,28 @@ try:
                 else:
                     setup_command.BuildDoc.run(self)
 
+        def initialize_options(self):
+            # Not a new style class, super keyword does not work.
+            setup_command.BuildDoc.initialize_options(self)
+
+            # NOTE(dstanek): exclude setup.py from the autodoc tree index
+            # builds because all projects will have an issue with it
+            self.autodoc_tree_excludes = ['setup.py']
+
         def finalize_options(self):
             # Not a new style class, super keyword does not work.
             setup_command.BuildDoc.finalize_options(self)
             # Allow builders to be configurable - as a comma separated list.
             if not isinstance(self.builders, list) and self.builders:
                 self.builders = self.builders.split(',')
+
+            # NOTE(dstanek): check for autodoc tree exclusion overrides
+            # in the setup.cfg
+            opt = 'autodoc_tree_excludes'
+            option_dict = self.distribution.get_option_dict('pbr')
+            if opt in option_dict:
+                self.autodoc_tree_excludes = option_dict[opt][1]
+                self.ensure_string_list(opt)
 
     class LocalBuildLatex(LocalBuildDoc):
         builders = ['latex']
