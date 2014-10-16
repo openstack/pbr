@@ -398,7 +398,16 @@ def _find_git_files(dirname='', git_dir=None):
         log.info("[pbr] In git context, generating filelist from git")
         file_list = _run_git_command(['ls-files', '-z'], git_dir)
         file_list = file_list.split(b'\x00'.decode('utf-8'))
-    return [f for f in file_list if f]
+        
+        status = _run_git_command(['submodule', 'status', '--recursive'], git_dir).split(os.linesep)
+        submodules = set(module.strip().split()[1] for module in status)
+        
+        submodule_file_list = _run_git_command(['submodule', 'foreach', 'git', 'ls-files', '-z'], git_dir)
+        # Take into account submodules, who's contents do not show up in ls-files
+        file_list.extend(submodule_file_list.split(b'\x00'.decode('utf-8')))
+
+    # Exclude submodules which are folders but appear in ls-files as normal files, killing copy()
+    return [f for f in file_list if f and f not in submodules]
 
 
 _rst_template = """%(heading)s
