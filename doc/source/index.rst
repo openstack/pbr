@@ -60,7 +60,7 @@ with the same number of commits since the release.
 
 .. note::
 
-   Note that `pbr` expects git tags to be signed, for using it to
+   Note that `pbr` expects git tags to be annotated, for using it to
    calculate version.
 
 The versions are expected to be compliant with :doc:`semver`.
