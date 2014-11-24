@@ -24,8 +24,11 @@ from distutils.command import install as du_install
 import distutils.errors
 from distutils import log
 import email
+import functools
 import io
+import itertools
 import os
+import platform
 import re
 import subprocess
 import sys
@@ -56,10 +59,26 @@ def get_requirements_files():
     # Returns a list composed of:
     # - REQUIREMENTS_FILES with -py2 or -py3 in the name
     #   (e.g. requirements-py3.txt)
+    # - REQUIREMENTS_FILES with -{platform.system} in the name
+    #   (e.g. requirements-windows.txt)
+    # - REQUIREMENTS_FILES with both Python version and platform's
+    #   system in the name
+    #   (e.g. requirements-freebsd-py2.txt)
     # - REQUIREMENTS_FILES
-    return (list(map(('-py' + str(sys.version_info[0])).join,
-                     map(os.path.splitext, REQUIREMENTS_FILES)))
-            + list(REQUIREMENTS_FILES))
+    pyversion = sys.version_info[0]
+    system = platform.system().lower()
+    parts = list(map(os.path.splitext, REQUIREMENTS_FILES))
+
+    version_cb = functools.partial("{1}-py{0}{2}".format, pyversion)
+    platform_cb = functools.partial("{1}-{0}{2}".format, system)
+    both_cb = functools.partial("{2}-{0}-py{1}{3}".format, system, pyversion)
+
+    return list(itertools.chain(
+        itertools.starmap(both_cb, parts),
+        itertools.starmap(platform_cb, parts),
+        itertools.starmap(version_cb, parts),
+        REQUIREMENTS_FILES,
+    ))
 
 
 def append_text_list(config, key, text_list):
