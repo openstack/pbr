@@ -107,11 +107,21 @@ You can also have a requirement file for each specific major version of
 Python. If you want to have a different package list for Python 3, just drop
 a requirements-py3.txt, and it will be used instead.
 
-The requirement files are tried in that order (N being the Python major
-version number used to install the package):
+It's also possible to select a requirement file specific for an OS. The format
+is requirements-{osname}.txt, where ``{osname}`` is the equivalent of
+``platform.system()``. The two approaches, Python version and OS version, can
+be combined.
 
+The requirement files are tried in that order (N being the Python major
+version number used to install the package and OS being the current
+platform's name in lowercase, retrieved with ``platform.system()``):
+
+* requirements-OS-pyN.txt
+* tools/pip-requires-OS-pyN
+* requirements-OS.txt
+* tools/pip-requires-OS
 * requirements-pyN.txt
-* tools/pip-requires-py3
+* tools/pip-requires-pyN
 * requirements.txt
 * tools/pip-requires
 
