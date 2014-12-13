@@ -809,10 +809,11 @@ def _get_version_from_git(pre_version):
             except Exception:
                 sha = _run_git_command(
                     ['log', '-n1', '--pretty=format:%h'], git_dir)
-                return "%s.dev%s.g%s" % (pre_version, _get_revno(git_dir), sha)
+                return "%s.dev%s+g%s" % (pre_version, _get_revno(git_dir), sha)
         else:
             return _run_git_command(
-                ['describe', '--always'], git_dir).replace('-', '.')
+                ['describe', '--always'],
+                git_dir).replace('-', '.').replace('.g', '+g')
     # If we don't know the version, return an empty string so at least
     # the downstream users of the value always have the same type of
     # object to work with.
