@@ -24,6 +24,7 @@ from __future__ import unicode_literals
 
 import email
 import io
+import json
 import os
 import re
 import subprocess
@@ -776,6 +777,49 @@ def have_sphinx():
     return _have_sphinx
 
 
+def _get_raw_tag_info(git_dir):
+    describe = _run_git_command(['describe', '--always'], git_dir)
+    if "-" in describe:
+        return describe.rsplit("-", 2)[-2]
+    if "." in describe:
+        return 0
+    return None
+
+
+def get_is_release(git_dir):
+    return _get_raw_tag_info(git_dir) == 0
+
+
+def _run_git_functions():
+    git_dir = _get_git_directory()
+    if git_dir and _git_is_installed():
+        return git_dir
+    return None
+
+
+def get_git_short_sha(git_dir=None):
+    """Return the short sha for this repo, if it exists."""
+    if not git_dir:
+        git_dir = _run_git_functions()
+    if git_dir:
+        return _run_git_command(
+            ['log', '-n1', '--pretty=format:%h'], git_dir)
+    return None
+
+
+def write_pbr_json(cmd, basename, filename):
+    git_dir = _run_git_functions()
+    if not git_dir:
+        return
+    values = dict()
+    git_version = get_git_short_sha(git_dir)
+    is_release = get_is_release(git_dir)
+    if git_version is not None:
+        values['git_version'] = git_version
+        values['is_release'] = is_release
+        cmd.write_file('pbr', filename, json.dumps(values))
+
+
 def _get_revno(git_dir):
     """Return the number of commits since the most recent tag.
 
@@ -783,9 +827,9 @@ def _get_revno(git_dir):
     tags then we fall back to counting commits since the beginning
     of time.
     """
-    describe = _run_git_command(['describe', '--always'], git_dir)
-    if "-" in describe:
-        return describe.rsplit("-", 2)[-2]
+    raw_tag_info = _get_raw_tag_info(git_dir)
+    if raw_tag_info:
+        return raw_tag_info
 
     # no tags found
     revlist = _run_git_command(
