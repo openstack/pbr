@@ -843,21 +843,30 @@ def _get_version_from_git(pre_version):
     if the current revision has no tag.
     """
 
-    git_dir = _get_git_directory()
-    if git_dir and _git_is_installed():
+    git_dir = _run_git_functions()
+    if git_dir:
         if pre_version:
             try:
                 return _run_git_command(
                     ['describe', '--exact-match'], git_dir,
                     throw_on_error=True).replace('-', '.')
             except Exception:
-                sha = _run_git_command(
-                    ['log', '-n1', '--pretty=format:%h'], git_dir)
-                return "%s.dev%s+g%s" % (pre_version, _get_revno(git_dir), sha)
+                return "%s.dev%s" % (pre_version, _get_revno(git_dir))
         else:
-            return _run_git_command(
-                ['describe', '--always'],
-                git_dir).replace('-', '.').replace('.g', '+g')
+            # git describe always is going to return one of three things
+            # - a short-sha if there are no tags
+            # - a tag, if there's one on the current revision
+            # - a string of the form $last_tag-$revs_since_last_tag-g$short_sha
+            raw_version = _run_git_command(['describe', '--always'], git_dir)
+            # First, if there are no -'s or .'s, then it's just a short sha.
+            # Create a synthetic version for it.
+            if '-' not in raw_version and '.' not in raw_version:
+                return "0.0.0.%s" % _get_revno(git_dir)
+            # Now, we want to strip the short-sha prefix
+            stripped_version = raw_version.split('-g')[0]
+            # Finally, if we convert - to ., we'll get the version we want
+            return stripped_version.replace('-', '.')
+
     # If we don't know the version, return an empty string so at least
     # the downstream users of the value always have the same type of
     # object to work with.
