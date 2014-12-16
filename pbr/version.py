@@ -142,6 +142,9 @@ class SemanticVersion(object):
             ever released - we're treating that as a critical bug that we ever
             made them and have stopped doing that.
         """
+        # Versions need to start numerically, ignore if not
+        if not version_string[:1].isdigit():
+            raise ValueError("Invalid version %r" % version_string)
         input_components = version_string.split('.')
         # decimals first (keep pre-release and dev/hashes to the right)
         components = [c for c in input_components if c.isdigit()]

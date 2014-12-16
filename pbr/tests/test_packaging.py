@@ -427,6 +427,13 @@ class TestVersions(base.BaseTestCase):
         self.repo.tag('badver4')
         version = packaging._get_version_from_git()
         self.assertThat(version, matchers.StartsWith('1.2.4.0a2.dev1'))
+        # Non-release related tags are ignored.
+        self.repo.commit()
+        self.repo.tag('2')
+        self.repo.commit()
+        self.repo.tag('non-release-tag/2014.12.16-1')
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('2.0.1.dev1'))
 
     def test_valid_tag_honoured(self):
         # Fix for bug 1370608 - we converted any target into a 'dev version'
