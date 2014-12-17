@@ -20,6 +20,7 @@ import os
 from setuptools.command import easy_install
 
 from pbr.hooks import base
+from pbr import options
 from pbr import packaging
 
 
@@ -46,8 +47,8 @@ class CommandsConfig(base.BaseConfig):
             easy_install.get_script_args = packaging.override_get_script_args
 
         if packaging.have_sphinx():
-            self.add_command('pbr.packaging.LocalBuildDoc')
-            self.add_command('pbr.packaging.LocalBuildLatex')
+            self.add_command('pbr.builddoc.LocalBuildDoc')
+            self.add_command('pbr.builddoc.LocalBuildLatex')
 
         if os.path.exists('.testr.conf') and packaging.have_testr():
             # There is a .testr.conf file. We want to use it.
@@ -56,7 +57,7 @@ class CommandsConfig(base.BaseConfig):
             # We seem to still have nose configured
             self.add_command('pbr.packaging.NoseTest')
 
-        use_egg = packaging.get_boolean_option(
+        use_egg = options.get_boolean_option(
             self.pbr_config, 'use-egg', 'PBR_USE_EGG')
         # We always want non-egg install unless explicitly requested
         if 'manpages' in self.pbr_config or not use_egg:

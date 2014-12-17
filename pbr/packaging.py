@@ -40,14 +40,9 @@ from setuptools.command import install
 from setuptools.command import install_scripts
 from setuptools.command import sdist
 
-try:
-    import cStringIO
-except ImportError:
-    import io as cStringIO
-
 from pbr import extra_files
+from pbr import options
 
-TRUE_VALUES = ('true', '1', 'yes')
 REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
 TEST_REQUIREMENTS_FILES = ('test-requirements.txt', 'tools/test-requires')
 
@@ -76,7 +71,7 @@ def append_text_list(config, key, text_list):
 
 
 def _pip_install(links, requires, root=None, option_dict=dict()):
-    if get_boolean_option(
+    if options.get_boolean_option(
             option_dict, 'skip_pip_install', 'SKIP_PIP_INSTALL'):
         return
     cmd = [sys.executable, '-m', 'pip.__init__', 'install']
@@ -236,17 +231,11 @@ def _get_highest_tag(tags):
     return max(tags, key=pkg_resources.parse_version)
 
 
-def get_boolean_option(option_dict, option_name, env_name):
-    return ((option_name in option_dict
-             and option_dict[option_name][1].lower() in TRUE_VALUES) or
-            str(os.getenv(env_name)).lower() in TRUE_VALUES)
-
-
 def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
                         option_dict=dict()):
     """Write a changelog based on the git changelog."""
-    should_skip = get_boolean_option(option_dict, 'skip_changelog',
-                                     'SKIP_WRITE_GIT_CHANGELOG')
+    should_skip = options.get_boolean_option(option_dict, 'skip_changelog',
+                                             'SKIP_WRITE_GIT_CHANGELOG')
     if should_skip:
         return
 
@@ -303,8 +292,8 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
 
 def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
     """Create AUTHORS file using git commits."""
-    should_skip = get_boolean_option(option_dict, 'skip_authors',
-                                     'SKIP_GENERATE_AUTHORS')
+    should_skip = options.get_boolean_option(option_dict, 'skip_authors',
+                                             'SKIP_GENERATE_AUTHORS')
     if should_skip:
         return
 
@@ -358,23 +347,6 @@ def _find_git_files(dirname='', git_dir=None):
         file_list = _run_git_command(['ls-files', '-z'], git_dir)
         file_list = file_list.split(b'\x00'.decode('utf-8'))
     return [f for f in file_list if f]
-
-
-_rst_template = """%(heading)s
-%(underline)s
-
-.. automodule:: %(module)s
-  :members:
-  :undoc-members:
-  :show-inheritance:
-"""
-
-
-def _find_modules(arg, dirname, files):
-    for filename in files:
-        if filename.endswith('.py') and filename != '__init__.py':
-            arg["%s.%s" % (dirname.replace('/', '.'),
-                           filename[:-3])] = True
 
 
 class LocalInstall(install.install):
@@ -583,8 +555,8 @@ class LocalManifestMaker(egg_info.manifest_maker):
         self.filelist.append(self.template)
         self.filelist.append(self.manifest)
         self.filelist.extend(extra_files.get_extra_files())
-        should_skip = get_boolean_option(option_dict, 'skip_git_sdist',
-                                         'SKIP_GIT_SDIST')
+        should_skip = options.get_boolean_option(option_dict, 'skip_git_sdist',
+                                                 'SKIP_GIT_SDIST')
         if not should_skip:
             rcfiles = _find_git_files()
             if rcfiles:
@@ -635,142 +607,16 @@ class LocalSDist(sdist.sdist):
         sdist.sdist.run(self)
 
 try:
-    from sphinx import apidoc
-    from sphinx import application
-    from sphinx import config
-    from sphinx import setup_command
-
-    class LocalBuildDoc(setup_command.BuildDoc):
-
-        command_name = 'build_sphinx'
-        builders = ['html', 'man']
-
-        def _get_source_dir(self):
-            option_dict = self.distribution.get_option_dict('build_sphinx')
-            if 'source_dir' in option_dict:
-                source_dir = os.path.join(option_dict['source_dir'][1], 'api')
-            else:
-                source_dir = 'doc/source/api'
-            if not os.path.exists(source_dir):
-                os.makedirs(source_dir)
-            return source_dir
-
-        def generate_autoindex(self):
-            log.info("[pbr] Autodocumenting from %s"
-                     % os.path.abspath(os.curdir))
-            modules = {}
-            source_dir = self._get_source_dir()
-            for pkg in self.distribution.packages:
-                if '.' not in pkg:
-                    for dirpath, dirnames, files in os.walk(pkg):
-                        _find_modules(modules, dirpath, files)
-            module_list = list(modules.keys())
-            module_list.sort()
-            autoindex_filename = os.path.join(source_dir, 'autoindex.rst')
-            with open(autoindex_filename, 'w') as autoindex:
-                autoindex.write(""".. toctree::
-   :maxdepth: 1
-
-""")
-                for module in module_list:
-                    output_filename = os.path.join(source_dir,
-                                                   "%s.rst" % module)
-                    heading = "The :mod:`%s` Module" % module
-                    underline = "=" * len(heading)
-                    values = dict(module=module, heading=heading,
-                                  underline=underline)
-
-                    log.info("[pbr] Generating %s"
-                             % output_filename)
-                    with open(output_filename, 'w') as output_file:
-                        output_file.write(_rst_template % values)
-                    autoindex.write("   %s.rst\n" % module)
-
-        def _sphinx_tree(self):
-                source_dir = self._get_source_dir()
-                apidoc.main(['apidoc', '.', '-H', 'Modules', '-o', source_dir])
-
-        def _sphinx_run(self):
-            if not self.verbose:
-                status_stream = cStringIO.StringIO()
-            else:
-                status_stream = sys.stdout
-            confoverrides = {}
-            if self.version:
-                confoverrides['version'] = self.version
-            if self.release:
-                confoverrides['release'] = self.release
-            if self.today:
-                confoverrides['today'] = self.today
-            sphinx_config = config.Config(self.config_dir, 'conf.py', {}, [])
-            sphinx_config.init_values()
-            if self.builder == 'man' and len(sphinx_config.man_pages) == 0:
-                return
-            app = application.Sphinx(
-                self.source_dir, self.config_dir,
-                self.builder_target_dir, self.doctree_dir,
-                self.builder, confoverrides, status_stream,
-                freshenv=self.fresh_env, warningiserror=True)
-
-            try:
-                app.build(force_all=self.all_files)
-            except Exception as err:
-                from docutils import utils
-                if isinstance(err, utils.SystemMessage):
-                    sys.stder.write('reST markup error:\n')
-                    sys.stderr.write(err.args[0].encode('ascii',
-                                                        'backslashreplace'))
-                    sys.stderr.write('\n')
-                else:
-                    raise
-
-            if self.link_index:
-                src = app.config.master_doc + app.builder.out_suffix
-                dst = app.builder.get_outfilename('index')
-                os.symlink(src, dst)
-
-        def run(self):
-            option_dict = self.distribution.get_option_dict('pbr')
-            tree_index = get_boolean_option(option_dict,
-                                            'autodoc_tree_index_modules',
-                                            'AUTODOC_TREE_INDEX_MODULES')
-            auto_index = get_boolean_option(option_dict,
-                                            'autodoc_index_modules',
-                                            'AUTODOC_INDEX_MODULES')
-            if not os.getenv('SPHINX_DEBUG'):
-                #NOTE(afazekas): These options can be used together,
-                # but they do a very similar thing in a difffernet way
-                if tree_index:
-                    self._sphinx_tree()
-                if auto_index:
-                    self.generate_autoindex()
-
-            for builder in self.builders:
-                self.builder = builder
-                self.finalize_options()
-                self.project = self.distribution.get_name()
-                self.version = self.distribution.get_version()
-                self.release = self.distribution.get_version()
-                if 'warnerrors' in option_dict:
-                    self._sphinx_run()
-                else:
-                    setup_command.BuildDoc.run(self)
-
-        def finalize_options(self):
-            # Not a new style class, super keyword does not work.
-            setup_command.BuildDoc.finalize_options(self)
-            # Allow builders to be configurable - as a comma separated list.
-            if not isinstance(self.builders, list) and self.builders:
-                self.builders = self.builders.split(',')
-
-    class LocalBuildLatex(LocalBuildDoc):
-        builders = ['latex']
-        command_name = 'build_sphinx_latex'
-
+    from pbr import builddoc
     _have_sphinx = True
-
+    # Import the symbols from their new home so the package API stays
+    # compatible.
+    LocalBuildDoc = builddoc.LocalBuildDoc
+    LocalBuildLatex = builddoc.LocalBuildLatex
 except ImportError:
     _have_sphinx = False
+    LocalBuildDoc = None
+    LocalBuildLatex = None
 
 
 def have_sphinx():
