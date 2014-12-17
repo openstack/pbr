@@ -91,8 +91,8 @@ def _find_git_files(dirname='', git_dir=None):
     at absurd times. We only want to do this when we are building an sdist.
     """
     file_list = []
-    if git_dir is None and _git_is_installed():
-        git_dir = _get_git_directory()
+    if git_dir is None:
+        git_dir = _run_git_functions()
     if git_dir:
         log.info("[pbr] In git context, generating filelist from git")
         file_list = _run_git_command(['ls-files', '-z'], git_dir)
@@ -114,10 +114,10 @@ def get_is_release(git_dir):
 
 
 def _run_git_functions():
-    git_dir = _get_git_directory()
-    if git_dir and _git_is_installed():
-        return git_dir
-    return None
+    git_dir = None
+    if _git_is_installed():
+        git_dir = _get_git_directory()
+    return git_dir or None
 
 
 def get_git_short_sha(git_dir=None):

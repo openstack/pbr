@@ -586,8 +586,8 @@ def _get_version_from_git(pre_version=None):
     :param pre_version: If supplied use this as the target version rather than
         inferring one from the last tag + commit messages.
     """
-    git_dir = git._get_git_directory()
-    if git_dir and git._git_is_installed():
+    git_dir = git._run_git_functions()
+    if git_dir:
         try:
             tagged = git._run_git_command(
                 ['describe', '--exact-match'], git_dir,
