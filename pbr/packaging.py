@@ -707,11 +707,13 @@ def _get_version_from_git(pre_version):
             # First, if there are no -'s or .'s, then it's just a short sha.
             # Create a synthetic version for it.
             if '-' not in raw_version and '.' not in raw_version:
-                return "0.0.0.%s" % _get_revno(git_dir)
+                return "0.0.0.post%s" % _get_revno(git_dir)
             # Now, we want to strip the short-sha prefix
             stripped_version = raw_version.split('-g')[0]
-            # Finally, if we convert - to ., we'll get the version we want
-            return stripped_version.replace('-', '.')
+            # Finally, if we convert - to .post, which will turn the remaining
+            # - which separates the version from the revcount into a PEP440
+            # post string
+            return stripped_version.replace('-', '.post')
 
     # If we don't know the version, return an empty string so at least
     # the downstream users of the value always have the same type of
