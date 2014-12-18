@@ -39,6 +39,7 @@
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
 
 import os
+import re
 import sys
 import tempfile
 
@@ -120,8 +121,25 @@ class GPGKeyFixture(fixtures.Fixture):
             """)
         finally:
             f.close()
+        # Note that --quick-random (--debug-quick-random in GnuPG 2.x)
+        # does not have a corresponding preferences file setting and
+        # must be passed explicitly on the command line instead
+        gnupg_version_re = re.compile('gpg .* ([12])\.')
+        gnupg_version = base._run_cmd(['gpg', '--version'], tempdir.path)
+        for line in gnupg_version[0].split('\n'):
+            gnupg_version = gnupg_version_re.match(line)
+            if gnupg_version:
+                gnupg_version = gnupg_version.group(1)
+                break
+        if gnupg_version == '1':
+            gnupg_random = '--quick-random'
+        elif gnupg_version == '2':
+            gnupg_random = '--debug-quick-random'
+        else:
+            gnupg_random = ''
         base._run_cmd(
-            ['gpg', '--gen-key', '--batch', config_file], tempdir.path)
+            ['gpg', '--gen-key', '--batch', gnupg_random, config_file],
+            tempdir.path)
 
 
 class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
