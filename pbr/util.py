@@ -354,8 +354,8 @@ def setup_cfg_to_setup_kwargs(config):
             elif arg == 'cmdclass':
                 cmdclass = {}
                 dist = Distribution()
-                for cls in in_cfg_value:
-                    cls = resolve_name(cls)
+                for cls_name in in_cfg_value:
+                    cls = resolve_name(cls_name)
                     cmd = cls(dist)
                     cmdclass[cmd.get_command_name()] = cls
                 in_cfg_value = cmdclass

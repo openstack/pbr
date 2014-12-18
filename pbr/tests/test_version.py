@@ -36,10 +36,9 @@ class TestSemanticVersion(base.BaseTestCase):
         pre_base2 = version.SemanticVersion(1, 2, 3, 'a', 4)
         pre_type = version.SemanticVersion(1, 2, 3, 'b', 4)
         pre_serial = version.SemanticVersion(1, 2, 3, 'a', 5)
-        dev_base = version.SemanticVersion(1, 2, 3, dev_count=6, githash='6')
-        dev_base2 = version.SemanticVersion(1, 2, 3, dev_count=6, githash='6')
-        dev_count = version.SemanticVersion(1, 2, 3, dev_count=7, githash='6')
-        githash = version.SemanticVersion(1, 2, 3, dev_count=6, githash='7')
+        dev_base = version.SemanticVersion(1, 2, 3, dev_count=6)
+        dev_base2 = version.SemanticVersion(1, 2, 3, dev_count=6)
+        dev_count = version.SemanticVersion(1, 2, 3, dev_count=7)
         self.assertEqual(base, base2)
         self.assertNotEqual(base, major)
         self.assertNotEqual(base, minor)
@@ -47,15 +46,12 @@ class TestSemanticVersion(base.BaseTestCase):
         self.assertNotEqual(base, pre_type)
         self.assertNotEqual(base, pre_serial)
         self.assertNotEqual(base, dev_count)
-        self.assertNotEqual(base, githash)
         self.assertEqual(pre_base, pre_base2)
         self.assertNotEqual(pre_base, pre_type)
         self.assertNotEqual(pre_base, pre_serial)
         self.assertNotEqual(pre_base, dev_count)
-        self.assertNotEqual(pre_base, githash)
         self.assertEqual(dev_base, dev_base2)
         self.assertNotEqual(dev_base, dev_count)
-        self.assertNotEqual(dev_base, githash)
         simple = version.SemanticVersion(1)
         explicit_minor = version.SemanticVersion(1, 0)
         explicit_patch = version.SemanticVersion(1, 0, 0)
@@ -72,9 +68,8 @@ class TestSemanticVersion(base.BaseTestCase):
         pre_beta = version.SemanticVersion(1, 2, 3, 'b', 3)
         pre_rc = version.SemanticVersion(1, 2, 3, 'rc', 2)
         pre_serial = version.SemanticVersion(1, 2, 3, 'a', 5)
-        dev_base = version.SemanticVersion(1, 2, 3, dev_count=6, githash='6')
-        dev_count = version.SemanticVersion(1, 2, 3, dev_count=7, githash='6')
-        githash = version.SemanticVersion(1, 2, 3, dev_count=6, githash='7')
+        dev_base = version.SemanticVersion(1, 2, 3, dev_count=6)
+        dev_count = version.SemanticVersion(1, 2, 3, dev_count=7)
         self.assertThat(base, matchers.LessThan(major))
         self.assertThat(major, matchers.GreaterThan(base))
         self.assertThat(base, matchers.LessThan(minor))
@@ -97,7 +92,6 @@ class TestSemanticVersion(base.BaseTestCase):
         self.assertRaises(TypeError, operator.lt, dev_base, pre_alpha)
         self.assertThat(dev_base, matchers.LessThan(dev_count))
         self.assertThat(dev_count, matchers.GreaterThan(dev_base))
-        self.assertRaises(TypeError, operator.lt, dev_base, githash)
 
     def test_from_pip_string_legacy_alpha(self):
         expected = version.SemanticVersion(
@@ -136,37 +130,6 @@ class TestSemanticVersion(base.BaseTestCase):
         parsed = from_pip_string('2014.2.b2')
         self.assertEqual(expected, parsed)
 
-    def test_from_pip_string_legacy_dev(self):
-        expected = version.SemanticVersion(
-            0, 10, 1, dev_count=3, githash='83bef74')
-        parsed = from_pip_string('0.10.1.3.g83bef74')
-        self.assertEqual(expected, parsed)
-
-    def test_from_pip_string_legacy_corner_case_dev(self):
-        # If the last tag is missing, or if the last tag has less than 3
-        # components, we need to 0 extend on parsing.
-        expected = version.SemanticVersion(
-            0, 0, 0, dev_count=1, githash='83bef74')
-        parsed = from_pip_string('0.0.g83bef74')
-        self.assertEqual(expected, parsed)
-
-    def test_from_pip_string_legacy_short_dev(self):
-        # If the last tag is missing, or if the last tag has less than 3
-        # components, we need to 0 extend on parsing.
-        expected = version.SemanticVersion(
-            0, 0, 0, dev_count=1, githash='83bef74')
-        parsed = from_pip_string('0.g83bef74')
-        self.assertEqual(expected, parsed)
-
-    def test_from_pip_string_dev_missing_patch_version(self):
-        expected = version.SemanticVersion(
-            2014, 2, dev_count=21, githash='c4c8d0b')
-        parsed = from_pip_string('2014.2.dev21.gc4c8d0b')
-        self.assertEqual(expected, parsed)
-
-    def test_from_pip_string_pure_git_hash(self):
-        self.assertRaises(ValueError, from_pip_string, '6eed5ae')
-
     def test_final_version(self):
         semver = version.SemanticVersion(1, 2, 3)
         self.assertEqual((1, 2, 3, 'final', 0), semver.version_tuple())
@@ -183,13 +146,13 @@ class TestSemanticVersion(base.BaseTestCase):
         self.assertEqual(semver, from_pip_string("1.0.0"))
 
     def test_dev_version(self):
-        semver = version.SemanticVersion(1, 2, 4, dev_count=5, githash='12')
+        semver = version.SemanticVersion(1, 2, 4, dev_count=5)
         self.assertEqual((1, 2, 4, 'dev', 4), semver.version_tuple())
         self.assertEqual("1.2.4", semver.brief_string())
-        self.assertEqual("1.2.4~dev5+g12", semver.debian_string())
-        self.assertEqual("1.2.4.dev5.g12", semver.release_string())
-        self.assertEqual("1.2.3.dev5+g12", semver.rpm_string())
-        self.assertEqual(semver, from_pip_string("1.2.4.dev5.g12"))
+        self.assertEqual("1.2.4~dev5", semver.debian_string())
+        self.assertEqual("1.2.4.dev5", semver.release_string())
+        self.assertEqual("1.2.3.dev5", semver.rpm_string())
+        self.assertEqual(semver, from_pip_string("1.2.4.dev5"))
 
     def test_dev_no_git_version(self):
         semver = version.SemanticVersion(1, 2, 4, dev_count=5)
@@ -211,7 +174,7 @@ class TestSemanticVersion(base.BaseTestCase):
 
     def test_alpha_dev_version(self):
         self.assertRaises(
-            ValueError, version.SemanticVersion, 1, 2, 4, 'a', 1, 5, '12')
+            ValueError, version.SemanticVersion, 1, 2, 4, 'a', 1, '12')
 
     def test_alpha_version(self):
         semver = version.SemanticVersion(1, 2, 4, 'a', 1)
@@ -251,7 +214,7 @@ class TestSemanticVersion(base.BaseTestCase):
 
     def test_beta_dev_version(self):
         self.assertRaises(
-            ValueError, version.SemanticVersion, 1, 2, 4, 'b', 1, 5, '12')
+            ValueError, version.SemanticVersion, 1, 2, 4, 'b', 5, '12')
 
     def test_beta_version(self):
         semver = version.SemanticVersion(1, 2, 4, 'b', 1)
@@ -312,7 +275,7 @@ class TestSemanticVersion(base.BaseTestCase):
 
     def test_rc_dev_version(self):
         self.assertRaises(
-            ValueError, version.SemanticVersion, 1, 2, 4, 'rc', 1, 5, '12')
+            ValueError, version.SemanticVersion, 1, 2, 4, 'rc', 1, '12')
 
     def test_rc_version(self):
         semver = version.SemanticVersion(1, 2, 4, 'rc', 1)
@@ -325,17 +288,17 @@ class TestSemanticVersion(base.BaseTestCase):
 
     def test_to_dev(self):
         self.assertEqual(
-            version.SemanticVersion(1, 2, 3, dev_count=1, githash='foo'),
-            version.SemanticVersion(1, 2, 3).to_dev(1, 'foo'))
+            version.SemanticVersion(1, 2, 3, dev_count=1),
+            version.SemanticVersion(1, 2, 3).to_dev(1))
         self.assertEqual(
-            version.SemanticVersion(1, 2, 3, dev_count=1, githash='foo'),
-            version.SemanticVersion(1, 2, 3, 'rc', 1).to_dev(1, 'foo'))
+            version.SemanticVersion(1, 2, 3, dev_count=1),
+            version.SemanticVersion(1, 2, 3, 'rc', 1).to_dev(1))
 
     def test_to_release(self):
         self.assertEqual(
             version.SemanticVersion(1, 2, 3),
             version.SemanticVersion(
-                1, 2, 3, dev_count=1, githash='foo').to_release())
+                1, 2, 3, dev_count=1).to_release())
         self.assertEqual(
             version.SemanticVersion(1, 2, 3),
             version.SemanticVersion(1, 2, 3, 'rc', 1).to_release())

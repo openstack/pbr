@@ -6,6 +6,11 @@ function mkvenv {
     rm -rf $venv
     virtualenv $venv
     $venv/bin/pip install -U pip wheel
+
+    # If a change to PBR is being tested, preinstall from that source tree
+    if [ -n "$PBR_CHANGE" ] ; then
+        $venv/bin/pip install $pbrsdistdir
+    fi
 }
 
 # BASE should be a directory with a subdir called "new" and in that
@@ -34,6 +39,11 @@ PROJECTS=$*
 pbrsdistdir=$tmpdir/pbrsdist
 git clone $REPODIR/pbr $pbrsdistdir
 cd $pbrsdistdir
+
+# Flag whether a change to PBR is being tested
+if git fetch $ZUUL_URL/$ZUUL_PROJECT $ZUUL_REF ; then
+    PBR_CHANGE=1
+fi
 
 eptest=$tmpdir/eptest
 mkdir $eptest

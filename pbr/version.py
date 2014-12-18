@@ -38,8 +38,9 @@ class SemanticVersion(object):
     See the pbr doc 'semver' for details on the semantics.
     """
 
-    def __init__(self, major, minor=0, patch=0, prerelease_type=None,
-                 prerelease=None, dev_count=None, githash=None):
+    def __init__(
+            self, major, minor=0, patch=0, prerelease_type=None,
+            prerelease=None, dev_count=None):
         """Create a SemanticVersion.
 
         :param major: Major component of the version.
@@ -50,12 +51,11 @@ class SemanticVersion(object):
         :param prerelease: For prerelease versions, what number prerelease.
             Defaults to 0.
         :param dev_count: How many commits since the last release.
-        :param githash: What tree hash is this version for.
 
-        :raises: ValueError if both a prerelease version and dev_count or
-        githash are supplied. This is because semver (see the pbr semver
-        documentation) does not permit both a prerelease version and a dev
-        marker at the same time.
+        :raises: ValueError if both a prerelease version and dev_count is
+        supplied. This is because semver (see the pbr semver documentation)
+        does not permit both a prerelease version and a dev marker at the same
+        time.
         """
         self._major = major
         self._minor = minor
@@ -65,7 +65,6 @@ class SemanticVersion(object):
         if self._prerelease_type and not self._prerelease:
             self._prerelease = 0
         self._dev_count = dev_count
-        self._githash = githash
         if prerelease_type is not None and dev_count is not None:
             raise ValueError(
                 "invalid version: cannot have prerelease and dev strings %s %s"
@@ -108,13 +107,8 @@ class SemanticVersion(object):
             if other._dev_count:
                 if self._dev_count < other._dev_count:
                     return True
-                elif self._dev_count > other._dev_count:
+                else:
                     return False
-                elif self._githash == other._githash:
-                    # == it not <
-                    return False
-                raise TypeError(
-                    "same version with different hash has no defined order")
             elif other._prerelease_type:
                 raise TypeError(
                     "ordering pre-release with dev builds is undefined")
@@ -189,7 +183,6 @@ class SemanticVersion(object):
         dev_count = None
         prerelease_type = None
         prerelease = None
-        githash = None
 
         def _parse_type(segment):
             # Discard leading digits (the 0 in 0a1)
@@ -226,19 +219,13 @@ class SemanticVersion(object):
                 component = remainder[0]
                 if component.startswith('dev'):
                     dev_count = int(component[3:])
-                elif component.startswith('g'):
-                    # git hash - so use a dev_count of 1 as we have to have one
-                    dev_count = 1
-                    githash = component[1:]
                 else:
                     raise ValueError(
                         'Unknown remainder %r in %r'
                         % (remainder, version_string))
-        if len(remainder) > 1:
-                githash = remainder[1][1:]
         return SemanticVersion(
             major, minor, patch, prerelease_type=prerelease_type,
-            prerelease=prerelease, dev_count=dev_count, githash=githash)
+            prerelease=prerelease, dev_count=dev_count)
 
     def brief_string(self):
         """Return the short version minus any alpha/beta tags."""
@@ -250,7 +237,7 @@ class SemanticVersion(object):
         This translates the PEP440/semver precedence rules into Debian version
         sorting operators.
         """
-        return self._long_version("~", "+g")
+        return self._long_version("~")
 
     def decrement(self, minor=False, major=False):
         """Return a decremented SemanticVersion.
@@ -323,14 +310,13 @@ class SemanticVersion(object):
             new_major, new_minor, new_patch,
             new_prerelease_type, new_prerelease)
 
-    def _long_version(self, pre_separator, hash_separator, rc_marker=""):
+    def _long_version(self, pre_separator, rc_marker=""):
         """Construct a long string version of this semver.
 
         :param pre_separator: What separator to use between components
             that sort before rather than after. If None, use . and lower the
             version number of the component to preserve sorting. (Used for
             rpm support)
-        :param hash_separator: What separator to use to append the git hash.
         """
         if ((self._prerelease_type or self._dev_count)
                 and pre_separator is None):
@@ -346,9 +332,6 @@ class SemanticVersion(object):
             segments.append(pre_separator)
             segments.append('dev')
             segments.append(self._dev_count)
-            if self._githash:
-                segments.append(hash_separator)
-                segments.append(self._githash)
         return "".join(str(s) for s in segments)
 
     def release_string(self):
@@ -356,7 +339,7 @@ class SemanticVersion(object):
 
         This including suffixes indicating VCS status.
         """
-        return self._long_version(".", ".g", "0")
+        return self._long_version(".", "0")
 
     def rpm_string(self):
         """Return the version number to use when building an RPM package.
@@ -366,17 +349,15 @@ class SemanticVersion(object):
         ~ operator in dpkg),  we show all prerelease versions as being versions
         of the release before.
         """
-        return self._long_version(None, "+g")
+        return self._long_version(None)
 
-    def to_dev(self, dev_count, githash):
+    def to_dev(self, dev_count):
         """Return a development version of this semver.
 
         :param dev_count: The number of commits since the last release.
-        :param githash: The git hash of the tree with this version.
         """
         return SemanticVersion(
-            self._major, self._minor, self._patch, dev_count=dev_count,
-            githash=githash)
+            self._major, self._minor, self._patch, dev_count=dev_count)
 
     def to_release(self):
         """Discard any pre-release or dev metadata.

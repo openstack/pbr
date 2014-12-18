@@ -47,6 +47,7 @@ import mock
 import testscenarios
 from testtools import matchers
 
+from pbr import git
 from pbr import packaging
 from pbr.tests import base
 
@@ -189,16 +190,16 @@ class TestPackagingInPlainDirectory(base.BaseTestCase):
 class TestPresenceOfGit(base.BaseTestCase):
 
     def testGitIsInstalled(self):
-        with mock.patch.object(packaging,
+        with mock.patch.object(git,
                                '_run_shell_command') as _command:
             _command.return_value = 'git version 1.8.4.1'
-            self.assertEqual(True, packaging._git_is_installed())
+            self.assertEqual(True, git._git_is_installed())
 
     def testGitIsNotInstalled(self):
-        with mock.patch.object(packaging,
+        with mock.patch.object(git,
                                '_run_shell_command') as _command:
             _command.side_effect = OSError
-            self.assertEqual(False, packaging._git_is_installed())
+            self.assertEqual(False, git._git_is_installed())
 
 
 class TestNestedRequirements(base.BaseTestCase):
@@ -259,14 +260,14 @@ class TestVersions(base.BaseTestCase):
         self.repo.tag('1.2.3')
         self.repo.commit('Sem-Ver: api-break')
         version = packaging._get_version_from_git()
-        self.assertThat(version, matchers.StartsWith('2.0.0.dev1.g'))
+        self.assertThat(version, matchers.StartsWith('2.0.0.dev1'))
 
     def test_capitalized_headers_partial(self):
         self.repo.commit()
         self.repo.tag('1.2.3')
         self.repo.commit('Sem-ver: api-break')
         version = packaging._get_version_from_git()
-        self.assertThat(version, matchers.StartsWith('2.0.0.dev1.g'))
+        self.assertThat(version, matchers.StartsWith('2.0.0.dev1'))
 
     def test_tagged_version_has_tag_version(self):
         self.repo.commit()
@@ -279,28 +280,28 @@ class TestVersions(base.BaseTestCase):
         self.repo.tag('1.2.3')
         self.repo.commit()
         version = packaging._get_version_from_git()
-        self.assertThat(version, matchers.StartsWith('1.2.4.dev1.g'))
+        self.assertThat(version, matchers.StartsWith('1.2.4.dev1'))
 
     def test_untagged_version_minor_bump(self):
         self.repo.commit()
         self.repo.tag('1.2.3')
         self.repo.commit('sem-ver: deprecation')
         version = packaging._get_version_from_git()
-        self.assertThat(version, matchers.StartsWith('1.3.0.dev1.g'))
+        self.assertThat(version, matchers.StartsWith('1.3.0.dev1'))
 
     def test_untagged_version_major_bump(self):
         self.repo.commit()
         self.repo.tag('1.2.3')
         self.repo.commit('sem-ver: api-break')
         version = packaging._get_version_from_git()
-        self.assertThat(version, matchers.StartsWith('2.0.0.dev1.g'))
+        self.assertThat(version, matchers.StartsWith('2.0.0.dev1'))
 
     def test_untagged_version_has_dev_version_preversion(self):
         self.repo.commit()
         self.repo.tag('1.2.3')
         self.repo.commit()
         version = packaging._get_version_from_git('1.2.5')
-        self.assertThat(version, matchers.StartsWith('1.2.5.dev1.g'))
+        self.assertThat(version, matchers.StartsWith('1.2.5.dev1'))
 
     def test_preversion_too_low_simple(self):
         # That is, the target version is either already released or not high
@@ -359,32 +360,32 @@ class TestVersions(base.BaseTestCase):
         # when the tree is tagged and its wrong:
         self.repo.tag('badver')
         version = packaging._get_version_from_git()
-        self.assertThat(version, matchers.StartsWith('1.0.1.dev1.g'))
+        self.assertThat(version, matchers.StartsWith('1.0.1.dev1'))
         # When the tree isn't tagged, we also fall through.
         self.repo.commit()
         version = packaging._get_version_from_git()
-        self.assertThat(version, matchers.StartsWith('1.0.1.dev2.g'))
+        self.assertThat(version, matchers.StartsWith('1.0.1.dev2'))
         # We don't fall through x.y versions
         self.repo.commit()
         self.repo.tag('1.2')
         self.repo.commit()
         self.repo.tag('badver2')
         version = packaging._get_version_from_git()
-        self.assertThat(version, matchers.StartsWith('1.2.1.dev1.g'))
+        self.assertThat(version, matchers.StartsWith('1.2.1.dev1'))
         # Or x.y.z versions
         self.repo.commit()
         self.repo.tag('1.2.3')
         self.repo.commit()
         self.repo.tag('badver3')
         version = packaging._get_version_from_git()
-        self.assertThat(version, matchers.StartsWith('1.2.4.dev1.g'))
+        self.assertThat(version, matchers.StartsWith('1.2.4.dev1'))
         # Or alpha/beta/pre versions
         self.repo.commit()
         self.repo.tag('1.2.4.0a1')
         self.repo.commit()
         self.repo.tag('badver4')
         version = packaging._get_version_from_git()
-        self.assertThat(version, matchers.StartsWith('1.2.4.dev1.g'))
+        self.assertThat(version, matchers.StartsWith('1.2.4.dev1'))
 
     def test_valid_tag_honoured(self):
         # Fix for bug 1370608 - we converted any target into a 'dev version'
