@@ -25,7 +25,6 @@ from distutils import log
 import email
 import functools
 import itertools
-import json
 import os
 import platform
 import re
@@ -41,6 +40,7 @@ from setuptools.command import sdist
 from pbr import extra_files
 from pbr import git
 from pbr import options
+import pbr.pbr_json
 from pbr import version
 
 REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
@@ -505,19 +505,6 @@ def _get_increment_kwargs(git_dir, tag):
     return result
 
 
-def write_pbr_json(cmd, basename, filename):
-    git_dir = git._run_git_functions()
-    if not git_dir:
-        return
-    values = dict()
-    git_version = git.get_git_short_sha(git_dir)
-    is_release = git.get_is_release(git_dir)
-    if git_version is not None:
-        values['git_version'] = git_version
-        values['is_release'] = is_release
-        cmd.write_file('pbr', filename, json.dumps(values))
-
-
 def _get_revno_and_last_tag(git_dir):
     """Return the commit data about the most recent tag.
 
@@ -671,3 +658,10 @@ def get_version(package_name, pre_version=None):
     raise Exception("Versioning for this project requires either an sdist"
                     " tarball, or access to an upstream git repository."
                     " Are you sure that git is installed?")
+
+
+# This is added because pbr uses pbr to install itself. That means that
+# any changes to the egg info writer entrypoints must be forward and
+# backward compatible. This maintains the pbr.packaging.write_pbr_json
+# path.
+write_pbr_json = pbr.pbr_json.write_pbr_json
