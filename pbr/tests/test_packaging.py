@@ -44,6 +44,7 @@ import tempfile
 import fixtures
 import mock
 
+from pbr import git
 from pbr import packaging
 from pbr.tests import base
 
@@ -133,16 +134,14 @@ class TestPackagingInPlainDirectory(base.BaseTestCase):
 class TestPresenceOfGit(base.BaseTestCase):
 
     def testGitIsInstalled(self):
-        with mock.patch.object(packaging,
-                               '_run_shell_command') as _command:
+        with mock.patch.object(git, '_run_shell_command') as _command:
             _command.return_value = 'git version 1.8.4.1'
-            self.assertEqual(True, packaging._git_is_installed())
+            self.assertEqual(True, git._git_is_installed())
 
     def testGitIsNotInstalled(self):
-        with mock.patch.object(packaging,
-                               '_run_shell_command') as _command:
+        with mock.patch.object(git, '_run_shell_command') as _command:
             _command.side_effect = OSError
-            self.assertEqual(False, packaging._git_is_installed())
+            self.assertEqual(False, git._git_is_installed())
 
 
 class TestNestedRequirements(base.BaseTestCase):

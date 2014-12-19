@@ -32,6 +32,7 @@ except ImportError:
 import fixtures
 import testscenarios
 
+from pbr import git
 from pbr import packaging
 from pbr.tests import base
 
@@ -42,35 +43,35 @@ class SkipFileWrites(base.BaseTestCase):
         ('changelog_option_true',
          dict(option_key='skip_changelog', option_value='True',
               env_key='SKIP_WRITE_GIT_CHANGELOG', env_value=None,
-              pkg_func=packaging.write_git_changelog, filename='ChangeLog')),
+              pkg_func=git.write_git_changelog, filename='ChangeLog')),
         ('changelog_option_false',
          dict(option_key='skip_changelog', option_value='False',
               env_key='SKIP_WRITE_GIT_CHANGELOG', env_value=None,
-              pkg_func=packaging.write_git_changelog, filename='ChangeLog')),
+              pkg_func=git.write_git_changelog, filename='ChangeLog')),
         ('changelog_env_true',
          dict(option_key='skip_changelog', option_value='False',
               env_key='SKIP_WRITE_GIT_CHANGELOG', env_value='True',
-              pkg_func=packaging.write_git_changelog, filename='ChangeLog')),
+              pkg_func=git.write_git_changelog, filename='ChangeLog')),
         ('changelog_both_true',
          dict(option_key='skip_changelog', option_value='True',
               env_key='SKIP_WRITE_GIT_CHANGELOG', env_value='True',
-              pkg_func=packaging.write_git_changelog, filename='ChangeLog')),
+              pkg_func=git.write_git_changelog, filename='ChangeLog')),
         ('authors_option_true',
          dict(option_key='skip_authors', option_value='True',
               env_key='SKIP_GENERATE_AUTHORS', env_value=None,
-              pkg_func=packaging.generate_authors, filename='AUTHORS')),
+              pkg_func=git.generate_authors, filename='AUTHORS')),
         ('authors_option_false',
          dict(option_key='skip_authors', option_value='False',
               env_key='SKIP_GENERATE_AUTHORS', env_value=None,
-              pkg_func=packaging.generate_authors, filename='AUTHORS')),
+              pkg_func=git.generate_authors, filename='AUTHORS')),
         ('authors_env_true',
          dict(option_key='skip_authors', option_value='False',
               env_key='SKIP_GENERATE_AUTHORS', env_value='True',
-              pkg_func=packaging.generate_authors, filename='AUTHORS')),
+              pkg_func=git.generate_authors, filename='AUTHORS')),
         ('authors_both_true',
          dict(option_key='skip_authors', option_value='True',
               env_key='SKIP_GENERATE_AUTHORS', env_value='True',
-              pkg_func=packaging.generate_authors, filename='AUTHORS')),
+              pkg_func=git.generate_authors, filename='AUTHORS')),
     ]
 
     def setUp(self):
@@ -129,8 +130,7 @@ class GitLogsTest(base.BaseTestCase):
             "stdout": BytesIO(_changelog_content.encode('utf-8'))
         }))
 
-        packaging.write_git_changelog(git_dir=self.git_dir,
-                                      dest_dir=self.temp_path)
+        git.write_git_changelog(git_dir=self.git_dir, dest_dir=self.temp_path)
 
         with open(os.path.join(self.temp_path, "ChangeLog"), "r") as ch_fh:
             changelog_contents = ch_fh.read()
@@ -171,14 +171,13 @@ class GitLogsTest(base.BaseTestCase):
             return cmd_map[" ".join(cmd)]
 
         self.useFixture(fixtures.MonkeyPatch(
-            "pbr.packaging._run_shell_command",
+            "pbr.git._run_shell_command",
             _fake_run_shell_command))
 
         with open(os.path.join(self.temp_path, "AUTHORS.in"), "w") as auth_fh:
             auth_fh.write("%s\n" % author_old)
 
-        packaging.generate_authors(git_dir=self.git_dir,
-                                   dest_dir=self.temp_path)
+        git.generate_authors(git_dir=self.git_dir, dest_dir=self.temp_path)
 
         with open(os.path.join(self.temp_path, "AUTHORS"), "r") as auth_fh:
             authors = auth_fh.read()

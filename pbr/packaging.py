@@ -23,15 +23,11 @@ Utilities with minimum-depends for use in setup.py
 from __future__ import unicode_literals
 
 import email
-import io
-import json
 import os
 import re
-import subprocess
 import sys
 
 from distutils.command import install as du_install
-import distutils.errors
 from distutils import log
 import pkg_resources
 from setuptools.command import easy_install
@@ -41,7 +37,9 @@ from setuptools.command import install_scripts
 from setuptools.command import sdist
 
 from pbr import extra_files
+from pbr import git
 from pbr import options
+import pbr.pbr_json
 
 REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
 TEST_REQUIREMENTS_FILES = ('test-requirements.txt', 'tools/test-requires')
@@ -82,7 +80,7 @@ def _pip_install(links, requires, root=None, option_dict=dict()):
         cmd.append(link)
 
     # NOTE(ociuhandu): popen on Windows does not accept unicode strings
-    _run_shell_command(
+    git._run_shell_command(
         cmd + requires,
         throw_on_error=True, buffer=False, env=dict(PIP_USE_WHEEL=b"true"))
 
@@ -173,180 +171,6 @@ def parse_dependency_links(requirements_files=None):
         elif re.match(r'\s*https?:', line):
             dependency_links.append(line)
     return dependency_links
-
-
-def _run_git_command(cmd, git_dir, **kwargs):
-    if not isinstance(cmd, (list, tuple)):
-        cmd = [cmd]
-    return _run_shell_command(
-        ['git', '--git-dir=%s' % git_dir] + cmd, **kwargs)
-
-
-def _run_shell_command(cmd, throw_on_error=False, buffer=True, env=None):
-    if buffer:
-        out_location = subprocess.PIPE
-        err_location = subprocess.PIPE
-    else:
-        out_location = None
-        err_location = None
-
-    newenv = os.environ.copy()
-    if env:
-        newenv.update(env)
-
-    output = subprocess.Popen(cmd,
-                              stdout=out_location,
-                              stderr=err_location,
-                              env=newenv)
-    out = output.communicate()
-    if output.returncode and throw_on_error:
-        raise distutils.errors.DistutilsError(
-            "%s returned %d" % (cmd, output.returncode))
-    if len(out) == 0 or not out[0] or not out[0].strip():
-        return ''
-    return out[0].strip().decode('utf-8')
-
-
-def _get_git_directory():
-    return _run_shell_command(['git', 'rev-parse', '--git-dir'])
-
-
-def _git_is_installed():
-    try:
-        # We cannot use 'which git' as it may not be available
-        # in some distributions, So just try 'git --version'
-        # to see if we run into trouble
-        _run_shell_command(['git', '--version'])
-    except OSError:
-        return False
-    return True
-
-
-def _get_highest_tag(tags):
-    """Find the highest tag from a list.
-
-    Pass in a list of tag strings and this will return the highest
-    (latest) as sorted by the pkg_resources version parser.
-    """
-    return max(tags, key=pkg_resources.parse_version)
-
-
-def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
-                        option_dict=dict()):
-    """Write a changelog based on the git changelog."""
-    should_skip = options.get_boolean_option(option_dict, 'skip_changelog',
-                                             'SKIP_WRITE_GIT_CHANGELOG')
-    if should_skip:
-        return
-
-    new_changelog = os.path.join(dest_dir, 'ChangeLog')
-    # If there's already a ChangeLog and it's not writable, just use it
-    if (os.path.exists(new_changelog)
-            and not os.access(new_changelog, os.W_OK)):
-        return
-    log.info('[pbr] Writing ChangeLog')
-    if git_dir is None:
-        git_dir = _run_git_functions()
-    if not git_dir:
-        return
-
-    log_cmd = ['log', '--oneline', '--decorate']
-    changelog = _run_git_command(log_cmd, git_dir)
-    first_line = True
-    with io.open(new_changelog, "w",
-                 encoding="utf-8") as changelog_file:
-        changelog_file.write("CHANGES\n=======\n\n")
-        for line in changelog.split('\n'):
-            line_parts = line.split()
-            if len(line_parts) < 2:
-                continue
-            # Tags are in a list contained in ()'s. If a commit
-            # subject that is tagged happens to have ()'s in it
-            # this will fail
-            if line_parts[1].startswith('(') and ')' in line:
-                msg = line.split(')')[1].strip()
-            else:
-                msg = " ".join(line_parts[1:])
-
-            if "tag:" in line:
-                tags = [
-                    tag.split(",")[0]
-                    for tag in line.split(")")[0].split("tag: ")[1:]]
-                tag = _get_highest_tag(tags)
-
-                underline = len(tag) * '-'
-                if not first_line:
-                    changelog_file.write('\n')
-                changelog_file.write(
-                    ("%(tag)s\n%(underline)s\n\n" %
-                     dict(tag=tag,
-                          underline=underline)))
-
-            if not msg.startswith("Merge "):
-                if msg.endswith("."):
-                    msg = msg[:-1]
-                changelog_file.write(
-                    ("* %(msg)s\n" % dict(msg=msg)))
-            first_line = False
-
-
-def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
-    """Create AUTHORS file using git commits."""
-    should_skip = options.get_boolean_option(option_dict, 'skip_authors',
-                                             'SKIP_GENERATE_AUTHORS')
-    if should_skip:
-        return
-
-    old_authors = os.path.join(dest_dir, 'AUTHORS.in')
-    new_authors = os.path.join(dest_dir, 'AUTHORS')
-    # If there's already an AUTHORS file and it's not writable, just use it
-    if (os.path.exists(new_authors)
-            and not os.access(new_authors, os.W_OK)):
-        return
-    log.info('[pbr] Generating AUTHORS')
-    ignore_emails = '(jenkins@review|infra@lists|jenkins@openstack)'
-    if git_dir is None:
-        git_dir = _run_git_functions()
-    if git_dir:
-        authors = []
-
-        # don't include jenkins email address in AUTHORS file
-        git_log_cmd = ['log', '--format=%aN <%aE>']
-        authors += _run_git_command(git_log_cmd, git_dir).split('\n')
-        authors = [a for a in authors if not re.search(ignore_emails, a)]
-
-        # get all co-authors from commit messages
-        co_authors_out = _run_git_command('log', git_dir)
-        co_authors = re.findall('Co-authored-by:.+', co_authors_out,
-                                re.MULTILINE)
-        co_authors = [signed.split(":", 1)[1].strip()
-                      for signed in co_authors if signed]
-
-        authors += co_authors
-        authors = sorted(set(authors))
-
-        with open(new_authors, 'wb') as new_authors_fh:
-            if os.path.exists(old_authors):
-                with open(old_authors, "rb") as old_authors_fh:
-                    new_authors_fh.write(old_authors_fh.read())
-            new_authors_fh.write(('\n'.join(authors) + '\n')
-                                 .encode('utf-8'))
-
-
-def _find_git_files(dirname='', git_dir=None):
-    """Behave like a file finder entrypoint plugin.
-
-    We don't actually use the entrypoints system for this because it runs
-    at absurd times. We only want to do this when we are building an sdist.
-    """
-    file_list = []
-    if git_dir is None and _git_is_installed():
-        git_dir = _run_git_functions()
-    if git_dir:
-        log.info("[pbr] In git context, generating filelist from git")
-        file_list = _run_git_command(['ls-files', '-z'], git_dir)
-        file_list = file_list.split(b'\x00'.decode('utf-8'))
-    return [f for f in file_list if f]
 
 
 class LocalInstall(install.install):
@@ -558,7 +382,7 @@ class LocalManifestMaker(egg_info.manifest_maker):
         should_skip = options.get_boolean_option(option_dict, 'skip_git_sdist',
                                                  'SKIP_GIT_SDIST')
         if not should_skip:
-            rcfiles = _find_git_files()
+            rcfiles = git._find_git_files()
             if rcfiles:
                 self.filelist.extend(rcfiles)
         elif os.path.exists(self.manifest):
@@ -601,8 +425,8 @@ class LocalSDist(sdist.sdist):
 
     def run(self):
         option_dict = self.distribution.get_option_dict('pbr')
-        write_git_changelog(option_dict=option_dict)
-        generate_authors(option_dict=option_dict)
+        git.write_git_changelog(option_dict=option_dict)
+        git.generate_authors(option_dict=option_dict)
         # sdist.sdist is an old style class, can't use super()
         sdist.sdist.run(self)
 
@@ -623,62 +447,19 @@ def have_sphinx():
     return _have_sphinx
 
 
-def _get_raw_tag_info(git_dir):
-    describe = _run_git_command(['describe', '--always'], git_dir)
-    if "-" in describe:
-        return describe.rsplit("-", 2)[-2]
-    if "." in describe:
-        return 0
-    return None
-
-
-def get_is_release(git_dir):
-    return _get_raw_tag_info(git_dir) == 0
-
-
-def _run_git_functions():
-    git_dir = None
-    if _git_is_installed():
-        git_dir = _get_git_directory()
-    return git_dir or None
-
-
-def get_git_short_sha(git_dir=None):
-    """Return the short sha for this repo, if it exists."""
-    if not git_dir:
-        git_dir = _run_git_functions()
-    if git_dir:
-        return _run_git_command(
-            ['log', '-n1', '--pretty=format:%h'], git_dir)
-    return None
-
-
-def write_pbr_json(cmd, basename, filename):
-    git_dir = _run_git_functions()
-    if not git_dir:
-        return
-    values = dict()
-    git_version = get_git_short_sha(git_dir)
-    is_release = get_is_release(git_dir)
-    if git_version is not None:
-        values['git_version'] = git_version
-        values['is_release'] = is_release
-        cmd.write_file('pbr', filename, json.dumps(values))
-
-
-def _get_revno(git_dir):
-    """Return the number of commits since the most recent tag.
+def _get_revno_and_last_tag(git_dir):
+    """Return the commit data about the most recent tag.
 
     We use git-describe to find this out, but if there are no
     tags then we fall back to counting commits since the beginning
     of time.
     """
-    raw_tag_info = _get_raw_tag_info(git_dir)
+    raw_tag_info = git._get_raw_tag_info(git_dir)
     if raw_tag_info:
         return raw_tag_info
 
     # no tags found
-    revlist = _run_git_command(
+    revlist = git._run_git_command(
         ['rev-list', '--abbrev-commit', 'HEAD'], git_dir)
     return len(revlist.splitlines())
 
@@ -689,25 +470,27 @@ def _get_version_from_git(pre_version):
     if the current revision has no tag.
     """
 
-    git_dir = _run_git_functions()
+    git_dir = git._run_git_functions()
     if git_dir:
         if pre_version:
             try:
-                return _run_git_command(
+                return git._run_git_command(
                     ['describe', '--exact-match'], git_dir,
                     throw_on_error=True).replace('-', '.')
             except Exception:
-                return "%s.dev%s" % (pre_version, _get_revno(git_dir))
+                return "%s.dev%s" % (pre_version,
+                                     _get_revno_and_last_tag(git_dir)[0])
         else:
             # git describe always is going to return one of three things
             # - a short-sha if there are no tags
             # - a tag, if there's one on the current revision
             # - a string of the form $last_tag-$revs_since_last_tag-g$short_sha
-            raw_version = _run_git_command(['describe', '--always'], git_dir)
+            raw_version = git._run_git_command(['describe', '--always'],
+                                               git_dir)
             # First, if there are no -'s or .'s, then it's just a short sha.
             # Create a synthetic version for it.
             if '-' not in raw_version and '.' not in raw_version:
-                return "0.0.0.post%s" % _get_revno(git_dir)
+                return "0.0.0.post%s" % _get_revno_and_last_tag(git_dir)[0]
             # Now, we want to strip the short-sha prefix
             stripped_version = raw_version.split('-g')[0]
             # Finally, if we convert - to .post, which will turn the remaining
@@ -772,3 +555,10 @@ def get_version(package_name, pre_version=None):
     raise Exception("Versioning for this project requires either an sdist"
                     " tarball, or access to an upstream git repository."
                     " Are you sure that git is installed?")
+
+
+# This is added because pbr uses pbr to install itself. That means that
+# any changes to the egg info writer entrypoints must be forward and
+# backward compatible. This maintains the pbr.packaging.write_pbr_json
+# path.
+write_pbr_json = pbr.pbr_json.write_pbr_json
