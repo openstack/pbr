@@ -6,6 +6,9 @@ function mkvenv {
     rm -rf $venv
     virtualenv $venv
     $venv/bin/pip install -U pip wheel
+    if [ $ZUUL_PROJECT = "openstack-dev/pbr" ] ; then
+        $venv/bin/pip install $pbrsdistdir
+    fi
 }
 
 # BASE should be a directory with a subdir called "new" and in that
@@ -34,6 +37,10 @@ PROJECTS=$*
 pbrsdistdir=$tmpdir/pbrsdist
 git clone $REPODIR/pbr $pbrsdistdir
 cd $pbrsdistdir
+if [ $ZUUL_PROJECT = "openstack-dev/pbr" ] ; then
+    git fetch $ZUUL_URL/$ZUUL_PROJECT $ZUUL_REF
+    git reset --hard FETCH_HEAD
+fi
 
 eptest=$tmpdir/eptest
 mkdir $eptest

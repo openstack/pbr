@@ -490,7 +490,7 @@ def _get_version_from_git(pre_version):
             # First, if there are no -'s or .'s, then it's just a short sha.
             # Create a synthetic version for it.
             if '-' not in raw_version and '.' not in raw_version:
-                return "0.0.0.post%s" % _get_revno_and_last_tag(git_dir)[0]
+                return "0.0.0.post%s" % _get_revno_and_last_tag(git_dir)
             # Now, we want to strip the short-sha prefix
             stripped_version = raw_version.split('-g')[0]
             # Finally, if we convert - to .post, which will turn the remaining
