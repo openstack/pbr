@@ -447,8 +447,8 @@ def have_sphinx():
     return _have_sphinx
 
 
-def _get_revno_and_last_tag(git_dir):
-    """Return the commit data about the most recent tag.
+def _get_revno(git_dir):
+    """Return the commit count since the most recent tag.
 
     We use git-describe to find this out, but if there are no
     tags then we fall back to counting commits since the beginning
@@ -478,8 +478,7 @@ def _get_version_from_git(pre_version):
                     ['describe', '--exact-match'], git_dir,
                     throw_on_error=True).replace('-', '.')
             except Exception:
-                return "%s.dev%s" % (pre_version,
-                                     _get_revno_and_last_tag(git_dir)[0])
+                return "%s.dev%s" % (pre_version, _get_revno(git_dir))
         else:
             # git describe always is going to return one of three things
             # - a short-sha if there are no tags
@@ -490,7 +489,7 @@ def _get_version_from_git(pre_version):
             # First, if there are no -'s or .'s, then it's just a short sha.
             # Create a synthetic version for it.
             if '-' not in raw_version and '.' not in raw_version:
-                return "0.0.0.post%s" % _get_revno_and_last_tag(git_dir)
+                return "0.0.0.post%s" % _get_revno(git_dir)
             # Now, we want to strip the short-sha prefix
             stripped_version = raw_version.split('-g')[0]
             # Finally, if we convert - to .post, which will turn the remaining
