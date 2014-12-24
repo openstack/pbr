@@ -7,9 +7,9 @@ function mkvenv {
     virtualenv $venv
     $venv/bin/pip install -U pip wheel
 
-    # If a change to PBR is being tested, preinstall from that source tree
+    # If a change to PBR is being tested, preinstall the wheel for it
     if [ -n "$PBR_CHANGE" ] ; then
-        $venv/bin/pip install $pbrsdistdir
+        $venv/bin/pip install $pbrsdistdir/dist/pbr-*.whl
     fi
 }
 
@@ -40,8 +40,10 @@ pbrsdistdir=$tmpdir/pbrsdist
 git clone $REPODIR/pbr $pbrsdistdir
 cd $pbrsdistdir
 
-# Flag whether a change to PBR is being tested
+# Prepare a wheel and flag whether a change to PBR is being tested
 if git fetch $ZUUL_URL/$ZUUL_PROJECT $ZUUL_REF ; then
+    mkvenv wheel
+    wheel/bin/python setup.py bdist_wheel
     PBR_CHANGE=1
 fi
 
