@@ -20,7 +20,7 @@ BASE=${BASE:-/opt/stack}
 REPODIR=${REPODIR:-$BASE/new}
 
 # TODO: Figure out how to get this on to the box properly
-sudo apt-get install -y --force-yes libxml2-dev libxslt-dev libmysqlclient-dev libpq-dev libnspr4-dev pkg-config libsqlite3-dev libzmq-dev libffi-dev libldap2-dev libsasl2-dev ccache
+sudo apt-get install -y --force-yes libvirt-dev libxml2-dev libxslt-dev libmysqlclient-dev libpq-dev libnspr4-dev pkg-config libsqlite3-dev libzmq-dev libffi-dev libldap2-dev libsasl2-dev ccache
 
 # FOR numpy / pyyaml
 sudo apt-get build-dep -y --force-yes python-numpy
@@ -30,6 +30,17 @@ sudo apt-get build-dep -y --force-yes python-yaml
 export PATH=/usr/lib/ccache:$PATH
 
 tmpdir=$(mktemp -d)
+
+# Set up a wheelhouse
+export WHEELHOUSE=${WHEELHOUSE:-$tmpdir/.wheelhouse}
+export PIP_WHEEL_DIR=${PIP_WHEEL_DIR:-$WHEELHOUSE}
+export PIP_FIND_LINKS=${PIP_FIND_LINKS:-file://$WHEELHOUSE}
+mkvenv $tmpdir/wheelhouse
+# Not all packages properly build wheels (httpretty for example).
+# Do our best but ignore errors when making wheels.
+set +e
+$tmpdir/wheelhouse/bin/pip wheel -r $REPODIR/requirements/global-requirements.txt
+set -e
 
 #BRANCH
 BRANCH=${OVERRIDE_ZUUL_BRANCH=:-master}
