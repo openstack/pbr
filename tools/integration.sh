@@ -39,7 +39,10 @@ mkvenv $tmpdir/wheelhouse
 # Not all packages properly build wheels (httpretty for example).
 # Do our best but ignore errors when making wheels.
 set +e
-$tmpdir/wheelhouse/bin/pip wheel -r $REPODIR/requirements/global-requirements.txt
+grep -v '^#' $REPODIR/requirements/global-requirements.txt | while read req
+do
+    $tmpdir/wheelhouse/bin/pip wheel "$req"
+done
 set -e
 
 #BRANCH
