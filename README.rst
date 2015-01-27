@@ -22,13 +22,12 @@ when that library itself will alter how the setup is processed. As Metadata
 2.0 and other modern Python packaging PEPs come out, PBR aims to support
 them as quickly as possible.
 
-You can read more in `the documentation`_.
-
-Bugs are tracked using launchpad_.
+* License: Apache License, Version 2.0
+* Documentation: http://docs.openstack.org/developer/pbr
+* Source: http://git.openstack.org/cgit/openstack-dev/pbr
+* Bugs: http://bugs.launchpad.net/pbr
 
 .. _d2to1: https://pypi.python.org/pypi/d2to1
 .. _distutils2: https://pypi.python.org/pypi/Distutils2
 .. _PEP 426: http://legacy.python.org/dev/peps/pep-0426/
 .. _OpenStack: https://www.openstack.org/
-.. _`the documentation`: http://docs.openstack.org/developer/pbr/
-.. _launchpad: https://launchpad.net/pbr
