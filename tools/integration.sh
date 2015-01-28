@@ -115,6 +115,13 @@ eppbrdir=$tmpdir/eppbrdir
 git clone $REPODIR/pbr $eppbrdir
 $epvenv/bin/pip install -e $eppbrdir
 
+# First check develop
+PBR_VERSION=0.0 $epvenv/bin/python setup.py develop
+cat $epvenv/bin/test_cmd
+grep 'PBR Generated' $epvenv/bin/test_cmd
+PBR_VERSION=0.0 $epvenv/bin/python setup.py develop --uninstall
+
+# Now check install
 PBR_VERSION=0.0 $epvenv/bin/python setup.py install
 cat $epvenv/bin/test_cmd
 grep 'PBR Generated' $epvenv/bin/test_cmd

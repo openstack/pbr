@@ -31,6 +31,7 @@ import re
 import sys
 
 import pkg_resources
+from setuptools.command import develop
 from setuptools.command import easy_install
 from setuptools.command import egg_info
 from setuptools.command import install
@@ -337,6 +338,18 @@ def override_get_script_args(
                 invoke_target='.'.join(ep.attrs),
             )
             yield (name, header + script_text)
+
+
+class LocalDevelop(develop.develop):
+
+    command_name = 'develop'
+
+    def install_wrapper_scripts(self, dist):
+        if sys.platform == 'win32':
+            return develop.develop.install_wrapper_scripts(self, dist)
+        if not self.exclude_scripts:
+            for args in override_get_script_args(dist):
+                self.write_script(*args)
 
 
 class LocalInstallScripts(install_scripts.install_scripts):
