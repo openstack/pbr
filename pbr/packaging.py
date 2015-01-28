@@ -344,11 +344,6 @@ class LocalInstallScripts(install_scripts.install_scripts):
     command_name = 'install_scripts'
 
     def run(self):
-        if os.name != 'nt':
-            get_script_args = override_get_script_args
-        else:
-            get_script_args = easy_install.get_script_args
-
         import distutils.command.install_scripts
 
         self.run_command("egg_info")
@@ -373,6 +368,13 @@ class LocalInstallScripts(install_scripts.install_scripts):
         is_wininst = getattr(
             self.get_finalized_command("bdist_wininst"), '_is_running', False
         )
+
+        if os.name != 'nt':
+            get_script_args = override_get_script_args
+        else:
+            get_script_args = easy_install.get_script_args
+            executable = '"%s"' % executable
+
         for args in get_script_args(dist, executable, is_wininst):
             self.write_script(*args)
 
