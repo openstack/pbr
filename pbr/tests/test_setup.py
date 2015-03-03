@@ -275,6 +275,41 @@ class BuildSphinxTest(base.BaseTestCase):
         self.assertIn('man', build_doc.builders)
         self.assertIn('doctest', build_doc.builders)
 
+    def test_cmd_builder_override(self):
+
+        if self.has_opt:
+            self.distr.command_options["pbr"] = {
+                "autodoc_index_modules": ('setup.cfg', self.autodoc)
+            }
+
+        self.distr.command_options["build_sphinx"]["builder"] = (
+            "command line", "non-existing-builder")
+
+        build_doc = packaging.LocalBuildDoc(self.distr)
+        self.assertNotIn('non-existing-builder', build_doc.builders)
+        self.assertIn('html', build_doc.builders)
+
+        # process command line options which should override config
+        build_doc.finalize_options()
+
+        self.assertIn('non-existing-builder', build_doc.builders)
+        self.assertNotIn('html', build_doc.builders)
+
+    def test_cmd_builder_override_multiple_builders(self):
+
+        if self.has_opt:
+            self.distr.command_options["pbr"] = {
+                "autodoc_index_modules": ('setup.cfg', self.autodoc)
+            }
+
+        self.distr.command_options["build_sphinx"]["builder"] = (
+            "command line", "builder1,builder2")
+
+        build_doc = packaging.LocalBuildDoc(self.distr)
+        build_doc.finalize_options()
+
+        self.assertEqual(["builder1", "builder2"], build_doc.builders)
+
 
 class ParseRequirementsTest(base.BaseTestCase):
 
