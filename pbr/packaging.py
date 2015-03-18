@@ -436,9 +436,13 @@ class LocalEggInfo(egg_info.egg_info):
         If we are in an sdist command, then we always want to update
         SOURCES.txt. If we are not in an sdist command, then it doesn't
         matter one flip, and is actually destructive.
+        However, if we're in a git context, it's always the right thing to do
+        to recreate SOURCES.txt
         """
         manifest_filename = os.path.join(self.egg_info, "SOURCES.txt")
-        if not os.path.exists(manifest_filename) or 'sdist' in sys.argv:
+        if (not os.path.exists(manifest_filename) or
+                os.path.exists('.git') or
+                'sdist' in sys.argv):
             log.info("[pbr] Processing SOURCES.txt")
             mm = LocalManifestMaker(self.distribution)
             mm.manifest = manifest_filename
