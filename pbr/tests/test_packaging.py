@@ -40,7 +40,6 @@
 
 import os
 import re
-import sys
 import tempfile
 
 import fixtures
@@ -241,32 +240,6 @@ class TestNestedRequirements(base.BaseTestCase):
             f.write('pbr')
         result = packaging.parse_requirements([requirements])
         self.assertEqual(result, ['pbr'])
-
-
-class TestGetRequirements(base.BaseTestCase):
-
-    def test_get_requirements_file(self):
-        platforms = ['Windows', 'Freebsd', 'Darwin', 'Linux']
-        version = sys.version_info[0]
-
-        with mock.patch('platform.system') as platform_system:
-            platform_system.side_effect = platforms
-
-            for platform in map(str.lower, platforms):
-                expected = [
-                    'requirements-{plat}-py{ver}.txt'.format(
-                        plat=platform, ver=version),
-                    'tools/pip-requires-{plat}-py{ver}'.format(
-                        plat=platform, ver=version),
-                    'requirements-{0}.txt'.format(platform),
-                    'tools/pip-requires-{0}'.format(platform),
-                    'requirements-py{0}.txt'.format(version),
-                    'tools/pip-requires-py{0}'.format(version),
-                    'requirements.txt',
-                    'tools/pip-requires',
-                ]
-                files = packaging.get_requirements_files()
-                self.assertEqual(expected, files)
 
 
 class TestVersions(base.BaseTestCase):
