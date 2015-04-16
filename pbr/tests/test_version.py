@@ -115,6 +115,9 @@ class TestSemanticVersion(base.BaseTestCase):
         parsed = from_pip_string('2014.2.b2')
         self.assertEqual(expected, parsed)
 
+    def test_from_pip_string_pure_git_hash(self):
+        self.assertRaises(ValueError, from_pip_string, '6eed5ae')
+
     def test_from_pip_string_non_digit_start(self):
         self.assertRaises(ValueError, from_pip_string,
                           'non-release-tag/2014.12.16-1')
