@@ -201,7 +201,7 @@ def cfg_to_args(path='setup.cfg'):
     """
 
     # The method source code really starts here.
-    parser = configparser.RawConfigParser()
+    parser = configparser.SafeConfigParser()
     if not os.path.exists(path):
         raise DistutilsFileError("file '%s' does not exist" %
                                  os.path.abspath(path))

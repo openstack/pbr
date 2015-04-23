@@ -51,7 +51,7 @@ except ImportError:
 
 @contextlib.contextmanager
 def open_config(filename):
-    cfg = configparser.ConfigParser()
+    cfg = configparser.SafeConfigParser()
     cfg.read(filename)
     yield cfg
     with open(filename, 'w') as fp:
