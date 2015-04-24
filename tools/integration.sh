@@ -1,11 +1,13 @@
 #!/bin/bash -xe
+# Bootstrappping
+export PIPVERSION=pip
 
 function mkvenv {
     venv=$1
 
     rm -rf $venv
     virtualenv $venv
-    $venv/bin/pip install -U pip wheel
+    $venv/bin/pip install -U $PIPVERSION wheel
 
     # If a change to PBR is being tested, preinstall the wheel for it
     if [ -n "$PBR_CHANGE" ] ; then
@@ -43,6 +45,19 @@ grep -v '^#' $REPODIR/requirements/global-requirements.txt | while read req
 do
     $tmpdir/wheelhouse/bin/pip wheel "$req"
 done
+# Things outside of requirements.txt
+# Specific PIP versions:
+# - build/download a local wheel
+if [ -n "${PBR_PIP_VERSION:-}" ]; then
+    td=$(mktemp -d)
+    $tmpdir/wheelhouse/bin/pip wheel -w $td $PBR_PIP_VERSION
+    # This version will now be installed in every new venv.
+    export PIPVERSION="$td/$(ls $td)"
+    $tmpdir/wheelhouse/bin/pip install -U $PIPVERSION
+    # We have pip in global-requirements as open-ended requirements,
+    # but since we don't use -U in any other invocations, our version
+    # of pip should be sticky.
+fi
 set -e
 
 #BRANCH
