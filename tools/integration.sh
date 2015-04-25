@@ -1,17 +1,24 @@
 #!/bin/bash -xe
-# Bootstrappping
+# Parameters:
+# PBR_PIP_VERSION :- if not set, run pip's latest release, if set must be a
+#    valid reference file entry describing what pip to use.
+# WHEELHOUSE :- if not set, use a temporary wheelhouse, set to a specific path
+#    to use an existing one.
+# PIPFLAGS :- may be set to any pip global option for e.g. debugging.
+# Bootstrappping the mkenv needs to install *a* pip
 export PIPVERSION=pip
+PIPFLAGS=${PIPFLAGS:-}
 
 function mkvenv {
     venv=$1
 
     rm -rf $venv
     virtualenv $venv
-    $venv/bin/pip install -U $PIPVERSION wheel
+    $venv/bin/pip install $PIPFLAGS -U $PIPVERSION wheel
 
     # If a change to PBR is being tested, preinstall the wheel for it
     if [ -n "$PBR_CHANGE" ] ; then
-        $venv/bin/pip install $pbrsdistdir/dist/pbr-*.whl
+        $venv/bin/pip install $PIPFLAGS $pbrsdistdir/dist/pbr-*.whl
     fi
 }
 
@@ -35,19 +42,9 @@ tmpdir=$(mktemp -d)
 
 # Set up a wheelhouse
 export WHEELHOUSE=${WHEELHOUSE:-$tmpdir/.wheelhouse}
-export PIP_WHEEL_DIR=${PIP_WHEEL_DIR:-$WHEELHOUSE}
-export PIP_FIND_LINKS=${PIP_FIND_LINKS:-file://$WHEELHOUSE}
 mkvenv $tmpdir/wheelhouse
-# Not all packages properly build wheels (httpretty for example).
-# Do our best but ignore errors when making wheels.
-set +e
-grep -v '^#' $REPODIR/requirements/global-requirements.txt | while read req
-do
-    $tmpdir/wheelhouse/bin/pip wheel "$req"
-done
-# Things outside of requirements.txt
-# Specific PIP versions:
-# - build/download a local wheel
+# Specific PIP version - must succeed to be useful.
+# - build/download a local wheel so we don't hit the network on each venv.
 if [ -n "${PBR_PIP_VERSION:-}" ]; then
     td=$(mktemp -d)
     $tmpdir/wheelhouse/bin/pip wheel -w $td $PBR_PIP_VERSION
@@ -58,6 +55,14 @@ if [ -n "${PBR_PIP_VERSION:-}" ]; then
     # but since we don't use -U in any other invocations, our version
     # of pip should be sticky.
 fi
+# Build wheels for everything so we don't hit the network on each venv.
+# Not all packages properly build wheels (httpretty for example).
+# Do our best but ignore errors when making wheels.
+set +e
+grep -v '^#' $REPODIR/requirements/global-requirements.txt | while read req
+do
+    $tmpdir/wheelhouse/bin/pip $PIPFLAGS wheel -w $WHEELHOUSE -f $WHEELHOUSE "$req"
+done
 set -e
 
 #BRANCH
@@ -128,7 +133,7 @@ mkvenv $epvenv
 
 eppbrdir=$tmpdir/eppbrdir
 git clone $REPODIR/pbr $eppbrdir
-$epvenv/bin/pip install -e $eppbrdir
+$epvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE -e $eppbrdir
 
 # First check develop
 PBR_VERSION=0.0 $epvenv/bin/python setup.py develop
@@ -193,12 +198,12 @@ for PROJECT in $PROJECTS ; do
     # Test that the tarball installs
     tarballvenv=$tmpdir/tarball
     mkvenv $tarballvenv
-    $tarballvenv/bin/pip install $shortprojectdir/dist/*tar.gz
+    $tarballvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE $shortprojectdir/dist/*tar.gz
 
     # Test pip installing
     pipvenv=$tmpdir/pip
     mkvenv $pipvenv
-    $pipvenv/bin/pip install git+file://$shortprojectdir
+    $pipvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE git+file://$shortprojectdir
 
     # Test python setup.py install
     installvenv=$tmpdir/install
