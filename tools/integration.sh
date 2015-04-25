@@ -59,10 +59,8 @@ fi
 # Not all packages properly build wheels (httpretty for example).
 # Do our best but ignore errors when making wheels.
 set +e
-grep -v '^#' $REPODIR/requirements/global-requirements.txt | while read req
-do
-    $tmpdir/wheelhouse/bin/pip $PIPFLAGS wheel -w $WHEELHOUSE -f $WHEELHOUSE "$req"
-done
+$tmpdir/wheelhouse/bin/pip $PIPFLAGS wheel -w $WHEELHOUSE -f $WHEELHOUSE -r \
+    $REPODIR/requirements/global-requirements.txt
 set -e
 
 #BRANCH
