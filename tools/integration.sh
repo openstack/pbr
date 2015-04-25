@@ -202,23 +202,13 @@ for PROJECT in $PROJECTS ; do
     pipvenv=$tmpdir/pip
     mkvenv $pipvenv
     $pipvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE git+file://$shortprojectdir
+    # Ensure the install_package_data is doing the thing it should do
+    if [ $SHORT_PROJECT = 'nova' ]; then
+        find $pipvenv | grep migrate.cfg
+    fi
 
     # Test pip install -e
     pipvenv=$tmpdir/pip
     mkvenv $pipvenv
     $pipvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE -e $shortprojectdir
-
-    # Test python setup.py install
-    installvenv=$tmpdir/install
-    mkvenv $installvenv
-
-    installprojectdir=$projectdir/install$SHORT_PROJECT
-    git clone $shortprojectdir $installprojectdir
-    cd $installprojectdir
-    $installvenv/bin/python setup.py install
-
-    # Ensure the install_package_data is doing the thing it should do
-    if [ $SHORT_PROJECT = 'nova' ]; then
-        find $installvenv | grep migrate.cfg
-    fi
 done

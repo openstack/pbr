@@ -10,6 +10,11 @@ the results in as the arguments to a call to `setup.py` - so the heavy
 lifting of handling python packaging needs is still being done by
 `setuptools`.
 
+Note that we don't support the `easy_install` aspects of setuptools: while
+we depend on setup_requires, for any install_requires we recommend that they
+be installed prior to running `setup.py install` - either by hand, or by using
+an install tool such as `pip`.
+
 What It Does
 ============
 
