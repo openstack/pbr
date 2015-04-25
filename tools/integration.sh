@@ -203,6 +203,11 @@ for PROJECT in $PROJECTS ; do
     mkvenv $pipvenv
     $pipvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE git+file://$shortprojectdir
 
+    # Test pip install -e
+    pipvenv=$tmpdir/pip
+    mkvenv $pipvenv
+    $pipvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE -e $shortprojectdir
+
     # Test python setup.py install
     installvenv=$tmpdir/install
     mkvenv $installvenv
