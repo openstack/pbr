@@ -317,6 +317,13 @@ class TestVersions(base.BaseTestCase):
         version = packaging._get_version_from_git('1.2.5')
         self.assertThat(version, matchers.StartsWith('1.2.5.dev1'))
 
+    def test_untagged_version_after_rc_has_dev_version_preversion(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3.0a1')
+        self.repo.commit()
+        version = packaging._get_version_from_git('1.2.3')
+        self.assertThat(version, matchers.StartsWith('1.2.3.0a2.dev1'))
+
     def test_preversion_too_low_simple(self):
         # That is, the target version is either already released or not high
         # enough for the semver requirements given api breaks etc.

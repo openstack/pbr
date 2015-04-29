@@ -29,6 +29,7 @@ BASE=${BASE:-/opt/stack}
 REPODIR=${REPODIR:-$BASE/new}
 
 # TODO: Figure out how to get this on to the box properly
+sudo apt-get update
 sudo apt-get install -y --force-yes libvirt-dev libxml2-dev libxslt-dev libmysqlclient-dev libpq-dev libnspr4-dev pkg-config libsqlite3-dev libzmq-dev libffi-dev libldap2-dev libsasl2-dev ccache
 
 # FOR numpy / pyyaml
