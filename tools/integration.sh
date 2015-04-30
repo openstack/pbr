@@ -148,68 +148,19 @@ $epvenv/bin/test_cmd | grep 'Test cmd'
 
 projectdir=$tmpdir/projects
 mkdir -p $projectdir
+sudo chown -R $USER $REPODIR
 
-for PROJECT in $PROJECTS ; do
-    SHORT_PROJECT=$(basename $PROJECT)
-    if ! grep 'pbr' $REPODIR/$SHORT_PROJECT/setup.py >/dev/null 2>&1
-    then
-        # project doesn't use pbr
-        continue
-    fi
-    if [ $SHORT_PROJECT = 'pypi-mirror' ]; then
-        # pypi-mirror doesn't consume the mirror
-        continue
-    fi
-    if [ $SHORT_PROJECT = 'jeepyb' ]; then
-        # pypi-mirror doesn't consume the mirror
-        continue
-    fi
-    if [ $SHORT_PROJECT = 'tempest' ]; then
-        # Tempest doesn't really install
-        continue
-    fi
-    if [ $SHORT_PROJECT = 'requirements' ]; then
-        # requirements doesn't really install
-        continue
-    fi
-
-    # set up the project synced with the global requirements
-    sudo chown -R $USER $REPODIR/$SHORT_PROJECT
-    (cd $REPODIR/requirements && python update.py $REPODIR/$SHORT_PROJECT)
-    pushd $REPODIR/$SHORT_PROJECT
-    if ! git diff --quiet ; then
-        git commit -a -m'Update requirements'
-    fi
-    popd
-
-    # Clone from synced repo
-    shortprojectdir=$projectdir/$SHORT_PROJECT
-    git clone $REPODIR/$SHORT_PROJECT $shortprojectdir
-
-    # Test that we can make a tarball from scratch
-    sdistvenv=$tmpdir/sdist
-    mkvenv $sdistvenv
-    cd $shortprojectdir
-    $sdistvenv/bin/python setup.py sdist
-
-    cd $tmpdir
-
-    # Test that the tarball installs
-    tarballvenv=$tmpdir/tarball
-    mkvenv $tarballvenv
-    $tarballvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE $shortprojectdir/dist/*tar.gz
-
-    # Test pip installing
-    pipvenv=$tmpdir/pip
-    mkvenv $pipvenv
-    $pipvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE git+file://$shortprojectdir
-    # Ensure the install_package_data is doing the thing it should do
-    if [ $SHORT_PROJECT = 'nova' ]; then
-        find $pipvenv | grep migrate.cfg
-    fi
-
-    # Test pip install -e
-    pipvenv=$tmpdir/pip
-    mkvenv $pipvenv
-    $pipvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE -e $shortprojectdir
-done
+export PBR_INTEGRATION=1
+export PIPFLAGS
+export PIPVERSION
+PBRVERSION=pbr
+if [ -n "$PBR_CHANGE" ] ; then
+    PBRVERSION=$(ls $pbrsdistdir/dist/pbr-*.whl)
+fi
+export PBRVERSION
+export PROJECTS
+export REPODIR
+export WHEELHOUSE
+export OS_TEST_TIMEOUT=240
+cd $REPODIR/pbr
+tox -epy27 -- test_integration

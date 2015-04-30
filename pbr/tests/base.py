@@ -161,3 +161,15 @@ def _run_cmd(args, cwd):
     for content in streams:
         print(content)
     return (streams) + (p.returncode,)
+
+
+def _config_git():
+    _run_cmd(
+        ['git', 'config', '--global', 'user.email', 'example@example.com'],
+        None)
+    _run_cmd(
+        ['git', 'config', '--global', 'user.name', 'OpenStack Developer'],
+        None)
+    _run_cmd(
+        ['git', 'config', '--global', 'user.signingkey',
+         'example@example.com'], None)

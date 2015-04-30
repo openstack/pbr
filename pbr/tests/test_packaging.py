@@ -67,15 +67,7 @@ class TestRepo(fixtures.Fixture):
     def setUp(self):
         super(TestRepo, self).setUp()
         base._run_cmd(['git', 'init', '.'], self._basedir)
-        base._run_cmd(
-            ['git', 'config', '--global', 'user.email', 'example@example.com'],
-            self._basedir)
-        base._run_cmd(
-            ['git', 'config', '--global', 'user.name', 'OpenStack Developer'],
-            self._basedir)
-        base._run_cmd(
-            ['git', 'config', '--global', 'user.signingkey',
-             'example@example.com'], self._basedir)
+        base._config_git()
         base._run_cmd(['git', 'add', '.'], self._basedir)
 
     def commit(self, message_content='test commit'):
