@@ -198,6 +198,10 @@ class LocalBuildDoc(setup_command.BuildDoc):
     def finalize_options(self):
         # Not a new style class, super keyword does not work.
         setup_command.BuildDoc.finalize_options(self)
+        # Handle builder option from command line - override cfg
+        option_dict = self.distribution.get_option_dict('build_sphinx')
+        if 'command line' in option_dict.get('builder', [[]])[0]:
+            self.builders = option_dict['builder'][1]
         # Allow builders to be configurable - as a comma separated list.
         if not isinstance(self.builders, list) and self.builders:
             self.builders = self.builders.split(',')
