@@ -179,27 +179,11 @@ class LocalInstall(install.install):
     Force a non-egg installed in the manner of
     single-version-externally-managed, which allows us to install manpages
     and config files.
-
-    Because non-egg installs bypass the depend processing machinery, we
-    need to do our own. Because easy_install is evil, just use pip to
-    process our requirements files directly, which means we don't have to
-    do crazy extra processing.
-
-    Bypass installation if --single-version-externally-managed is given,
-    so that behavior for packagers remains the same.
     """
 
     command_name = 'install'
 
     def run(self):
-        option_dict = self.distribution.get_option_dict('pbr')
-        if (not self.single_version_externally_managed
-                and self.distribution.install_requires):
-            _pip_install(
-                self.distribution.dependency_links,
-                self.distribution.install_requires, self.root,
-                option_dict=option_dict)
-
         return du_install.install.run(self)
 
 
