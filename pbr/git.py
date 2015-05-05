@@ -50,7 +50,9 @@ def _run_shell_command(cmd, throw_on_error=False, buffer=True, env=None):
             "%s returned %d" % (cmd, output.returncode))
     if len(out) == 0 or not out[0] or not out[0].strip():
         return ''
-    return out[0].strip().decode('utf-8')
+    # Since we don't control the history, and forcing users to rebase arbitrary
+    # history to fix utf8 issues is harsh, decode with replace.
+    return out[0].strip().decode('utf-8', 'replace')
 
 
 def _run_git_command(cmd, git_dir, **kwargs):
@@ -96,6 +98,8 @@ def _find_git_files(dirname='', git_dir=None):
     if git_dir:
         log.info("[pbr] In git context, generating filelist from git")
         file_list = _run_git_command(['ls-files', '-z'], git_dir)
+        # Users can fix utf8 issues locally with a single commit, so we are
+        # strict here.
         file_list = file_list.split(b'\x00'.decode('utf-8'))
     return [f for f in file_list if f]
 
