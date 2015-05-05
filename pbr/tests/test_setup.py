@@ -195,6 +195,7 @@ class BuildSphinxTest(base.BaseTestCase):
         ('true_autodoc_caps_with_excludes',
          dict(has_opt=True, autodoc='True', has_autodoc=True,
               excludes="fake_package.fake_private_module\n"
+              "fake_package.another_fake_*\n"
               "fake_package.unknown_module")),
         ('true_autodoc_lower',
          dict(has_opt=True, autodoc='true', has_autodoc=True)),
@@ -216,6 +217,7 @@ class BuildSphinxTest(base.BaseTestCase):
             "source_dir": ["a", "."]}
         pkg_fixture = fixtures.PythonPackage(
             "fake_package", [("fake_module.py", b""),
+                             ("another_fake_module_for_testing.py", b""),
                              ("fake_private_module.py", b"")])
         self.useFixture(pkg_fixture)
         self.useFixture(base.DiveDir(pkg_fixture.base))
@@ -224,6 +226,7 @@ class BuildSphinxTest(base.BaseTestCase):
             self.distr.command_options["pbr"]["autodoc_exclude_modules"] = (
                 'setup.cfg',
                 "fake_package.fake_private_module\n"
+                "fake_package.another_fake_*\n"
                 "fake_package.unknown_module")
         if self.has_opt:
             options = self.distr.command_options["pbr"]
@@ -245,6 +248,9 @@ class BuildSphinxTest(base.BaseTestCase):
         assertion(
             os.path.exists(
                 "api/fake_package.fake_private_module.rst"))
+        assertion(
+            os.path.exists(
+                "api/fake_package.another_fake_module_for_testing.rst"))
 
     def test_builders_config(self):
         build_doc = packaging.LocalBuildDoc(self.distr)

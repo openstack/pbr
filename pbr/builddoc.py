@@ -15,6 +15,7 @@
 #    under the License.
 
 from distutils import log
+import fnmatch
 import os
 import sys
 
@@ -85,10 +86,12 @@ class LocalBuildDoc(setup_command.BuildDoc):
             if '.' not in pkg:
                 for dirpath, dirnames, files in os.walk(pkg):
                     _find_modules(modules, dirpath, files)
-        module_list = set(modules.keys())
-        if excluded_modules is not None:
-            module_list -= set(excluded_modules)
-        module_list = sorted(module_list)
+
+        def include(module):
+            return not any(fnmatch.fnmatch(module, pat)
+                           for pat in excluded_modules)
+
+        module_list = sorted(mod for mod in modules.keys() if include(mod))
         autoindex_filename = os.path.join(source_dir, 'autoindex.rst')
         with open(autoindex_filename, 'w') as autoindex:
             autoindex.write(""".. toctree::
@@ -171,9 +174,9 @@ class LocalBuildDoc(setup_command.BuildDoc):
                 self._sphinx_tree()
             if auto_index:
                 self.generate_autoindex(
-                    option_dict.get(
+                    set(option_dict.get(
                         "autodoc_exclude_modules",
-                        [None, ""])[1].split())
+                        [None, ""])[1].split()))
 
         for builder in self.builders:
             self.builder = builder
