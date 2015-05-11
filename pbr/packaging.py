@@ -68,23 +68,6 @@ def append_text_list(config, key, text_list):
     config[key] = '\n'.join(new_value)
 
 
-def _pip_install(links, requires, root=None, option_dict=dict()):
-    if options.get_boolean_option(
-            option_dict, 'skip_pip_install', 'SKIP_PIP_INSTALL'):
-        return
-    cmd = [sys.executable, '-m', 'pip.__init__', 'install']
-    if root:
-        cmd.append("--root=%s" % root)
-    for link in links:
-        cmd.append("-f")
-        cmd.append(link)
-
-    # NOTE(ociuhandu): popen on Windows does not accept unicode strings
-    git._run_shell_command(
-        cmd + requires,
-        throw_on_error=True, buffer=False, env=dict(PIP_USE_WHEEL=b"true"))
-
-
 def _any_existing(file_list):
     return [f for f in file_list if os.path.exists(f)]
 
@@ -187,53 +170,10 @@ class LocalInstall(install.install):
         return du_install.install.run(self)
 
 
-def _newer_requires_files(egg_info_dir):
-    """Check to see if any of the requires files are newer than egg-info."""
-    for target, sources in (('requires.txt', get_requirements_files()),
-                            ('test-requires.txt', TEST_REQUIREMENTS_FILES)):
-        target_path = os.path.join(egg_info_dir, target)
-        for src in _any_existing(sources):
-            if (not os.path.exists(target_path) or
-                    os.path.getmtime(target_path)
-                    < os.path.getmtime(src)):
-                return True
-    return False
-
-
-def _copy_test_requires_to(egg_info_dir):
-    """Copy the requirements file to egg-info/test-requires.txt."""
-    with open(os.path.join(egg_info_dir, 'test-requires.txt'), 'w') as dest:
-        for source in _any_existing(TEST_REQUIREMENTS_FILES):
-            dest.write(open(source, 'r').read().rstrip('\n') + '\n')
-
-
-class _PipInstallTestRequires(object):
-    """Mixin class to install test-requirements.txt before running tests."""
-
-    def install_test_requirements(self):
-
-        links = parse_dependency_links(TEST_REQUIREMENTS_FILES)
-        if self.distribution.tests_require:
-            option_dict = self.distribution.get_option_dict('pbr')
-            _pip_install(
-                links, self.distribution.tests_require,
-                option_dict=option_dict)
-
-    def pre_run(self):
-        self.egg_name = pkg_resources.safe_name(self.distribution.get_name())
-        self.egg_info = "%s.egg-info" % pkg_resources.to_filename(
-            self.egg_name)
-        if (not os.path.exists(self.egg_info) or
-                _newer_requires_files(self.egg_info)):
-            ei_cmd = self.get_finalized_command('egg_info')
-            ei_cmd.run()
-            self.install_test_requirements()
-            _copy_test_requires_to(self.egg_info)
-
 try:
     from pbr import testr_command
 
-    class TestrTest(testr_command.Testr, _PipInstallTestRequires):
+    class TestrTest(testr_command.Testr):
         """Make setup.py test do the right thing."""
 
         command_name = 'test'
@@ -255,7 +195,7 @@ def have_testr():
 try:
     from nose import commands
 
-    class NoseTest(commands.nosetests, _PipInstallTestRequires):
+    class NoseTest(commands.nosetests):
         """Fallback test runner if testr is a no-go."""
 
         command_name = 'test'
