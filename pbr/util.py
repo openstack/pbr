@@ -280,6 +280,10 @@ def setup_cfg_to_setup_kwargs(config):
 
     kwargs = {}
 
+    # Temporarily holds install_reqires and extra_requires while we
+    # parse env_markers.
+    all_requirements = {}
+
     for arg in D1_D2_SETUP_ARGS:
         if len(D1_D2_SETUP_ARGS[arg]) == 2:
             # The distutils field name is different than distutils2's.
@@ -326,6 +330,17 @@ def setup_cfg_to_setup_kwargs(config):
                 # setuptools
                 in_cfg_value = [_VERSION_SPEC_RE.sub(r'\1\2', pred)
                                 for pred in in_cfg_value]
+            if arg == 'install_requires':
+                # Split install_requires into package,env_marker tuples
+                # These will be re-assembled later
+                install_requires = []
+                requirement_pattern = '(?P<package>[^;]*);?(?P<env_marker>.*)$'
+                for requirement in in_cfg_value:
+                    m = re.match(requirement_pattern, requirement)
+                    requirement_package = m.group('package').strip()
+                    env_marker = m.group('env_marker').strip()
+                    install_requires.append((requirement_package,env_marker))
+                all_requirements[''] = install_requires
             elif arg == 'package_dir':
                 in_cfg_value = {'': in_cfg_value}
             elif arg in ('package_data', 'data_files'):
@@ -366,6 +381,50 @@ def setup_cfg_to_setup_kwargs(config):
                 in_cfg_value = cmdclass
 
         kwargs[arg] = in_cfg_value
+
+    # Transform requirements with embedded environment markers to
+    # setuptools' supported marker-per-requirement format.
+    #
+    # install_requires are treated as a special case of extras, before
+    # being put back in the expected place
+    #
+    # fred =
+    #     foo:marker
+    #     bar
+    # -> {'fred': ['bar'], 'fred:marker':['foo']}
+
+    if 'extras' in config:
+        requirement_pattern = '(?P<package>[^:]*):?(?P<env_marker>.*)$'
+        extras = config['extras']
+        for extra in extras:
+            extra_requirements = []
+            requirements = split_multiline(extras[extra])
+            for requirement in requirements:
+                m = re.match(requirement_pattern, requirement)
+                extras_value = m.group('package').strip()
+                env_marker = m.group('env_marker')
+                extra_requirements.append((extras_value,env_marker))
+            all_requirements[extra] = extra_requirements
+
+    # Transform the full list of requirements into:
+    # - install_requires, for those that have no extra and no
+    #   env_marker
+    # - named extras, for those with an extra name (which may include
+    #   an env_marker)
+    # - and as a special case, install_requires with an env_marker are
+    #   treated as named extras where the name is the empty string
+
+    extras_require = {}
+    for req_group in all_requirements:
+        for requirement, env_marker in all_requirements[req_group]:
+            if env_marker:
+                extras_key = '%s:%s' % (req_group, env_marker)
+            else:
+                extras_key = req_group
+            extras_require.setdefault(extras_key, []).append(requirement)
+
+    kwargs['install_requires'] = extras_require.pop('', [])
+    kwargs['extras_require'] = extras_require
 
     return kwargs
 
