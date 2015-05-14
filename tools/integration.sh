@@ -161,6 +161,6 @@ export PBRVERSION
 export PROJECTS
 export REPODIR
 export WHEELHOUSE
-export OS_TEST_TIMEOUT=240
+export OS_TEST_TIMEOUT=600
 cd $REPODIR/pbr
 tox -epy27 -- test_integration
