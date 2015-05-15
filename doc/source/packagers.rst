@@ -42,17 +42,19 @@ versions as versions of the release before.
 Dependencies
 ============
 
-`pbr` overrides almost everything having to do with python dependency
-resolution and calls out to `pip`. In the python source package world this
-leads to a more consistent experience. However, in the distro packaging world,
-dependencies are handled by the distro. Setting `SKIP_PIP_INSTALL`:
+As of 1.0.0 `pbr` doesn't alter the dependency behaviour of `setuptools`.
 
-::
+Older versions would invoke `pip` internally under some circumstances and
+required the environment variable `SKIP_PIP_INSTALL` to be set to prevent
+that. Since 1.0.0 we now document that dependencies should be installed before
+installing a `pbr` using package. We don't support easy install, but neither
+do we interfere with it today. If you observe easy install being triggered when
+building a binary package, then you've probably missed one or more package
+requirements.
 
-  SKIP_PIP_INSTALL=1
-
-will cause all logic around use of `pip` to be skipped, including the logic
-that includes pip as a dependency of `pbr` itself.
+Note: we reserve the right to disable easy install via `pbr` in future, since
+we don't want to debug or support the interactions that can occur when using
+it.
 
 Tarballs
 ========
