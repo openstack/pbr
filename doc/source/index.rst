@@ -123,6 +123,45 @@ version number used to install the package):
 Only the first file found is used to install the list of packages it
 contains.
 
+Extra requirements
+------------------
+
+Groups of optional dependencies (`"extra" requirements
+<https://www.python.org/dev/peps/pep-0426/#extras-optional-dependencies>`_)
+can be described in your setup.cfg, rather than needing to be added to
+setup.py. An example (which also demonstrates the use of environment
+markers) is shown below.
+
+Environment markers
+-------------------
+
+Environment markers are `conditional dependencies
+<https://www.python.org/dev/peps/pep-0426/#environment-markers>`_
+which can be added to the requirements (or to a group of extra
+requirements) automatically, depending on the environment the
+installer is running in. They can be added to requirements in the
+requirements file, or to extras definied in setup.cfg - but the format
+is slightly different for each.
+
+For ``requirements.txt``::
+
+    argparse; python=='2.6'
+
+will result in the package depending on ``argparse`` only if it's being
+installed into python2.6
+
+For extras specifed in setup.cfg, add an ``extras`` section. For
+instance, to create two groups of extra requirements with additional
+constraints on the environment, you can use::
+
+    [extras]
+    security =
+        aleph
+        bet :python_environment=='3.2'
+        gimel :python_environment=='2.7'
+    testing =
+        quux :python_environment=='2.7'
+
 long_description
 ----------------
 

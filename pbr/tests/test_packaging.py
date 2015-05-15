@@ -40,10 +40,14 @@
 
 import os
 import re
+import sys
 import tempfile
+import textwrap
 
 import fixtures
 import mock
+import pkg_resources
+import six
 import testscenarios
 from testtools import matchers
 
@@ -415,6 +419,58 @@ class TestVersions(base.BaseTestCase):
         self.repo.tag('1.3.0.0a1')
         version = packaging._get_version_from_git()
         self.assertEqual('1.3.0.0a1', version)
+
+
+class TestRequirementParsing(base.BaseTestCase):
+
+    def test_requirement_parsing(self):
+        tempdir = self.useFixture(fixtures.TempDir()).path
+        requirements = os.path.join(tempdir, 'requirements.txt')
+        with open(requirements, 'wt') as f:
+            f.write(textwrap.dedent(six.u("""\
+                bar
+                quux<1.0; python_version=='2.6'
+            """)))
+        setup_cfg = os.path.join(tempdir, 'setup.cfg')
+        with open(setup_cfg, 'wt') as f:
+            f.write(textwrap.dedent(six.u("""\
+                [metadata]
+                name = test_reqparse
+
+                [extras]
+                test =
+                    foo
+                    baz>3.2 :python_version=='2.7'
+            """)))
+        # pkg_resources.split_sections uses None as the title of an
+        # anonymous section instead of the empty string. Weird.
+        expected_requirements = {
+            None: ['bar'],
+            ":python_version=='2.6'": ['quux<1.0'],
+            "test:python_version=='2.7'": ['baz>3.2'],
+            "test": ['foo']
+        }
+        setup_py = os.path.join(tempdir, 'setup.py')
+        with open(setup_py, 'wt') as f:
+            f.write(textwrap.dedent(six.u("""\
+                #!/usr/bin/env python
+                import setuptools
+                setuptools.setup(
+                    setup_requires=['pbr'],
+                    pbr=True,
+                )
+            """)))
+
+        self._run_cmd(sys.executable, (setup_py, 'egg_info'),
+                      allow_fail=False, cwd=tempdir)
+        egg_info = os.path.join(tempdir, 'test_reqparse.egg-info')
+
+        requires_txt = os.path.join(egg_info, 'requires.txt')
+        with open(requires_txt, 'rt') as requires:
+            generated_requirements = dict(
+                pkg_resources.split_sections(requires))
+
+        self.assertEqual(expected_requirements, generated_requirements)
 
 
 def load_tests(loader, in_tests, pattern):
