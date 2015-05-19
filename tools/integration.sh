@@ -30,7 +30,7 @@ REPODIR=${REPODIR:-$BASE/new}
 
 # TODO: Figure out how to get this on to the box properly
 sudo apt-get update
-sudo apt-get install -y --force-yes libvirt-dev libxml2-dev libxslt-dev libmysqlclient-dev libpq-dev libnspr4-dev pkg-config libsqlite3-dev libzmq-dev libffi-dev libldap2-dev libsasl2-dev ccache
+sudo apt-get install -y --force-yes libvirt-dev libxml2-dev libxslt-dev libmysqlclient-dev libpq-dev libnspr4-dev pkg-config libsqlite3-dev libzmq-dev libffi-dev libldap2-dev libsasl2-dev ccache libkrb5-dev uuid-dev swig
 
 # FOR numpy / pyyaml
 sudo apt-get build-dep -y --force-yes python-numpy
@@ -149,6 +149,10 @@ $epvenv/bin/test_cmd | grep 'Test cmd'
 projectdir=$tmpdir/projects
 mkdir -p $projectdir
 
+requirementsvenv=$tmpdir/update
+mkvenv $requirementsvenv
+$requirementsvenv/bin/python -m pip install $REPODIR/requirements
+
 for PROJECT in $PROJECTS ; do
     SHORT_PROJECT=$(basename $PROJECT)
     if ! grep 'pbr' $REPODIR/$SHORT_PROJECT/setup.py >/dev/null 2>&1
@@ -172,10 +176,20 @@ for PROJECT in $PROJECTS ; do
         # requirements doesn't really install
         continue
     fi
+    if [ $SHORT_PROJECT = 'keystoneauth-saml2' ]; then
+        # EOL - Repo dead
+        continue
+    fi
+
+    pushd $REPODIR/$SHORT_PROJECT
+    if [ $(git rev-parse --abbrev-ref HEAD) != 'stable/kilo' ]; then
+        continue
+    fi
+    popd
 
     # set up the project synced with the global requirements
     sudo chown -R $USER $REPODIR/$SHORT_PROJECT
-    (cd $REPODIR/requirements && python update.py $REPODIR/$SHORT_PROJECT)
+    (cd $REPODIR/requirements && $requirementsvenv/bin/python update.py $REPODIR/$SHORT_PROJECT)
     pushd $REPODIR/$SHORT_PROJECT
     if ! git diff --quiet ; then
         git commit -a -m'Update requirements'
