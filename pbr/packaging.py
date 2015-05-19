@@ -179,7 +179,6 @@ try:
         command_name = 'test'
 
         def run(self):
-            self.pre_run()
             # Can't use super - base class old-style class
             testr_command.Testr.run(self)
 
@@ -201,7 +200,6 @@ try:
         command_name = 'test'
 
         def run(self):
-            self.pre_run()
             # Can't use super - base class old-style class
             commands.nosetests.run(self)
 
