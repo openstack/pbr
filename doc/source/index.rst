@@ -184,6 +184,7 @@ A simple sample can be found in pbr's own setup.cfg
  author-email = openstack-dev@lists.openstack.org
  summary = OpenStack's setup automation in a reusable form
  description-file = README
+ home-page = https://launchpad.net/pbr
  license = Apache-2
  classifier =
      Development Status :: 4 - Beta
