@@ -264,10 +264,13 @@ for installing entire directory structures, so::
 Will result in `/etc/neutron` containing `api-paste.ini` and `dhcp-agent.ini`,
 both of which pbr will expect to find in the `etc` directory in the root of
 the source tree. Additionally, `neutron.init` from that dir will be installed
-in `/etc/init.d`.
+in `/etc/init.d`. All of the files and directories located under `etc/pbr` in
+the source tree will be installed into `/etc/pbr`.
 
-All of the files and directories located under `etc/pbr` in the source tree
-will be installed into `/etc/pbr`.
+Note that this behavior is relative to the effective root of the environment
+into which the packages are installed, so depending on available permissions
+this could be the actual system-wide `/etc` directory or just a top-level `etc`
+subdirectory of a virtualenv.
 
 entry_points
 ------------
