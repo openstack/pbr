@@ -13,12 +13,10 @@
 
 import os.path
 import shlex
-import subprocess
 
 import fixtures
 import testscenarios
 import testtools
-from testtools import content
 import virtualenv
 
 from pbr.tests import base
@@ -52,48 +50,6 @@ def all_projects():
         yield (short_name, dict(name=name, short_name=short_name))
 
 
-class CapturedSubprocess(fixtures.Fixture):
-    """Run a process and capture its output.
-
-    :attr stdout: The output (a string).
-    :attr stderr: The standard error (a string).
-    :attr returncode: The return code of the process.
-
-    Note that stdout and stderr are decoded from the bytestrings subprocess
-    returns using error=replace.
-    """
-
-    def __init__(self, label, *args, **kwargs):
-        """Create a CapturedSubprocess.
-
-        :param label: A label for the subprocess in the test log. E.g. 'foo'.
-        :param *args: The *args to pass to Popen.
-        :param **kwargs: The **kwargs to pass to Popen.
-        """
-        super(CapturedSubprocess, self).__init__()
-        self.label = label
-        self.args = args
-        self.kwargs = kwargs
-        self.kwargs['stderr'] = subprocess.PIPE
-        self.kwargs['stdin'] = subprocess.PIPE
-        self.kwargs['stdout'] = subprocess.PIPE
-
-    def setUp(self):
-        super(CapturedSubprocess, self).setUp()
-        proc = subprocess.Popen(*self.args, **self.kwargs)
-        out, err = proc.communicate()
-        self.out = out.decode('utf-8', 'replace')
-        self.err = err.decode('utf-8', 'replace')
-        self.addDetail(self.label + '-stdout', content.text_content(self.out))
-        self.addDetail(self.label + '-stderr', content.text_content(self.err))
-        self.returncode = proc.returncode
-        if proc.returncode:
-            raise AssertionError('Failed process %s' % proc.returncode)
-        self.addCleanup(delattr, self, 'out')
-        self.addCleanup(delattr, self, 'err')
-        self.addCleanup(delattr, self, 'returncode')
-
-
 class TestIntegration(base.BaseTestCase):
 
     scenarios = list(all_projects())
@@ -109,7 +65,7 @@ class TestIntegration(base.BaseTestCase):
         path = self.useFixture(fixtures.TempDir()).path
         virtualenv.create_environment(path, clear=True)
         python = os.path.join(path, 'bin', 'python')
-        self.useFixture(CapturedSubprocess(
+        self.useFixture(base.CapturedSubprocess(
             'mkvenv-' + reason, [python] + PIP_CMD + [
                 '-U', PIPVERSION, 'wheel', PBRVERSION]))
         return path, python
@@ -126,29 +82,29 @@ class TestIntegration(base.BaseTestCase):
         # We don't break these into separate tests because we'd need separate
         # source dirs to isolate from side effects of running pip, and the
         # overheads of setup would start to beat the benefits of parallelism.
-        self.useFixture(CapturedSubprocess(
+        self.useFixture(base.CapturedSubprocess(
             'sync-req',
             ['python', 'update.py', os.path.join(REPODIR, self.short_name)],
             cwd=os.path.join(REPODIR, 'requirements')))
-        self.useFixture(CapturedSubprocess(
+        self.useFixture(base.CapturedSubprocess(
             'commit-requirements',
             'git diff --quiet || git commit -amrequirements',
             cwd=os.path.join(REPODIR, self.short_name), shell=True))
         path = os.path.join(
             self.useFixture(fixtures.TempDir()).path, 'project')
-        self.useFixture(CapturedSubprocess(
+        self.useFixture(base.CapturedSubprocess(
             'clone',
             ['git', 'clone', os.path.join(REPODIR, self.short_name), path]))
         _, python = self.venv('sdist')
-        self.useFixture(CapturedSubprocess(
+        self.useFixture(base.CapturedSubprocess(
             'sdist', [python, 'setup.py', 'sdist'], cwd=path))
         _, python = self.venv('tarball')
         filename = os.path.join(
             path, 'dist', os.listdir(os.path.join(path, 'dist'))[0])
-        self.useFixture(CapturedSubprocess(
+        self.useFixture(base.CapturedSubprocess(
             'tarball', [python] + PIP_CMD + [filename]))
         root, python = self.venv('install-git')
-        self.useFixture(CapturedSubprocess(
+        self.useFixture(base.CapturedSubprocess(
             'install-git', [python] + PIP_CMD + ['git+file://' + path]))
         if self.short_name == 'nova':
             found = False
@@ -157,7 +113,7 @@ class TestIntegration(base.BaseTestCase):
                     found = True
             self.assertTrue(found)
         _, python = self.venv('install-e')
-        self.useFixture(CapturedSubprocess(
+        self.useFixture(base.CapturedSubprocess(
             'install-e', [python] + PIP_CMD + ['-e', path]))
 
 
