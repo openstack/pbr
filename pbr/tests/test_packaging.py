@@ -99,12 +99,27 @@ class GPGKeyFixture(fixtures.Fixture):
     def setUp(self):
         super(GPGKeyFixture, self).setUp()
         tempdir = self.useFixture(fixtures.TempDir())
+        gnupg_version_re = re.compile('^gpg\s.*\s([\d+])\.([\d+])\.([\d+])')
+        gnupg_version = base._run_cmd(['gpg', '--version'], tempdir.path)
+        for line in gnupg_version[0].split('\n'):
+            gnupg_version = gnupg_version_re.match(line)
+            if gnupg_version:
+                gnupg_version = (int(gnupg_version.group(1)),
+                                 int(gnupg_version.group(2)),
+                                 int(gnupg_version.group(3)))
+                break
+        else:
+            if gnupg_version is None:
+                gnupg_version = (0, 0, 0)
         config_file = tempdir.path + '/key-config'
         f = open(config_file, 'wt')
         try:
+            if gnupg_version[0] == 2 and gnupg_version[1] >= 1:
+                f.write("""
+                %no-protection
+                %transient-key
+                """)
             f.write("""
-            #%no-protection -- these would be ideal but they are documented
-            #%transient-key -- but not implemented in gnupg!
             %no-ask-passphrase
             Key-Type: RSA
             Name-Real: Example Key
@@ -119,16 +134,9 @@ class GPGKeyFixture(fixtures.Fixture):
         # Note that --quick-random (--debug-quick-random in GnuPG 2.x)
         # does not have a corresponding preferences file setting and
         # must be passed explicitly on the command line instead
-        gnupg_version_re = re.compile('gpg .* ([12])\.')
-        gnupg_version = base._run_cmd(['gpg', '--version'], tempdir.path)
-        for line in gnupg_version[0].split('\n'):
-            gnupg_version = gnupg_version_re.match(line)
-            if gnupg_version:
-                gnupg_version = gnupg_version.group(1)
-                break
-        if gnupg_version == '1':
+        if gnupg_version[0] == 1:
             gnupg_random = '--quick-random'
-        elif gnupg_version == '2':
+        elif gnupg_version[0] >= 2:
             gnupg_random = '--debug-quick-random'
         else:
             gnupg_random = ''
