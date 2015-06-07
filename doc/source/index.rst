@@ -302,7 +302,8 @@ should generate an index of modules using `sphinx-apidoc`.
 The `autodoc_index_modules` is a boolean option controlling whether pbr should
 itself generates documentation for Python modules of the project. By default,
 all found Python modules are included; some of them can be excluded by listing
-them in `autodoc_exclude_modules`.
+them in `autodoc_exclude_modules`. This list of modules can contains `fnmatch`
+style pattern (e.g. `myapp.tests.*`) to exclude some modules.
 
 Additional Docs
 ===============
