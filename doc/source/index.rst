@@ -292,6 +292,18 @@ installed for `pbr.config.drivers`, one called `plain` which maps to the
 `Plain` class in `pbr.cfg.driver` and one called `fancy` which maps to the
 `Fancy` class in `pbr.cfg.driver`.
 
+pbr
+---
+The pbr section controls pbr specific options and behaviours.
+
+The `autodoc_tree_index_modules` is a boolean value controlling whether pbr
+should generate an index of modules using `sphinx-apidoc`.
+
+The `autodoc_index_modules` is a boolean option controlling whether pbr should
+itself generates documentation for Python modules of the project. By default,
+all found Python modules are included; some of them can be excluded by listing
+them in `autodoc_exclude_modules`.
+
 Additional Docs
 ===============
 
