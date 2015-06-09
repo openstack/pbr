@@ -27,6 +27,7 @@ except ImportError:
 try:
     from sphinx import apidoc
     from sphinx import application
+    from sphinx import config
     from sphinx import setup_command
 except Exception as e:
     # NOTE(dhellmann): During the installation of docutils, setuptools
@@ -128,15 +129,15 @@ class LocalBuildDoc(setup_command.BuildDoc):
             confoverrides['release'] = self.release
         if self.today:
             confoverrides['today'] = self.today
-
+        sphinx_config = config.Config(self.config_dir, 'conf.py', {}, [])
+        sphinx_config.init_values()
+        if self.builder == 'man' and len(sphinx_config.man_pages) == 0:
+            return
         app = application.Sphinx(
             self.source_dir, self.config_dir,
             self.builder_target_dir, self.doctree_dir,
             self.builder, confoverrides, status_stream,
             freshenv=self.fresh_env, warningiserror=True)
-
-        if self.builder == 'man' and len(app.config.man_pages) == 0:
-            return
 
         try:
             app.build(force_all=self.all_files)
