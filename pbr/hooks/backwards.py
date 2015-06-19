@@ -29,4 +29,5 @@ class BackwardsCompatConfig(base.BaseConfig):
         packaging.append_text_list(
             self.config, 'tests_require',
             packaging.parse_requirements(
-                packaging.TEST_REQUIREMENTS_FILES))
+                packaging.TEST_REQUIREMENTS_FILES,
+                strip_markers=True))
