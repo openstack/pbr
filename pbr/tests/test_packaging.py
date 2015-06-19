@@ -444,6 +444,18 @@ class TestVersions(base.BaseTestCase):
         version = packaging._get_version_from_git()
         self.assertEqual('1.3.0.0a1', version)
 
+    def test_skip_write_git_changelog(self):
+        # Fix for bug 1467440
+        self.repo.commit()
+        self.repo.tag('1.2.3')
+        os.environ['SKIP_WRITE_GIT_CHANGELOG'] = '1'
+        version = packaging._get_version_from_git('1.2.3')
+        self.assertEqual('1.2.3', version)
+
+    def tearDown(self):
+        super(TestVersions, self).tearDown()
+        os.environ.pop('SKIP_WRITE_GIT_CHANGELOG', None)
+
 
 class TestRequirementParsing(base.BaseTestCase):
 

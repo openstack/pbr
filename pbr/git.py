@@ -162,7 +162,7 @@ def _iter_changelog(changelog):
         first_line = False
 
 
-def _iter_log_oneline(git_dir=None, option_dict=None):
+def _iter_log_oneline(git_dir=None):
     """Iterate over --oneline log entries if possible.
 
     This parses the output into a structured form but does not apply
@@ -172,16 +172,10 @@ def _iter_log_oneline(git_dir=None, option_dict=None):
     :return: An iterator of (hash, tags_set, 1st_line) tuples, or None if
         changelog generation is disabled / not available.
     """
-    if not option_dict:
-        option_dict = {}
-    should_skip = options.get_boolean_option(option_dict, 'skip_changelog',
-                                             'SKIP_WRITE_GIT_CHANGELOG')
-    if should_skip:
-        return
     if git_dir is None:
         git_dir = _get_git_directory()
     if not git_dir:
-        return
+        return []
     return _iter_log_inner(git_dir)
 
 
@@ -220,11 +214,17 @@ def _iter_log_inner(git_dir):
 
 
 def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
-                        option_dict=dict(), changelog=None):
+                        option_dict=None, changelog=None):
     """Write a changelog based on the git changelog."""
     start = time.time()
+    if not option_dict:
+        option_dict = {}
+    should_skip = options.get_boolean_option(option_dict, 'skip_changelog',
+                                             'SKIP_WRITE_GIT_CHANGELOG')
+    if should_skip:
+        return
     if not changelog:
-        changelog = _iter_log_oneline(git_dir=git_dir, option_dict=option_dict)
+        changelog = _iter_log_oneline(git_dir=git_dir)
         if changelog:
             changelog = _iter_changelog(changelog)
     if not changelog:

@@ -414,7 +414,7 @@ class LocalEggInfo(egg_info.egg_info):
 
 def _from_git(distribution):
     option_dict = distribution.get_option_dict('pbr')
-    changelog = git._iter_log_oneline(option_dict=option_dict)
+    changelog = git._iter_log_oneline()
     if changelog:
         changelog = git._iter_changelog(changelog)
     git.write_git_changelog(option_dict=option_dict, changelog=changelog)
