@@ -19,6 +19,7 @@ from __future__ import print_function
 import os
 import sys
 import tempfile
+import testscenarios
 
 try:
     import cStringIO as io
@@ -316,47 +317,56 @@ class BuildSphinxTest(base.BaseTestCase):
         self.assertEqual(["builder1", "builder2"], build_doc.builders)
 
 
+class ParseRequirementsTestScenarios(base.BaseTestCase):
+
+    versioned_scenarios = [
+        ('non-versioned', {'versioned': False, 'expected': ['bar']}),
+        ('versioned', {'versioned': True, 'expected': ['bar>=1.2.3']})
+    ]
+
+    scenarios = [
+        ('normal', {'url': "foo\nbar", 'expected': ['foo', 'bar']}),
+        ('normal_with_comments', {
+            'url': "# this is a comment\nfoo\n# and another one\nbar",
+            'expected': ['foo', 'bar']}),
+        ('removes_index_lines', {'url': '-f foobar', 'expected': []}),
+    ]
+
+    scenarios = scenarios + testscenarios.multiply_scenarios([
+        ('ssh_egg_url', {'url': 'git+ssh://foo.com/zipball#egg=bar'}),
+        ('git_https_egg_url', {'url': 'git+https://foo.com/zipball#egg=bar'}),
+        ('http_egg_url', {'url': 'https://foo.com/zipball#egg=bar'}),
+    ], versioned_scenarios)
+
+    scenarios = scenarios + testscenarios.multiply_scenarios(
+        [
+            ('git_egg_url',
+                {'url': 'git://foo.com/zipball#egg=bar', 'name': 'bar'})
+        ], [
+            ('non-editable', {'editable': False}),
+            ('editable', {'editable': True}),
+        ],
+        versioned_scenarios)
+
+    def test_parse_requirements(self):
+        tmp_file = tempfile.NamedTemporaryFile()
+        req_string = self.url
+        if hasattr(self, 'editable') and self.editable:
+            req_string = ("-e %s" % req_string)
+        if hasattr(self, 'versioned') and self.versioned:
+            req_string = ("%s-1.2.3" % req_string)
+        with open(tmp_file.name, 'w') as fh:
+            fh.write(req_string)
+        self.assertEqual(self.expected,
+                         packaging.parse_requirements([tmp_file.name]))
+
+
 class ParseRequirementsTest(base.BaseTestCase):
 
     def setUp(self):
         super(ParseRequirementsTest, self).setUp()
         (fd, self.tmp_file) = tempfile.mkstemp(prefix='openstack',
                                                suffix='.setup')
-
-    def test_parse_requirements_normal(self):
-        with open(self.tmp_file, 'w') as fh:
-            fh.write("foo\nbar")
-        self.assertEqual(['foo', 'bar'],
-                         packaging.parse_requirements([self.tmp_file]))
-
-    def test_parse_requirements_with_git_egg_url(self):
-        with open(self.tmp_file, 'w') as fh:
-            fh.write("-e git://foo.com/zipball#egg=bar")
-        self.assertEqual(['bar'],
-                         packaging.parse_requirements([self.tmp_file]))
-
-    def test_parse_requirements_with_versioned_git_egg_url(self):
-        with open(self.tmp_file, 'w') as fh:
-            fh.write("-e git://foo.com/zipball#egg=bar-1.2.4")
-        self.assertEqual(['bar>=1.2.4'],
-                         packaging.parse_requirements([self.tmp_file]))
-
-    def test_parse_requirements_with_http_egg_url(self):
-        with open(self.tmp_file, 'w') as fh:
-            fh.write("https://foo.com/zipball#egg=bar")
-        self.assertEqual(['bar'],
-                         packaging.parse_requirements([self.tmp_file]))
-
-    def test_parse_requirements_with_versioned_http_egg_url(self):
-        with open(self.tmp_file, 'w') as fh:
-            fh.write("https://foo.com/zipball#egg=bar-4.2.1")
-        self.assertEqual(['bar>=4.2.1'],
-                         packaging.parse_requirements([self.tmp_file]))
-
-    def test_parse_requirements_removes_index_lines(self):
-        with open(self.tmp_file, 'w') as fh:
-            fh.write("-f foobar")
-        self.assertEqual([], packaging.parse_requirements([self.tmp_file]))
 
     def test_parse_requirements_override_with_env(self):
         with open(self.tmp_file, 'w') as fh:
@@ -379,12 +389,6 @@ class ParseRequirementsTest(base.BaseTestCase):
     def test_get_requirement_from_file_empty(self):
         actual = packaging.get_reqs_from_files([])
         self.assertEqual([], actual)
-
-    def test_parse_requirements_with_comments(self):
-        with open(self.tmp_file, 'w') as fh:
-            fh.write("# this is a comment\nfoobar\n# and another one\nfoobaz")
-        self.assertEqual(['foobar', 'foobaz'],
-                         packaging.parse_requirements([self.tmp_file]))
 
     def test_parse_requirements_python_version(self):
         with open("requirements-py%d.txt" % sys.version_info[0],
