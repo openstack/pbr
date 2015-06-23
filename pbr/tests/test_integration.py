@@ -57,7 +57,8 @@ class TestIntegration(base.BaseTestCase):
     def setUp(self):
         # Integration tests need a higher default - big repos can be slow to
         # clone, particularly under guest load.
-        os.environ['OS_TEST_TIMEOUT'] = os.environ.get('OS_TEST_TIMEOUT', 600)
+        os.environ['OS_TEST_TIMEOUT'] = os.environ.get('OS_TEST_TIMEOUT',
+                                                       '600')
         super(TestIntegration, self).setUp()
         base._config_git()
 
