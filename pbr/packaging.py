@@ -212,6 +212,36 @@ except ImportError:
 def have_nose():
     return _have_nose
 
+_wsgi_text = """#PBR Generated from %(group)r
+
+from %(module_name)s import %(import_target)s
+
+if __name__ == "__main__":
+    import argparse
+    import socket
+    import wsgiref.simple_server as wss
+
+    my_ip = socket.gethostbyname(socket.gethostname())
+    parser = argparse.ArgumentParser(
+        description=%(import_target)s.__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('--port', '-p', type=int, default=8000,
+                        help='TCP port to listen on')
+    args = parser.parse_args()
+    server = wss.make_server('', args.port, %(invoke_target)s())
+
+    print("*" * 80)
+    print("STARTING test server %(module_name)s.%(invoke_target)s")
+    url = "http://%%s:%%d/" %% (my_ip, server.server_port)
+    print("Available at %%s" %% url)
+    print("DANGER! For testing only, do not use in production")
+    print("*" * 80)
+
+    server.serve_forever()
+else:
+    application = %(invoke_target)s()
+
+"""
 
 _script_text = """# PBR Generated from %(group)r
 
@@ -225,16 +255,25 @@ if __name__ == "__main__":
 """
 
 
+# the following allows us to specify different templates per entry
+# point group when generating pbr scripts.
+ENTRY_POINTS_MAP = {
+    'console_scripts': _script_text,
+    'gui_scripts': _script_text,
+    'wsgi_scripts': _wsgi_text
+}
+
+
 def override_get_script_args(
         dist, executable=os.path.normpath(sys.executable), is_wininst=False):
     """Override entrypoints console_script."""
     header = easy_install.get_script_header("", executable, is_wininst)
-    for group in 'console_scripts', 'gui_scripts':
+    for group, template in ENTRY_POINTS_MAP.items():
         for name, ep in dist.get_entry_map(group).items():
             if not ep.attrs or len(ep.attrs) > 2:
                 raise ValueError("Script targets must be of the form "
                                  "'func' or 'Class.class_method'.")
-            script_text = _script_text % dict(
+            script_text = template % dict(
                 group=group,
                 module_name=ep.module_name,
                 import_target=ep.attrs[0],
