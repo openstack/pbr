@@ -28,6 +28,7 @@ import re
 import sys
 
 import pkg_resources
+import setuptools
 from setuptools.command import develop
 from setuptools.command import easy_install
 from setuptools.command import egg_info
@@ -185,6 +186,25 @@ class TestrTest(testr_command.Testr):
     def run(self):
         # Can't use super - base class old-style class
         testr_command.Testr.run(self)
+
+
+class LocalRPMVersion(setuptools.Command):
+    __doc__ = """Output the rpm *compatible* version string of this package"""
+    description = __doc__
+
+    user_options = []
+    command_name = "rpm_version"
+
+    def run(self):
+        log.info("[pbr] Extracting rpm version")
+        name = self.distribution.get_name()
+        print(version.VersionInfo(name).semantic_version().rpm_string())
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
 
 
 def have_testr():
