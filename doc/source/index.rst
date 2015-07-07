@@ -305,6 +305,22 @@ all found Python modules are included; some of them can be excluded by listing
 them in `autodoc_exclude_modules`. This list of modules can contains `fnmatch`
 style pattern (e.g. `myapp.tests.*`) to exclude some modules.
 
+Comments
+--------
+
+Comments may be used in setup.cfg, however all comments should start with a
+`#` and may be on a single line, or in line, with at least one white space
+character immediately preceding the `#`.  Semicolons are not a supported
+comment delimiter.  For instance::
+
+ [section]
+ # A comment at the start of a dedicated line
+ key =
+     value1 # An in line comment
+     value2
+     # A comment on a dedicated line
+     value3
+
 Additional Docs
 ===============
 
