@@ -95,6 +95,8 @@ Sphinx documentation setups are altered to generate man pages by default. They
 also have several pieces of information that are known to setup.py injected
 into the sphinx config.
 
+See the pbr_ section for details on configuring your project for autodoc.
+
 Requirements
 ------------
 
@@ -296,14 +298,33 @@ pbr
 ---
 The pbr section controls pbr specific options and behaviours.
 
-The `autodoc_tree_index_modules` is a boolean value controlling whether pbr
-should generate an index of modules using `sphinx-apidoc`.
+The `autodoc_tree_index_modules` is a boolean option controlling whether pbr
+should generate an index of modules using `sphinx-apidoc`. By default, setup.py
+is excluded. The list of excluded modules can be specified with the
+`autodoc_tree_excludes` option. See the
+`sphinx-apidoc man page <http://sphinx-doc.org/man/sphinx-apidoc.html>`_
+for more information.
 
 The `autodoc_index_modules` is a boolean option controlling whether pbr should
 itself generates documentation for Python modules of the project. By default,
 all found Python modules are included; some of them can be excluded by listing
 them in `autodoc_exclude_modules`. This list of modules can contains `fnmatch`
 style pattern (e.g. `myapp.tests.*`) to exclude some modules.
+
+The `warnerrors` boolean option is used to tell Sphinx builders to treat
+warnings as errors which will cause sphinx-build to fail if it encounters
+warnings. This is generally useful to ensure your documentation stays clean
+once you have a good docs build.
+
+.. note::
+
+   When using `autodoc_tree_excludes` or `autodoc_index_modules` you may also
+   need to set `exclude_patterns` in your Sphinx configuration file (generally
+   found at doc/source/conf.py in most OpenStack projects) otherwise
+   Sphinx may complain about documents that are not in a toctree. This is
+   especially true if the `warnerrors=True` option is set. See
+   http://sphinx-doc.org/config.html for more information on configuring
+   Sphinx.
 
 Comments
 --------
