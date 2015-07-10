@@ -418,7 +418,7 @@ def setup_cfg_to_setup_kwargs(config):
     for req_group in all_requirements:
         for requirement, env_marker in all_requirements[req_group]:
             if env_marker:
-                extras_key = '%s:%s' % (req_group, env_marker)
+                extras_key = '%s:(%s)' % (req_group, env_marker)
             else:
                 extras_key = req_group
             extras_require.setdefault(extras_key, []).append(requirement)

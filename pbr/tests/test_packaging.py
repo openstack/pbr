@@ -454,8 +454,8 @@ class TestRequirementParsing(base.BaseTestCase):
         # anonymous section instead of the empty string. Weird.
         expected_requirements = {
             None: ['bar'],
-            ":python_version=='2.6'": ['quux<1.0'],
-            "test:python_version=='2.7'": ['baz>3.2'],
+            ":(python_version=='2.6')": ['quux<1.0'],
+            "test:(python_version=='2.7')": ['baz>3.2'],
             "test": ['foo']
         }
         setup_py = os.path.join(tempdir, 'setup.py')

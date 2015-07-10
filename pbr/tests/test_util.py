@@ -48,7 +48,7 @@ class TestExtrasRequireParsingScenarios(base.BaseTestCase):
                     baz<1.6 :python_version=='2.6'
                 """,
             'expected_extra_requires': {
-                "test:python_version=='2.6'": ['foo', 'baz<1.6'],
+                "test:(python_version=='2.6')": ['foo', 'baz<1.6'],
                 "test": ['bar']}}),
         ('no_extras', {
             'config_text': """
