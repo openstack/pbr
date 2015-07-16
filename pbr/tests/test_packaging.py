@@ -156,21 +156,23 @@ class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
         super(TestPackagingInGitRepoWithCommit, self).setUp()
         repo = self.useFixture(TestRepo(self.package_dir))
         repo.commit()
-        self.run_setup('sdist', allow_fail=False)
 
     def test_authors(self):
+        self.run_setup('sdist', allow_fail=False)
         # One commit, something should be in the authors list
         with open(os.path.join(self.package_dir, 'AUTHORS'), 'r') as f:
             body = f.read()
         self.assertNotEqual(body, '')
 
     def test_changelog(self):
+        self.run_setup('sdist', allow_fail=False)
         with open(os.path.join(self.package_dir, 'ChangeLog'), 'r') as f:
             body = f.read()
         # One commit, something should be in the ChangeLog list
         self.assertNotEqual(body, '')
 
     def test_manifest_exclude_honoured(self):
+        self.run_setup('sdist', allow_fail=False)
         with open(os.path.join(
                 self.package_dir,
                 'pbr_testpackage.egg-info/SOURCES.txt'), 'r') as f:
@@ -178,6 +180,12 @@ class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
         self.assertThat(
             body, matchers.Not(matchers.Contains('pbr_testpackage/extra.py')))
         self.assertThat(body, matchers.Contains('pbr_testpackage/__init__.py'))
+
+    def test_install_writes_changelog(self):
+        stdout, _, _ = self.run_setup(
+            'install', '--root', self.temp_dir + 'installed',
+            allow_fail=False)
+        self.expectThat(stdout, matchers.Contains('Generating ChangeLog'))
 
 
 class TestPackagingInGitRepoWithoutCommit(base.BaseTestCase):
@@ -204,17 +212,25 @@ class TestPackagingInPlainDirectory(base.BaseTestCase):
 
     def setUp(self):
         super(TestPackagingInPlainDirectory, self).setUp()
-        self.run_setup('sdist', allow_fail=False)
 
     def test_authors(self):
+        self.run_setup('sdist', allow_fail=False)
         # Not a git repo, no AUTHORS file created
         filename = os.path.join(self.package_dir, 'AUTHORS')
         self.assertFalse(os.path.exists(filename))
 
     def test_changelog(self):
+        self.run_setup('sdist', allow_fail=False)
         # Not a git repo, no ChangeLog created
         filename = os.path.join(self.package_dir, 'ChangeLog')
         self.assertFalse(os.path.exists(filename))
+
+    def test_install_no_ChangeLog(self):
+        stdout, _, _ = self.run_setup(
+            'install', '--root', self.temp_dir + 'installed',
+            allow_fail=False)
+        self.expectThat(
+            stdout, matchers.Not(matchers.Contains('Generating ChangeLog')))
 
 
 class TestPresenceOfGit(base.BaseTestCase):

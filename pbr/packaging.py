@@ -163,6 +163,20 @@ def parse_dependency_links(requirements_files=None):
     return dependency_links
 
 
+class InstallWithGit(install.install):
+    """Extracts ChangeLog and AUTHORS from git then installs.
+
+    This is useful for e.g. readthedocs where the package is
+    installed and then docs built.
+    """
+
+    command_name = 'install'
+
+    def run(self):
+        _from_git(self.distribution)
+        return install.install.run(self)
+
+
 class LocalInstall(install.install):
     """Runs python setup.py install in a sensible manner.
 
@@ -174,6 +188,7 @@ class LocalInstall(install.install):
     command_name = 'install'
 
     def run(self):
+        _from_git(self.distribution)
         return du_install.install.run(self)
 
 
@@ -397,18 +412,22 @@ class LocalEggInfo(egg_info.egg_info):
                 self.filelist.append(entry)
 
 
+def _from_git(distribution):
+    option_dict = distribution.get_option_dict('pbr')
+    changelog = git._iter_log_oneline(option_dict=option_dict)
+    if changelog:
+        changelog = git._iter_changelog(changelog)
+    git.write_git_changelog(option_dict=option_dict, changelog=changelog)
+    git.generate_authors(option_dict=option_dict)
+
+
 class LocalSDist(sdist.sdist):
     """Builds the ChangeLog and Authors files from VC first."""
 
     command_name = 'sdist'
 
     def run(self):
-        option_dict = self.distribution.get_option_dict('pbr')
-        changelog = git._iter_log_oneline(option_dict=option_dict)
-        if changelog:
-            changelog = git._iter_changelog(changelog)
-        git.write_git_changelog(option_dict=option_dict, changelog=changelog)
-        git.generate_authors(option_dict=option_dict)
+        _from_git(self.distribution)
         # sdist.sdist is an old style class, can't use super()
         sdist.sdist.run(self)
 
