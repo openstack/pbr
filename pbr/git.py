@@ -22,6 +22,7 @@ import io
 import os
 import re
 import subprocess
+import time
 
 import pkg_resources
 
@@ -221,6 +222,7 @@ def _iter_log_inner(git_dir):
 def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
                         option_dict=dict(), changelog=None):
     """Write a changelog based on the git changelog."""
+    start = time.time()
     if not changelog:
         changelog = _iter_log_oneline(git_dir=git_dir, option_dict=option_dict)
         if changelog:
@@ -236,6 +238,8 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
     with io.open(new_changelog, "w", encoding="utf-8") as changelog_file:
         for release, content in changelog:
             changelog_file.write(content)
+    stop = time.time()
+    log.info('[pbr] ChangeLog complete (%0.1fs)' % (stop - start))
 
 
 def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
@@ -244,6 +248,7 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
                                              'SKIP_GENERATE_AUTHORS')
     if should_skip:
         return
+    start = time.time()
     old_authors = os.path.join(dest_dir, 'AUTHORS.in')
     new_authors = os.path.join(dest_dir, 'AUTHORS')
     # If there's already an AUTHORS file and it's not writable, just use it
@@ -278,3 +283,5 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
                     new_authors_fh.write(old_authors_fh.read())
             new_authors_fh.write(('\n'.join(authors) + '\n')
                                  .encode('utf-8'))
+    stop = time.time()
+    log.info('[pbr] AUTHORS complete (%0.1fs)' % (stop - start))
