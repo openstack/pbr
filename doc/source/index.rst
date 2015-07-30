@@ -159,10 +159,10 @@ constraints on the environment, you can use::
     [extras]
     security =
         aleph
-        bet :python_environment=='3.2'
-        gimel :python_environment=='2.7'
+        bet:python_version=='3.2'
+        gimel:python_version=='2.7'
     testing =
-        quux :python_environment=='2.7'
+        quux:python_version=='2.7'
 
 long_description
 ----------------
