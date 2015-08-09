@@ -174,7 +174,7 @@ for you.
 
 Usage
 =====
-pbr requires a distribution to use distribute.  Your distribution
+pbr requires a distribution to use setuptools.  Your distribution
 must include a distutils2-like setup.cfg file, and a minimal setup.py script.
 
 A simple sample can be found in pbr's own setup.cfg
