@@ -18,6 +18,7 @@ from __future__ import unicode_literals
 
 import distutils.errors
 from distutils import log
+import errno
 import io
 import os
 import re
@@ -64,7 +65,13 @@ def _run_git_command(cmd, git_dir, **kwargs):
 
 
 def _get_git_directory():
-    return _run_shell_command(['git', 'rev-parse', '--git-dir'])
+    try:
+        return _run_shell_command(['git', 'rev-parse', '--git-dir'])
+    except OSError as e:
+        if e.errno == errno.ENOENT:
+            # git not installed.
+            return ''
+        raise
 
 
 def _git_is_installed():
