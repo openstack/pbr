@@ -42,6 +42,7 @@ class CommandsConfig(base.BaseConfig):
         self.add_command('pbr.packaging.LocalSDist')
         self.add_command('pbr.packaging.LocalInstallScripts')
         self.add_command('pbr.packaging.LocalDevelop')
+        self.add_command('pbr.packaging.LocalRPMVersion')
         if os.name != 'nt':
             easy_install.get_script_args = packaging.override_get_script_args
 

@@ -56,3 +56,11 @@ class TestCommands(base.BaseTestCase):
         self.addDetail('stderr', content.text_content(stderr))
         self.assertIn('Running custom build_py command.', stdout)
         self.assertEqual(return_code, 0)
+
+    def test_custom_rpm_version_py_command(self):
+        """Test custom rpm_version command."""
+        stdout, stderr, return_code = self.run_setup('rpm_version')
+        self.addDetail('stdout', content.text_content(stdout))
+        self.addDetail('stderr', content.text_content(stderr))
+        self.assertIn('Extracting rpm version', stdout)
+        self.assertEqual(return_code, 0)
