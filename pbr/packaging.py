@@ -132,6 +132,7 @@ def parse_requirements(requirements_files=None, strip_markers=False):
             reason = 'Index Location'
 
         if line is not None:
+            line = re.sub('#.*$', '', line)
             if strip_markers:
                 semi_pos = line.find(';')
                 if semi_pos < 0:

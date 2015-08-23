@@ -466,6 +466,9 @@ class TestRequirementParsing(base.BaseTestCase):
             f.write(textwrap.dedent(six.u("""\
                 bar
                 quux<1.0; python_version=='2.6'
+                requests-aws>=0.1.4    # BSD License (3 clause)
+                Routes>=1.12.3,!=2.0,!=2.1;python_version=='2.7'
+                requests-kerberos>=0.6;python_version=='2.7' # MIT
             """)))
         setup_cfg = os.path.join(tempdir, 'setup.cfg')
         with open(setup_cfg, 'wt') as f:
@@ -481,11 +484,14 @@ class TestRequirementParsing(base.BaseTestCase):
         # pkg_resources.split_sections uses None as the title of an
         # anonymous section instead of the empty string. Weird.
         expected_requirements = {
-            None: ['bar'],
+            None: ['bar', 'requests-aws>=0.1.4'],
             ":(python_version=='2.6')": ['quux<1.0'],
-            "test:(python_version=='2.7')": ['baz>3.2'],
-            "test": ['foo']
+            ":(python_version=='2.7')": ['Routes>=1.12.3,!=2.0,!=2.1',
+                                         'requests-kerberos>=0.6'],
+            'test': ['foo'],
+            "test:(python_version=='2.7')": ['baz>3.2']
         }
+
         setup_py = os.path.join(tempdir, 'setup.py')
         with open(setup_py, 'wt') as f:
             f.write(textwrap.dedent(six.u("""\
