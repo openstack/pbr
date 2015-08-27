@@ -250,6 +250,8 @@ def have_nose():
 
 _wsgi_text = """#PBR Generated from %(group)r
 
+import threading
+
 from %(module_name)s import %(import_target)s
 
 if __name__ == "__main__":
@@ -275,7 +277,12 @@ if __name__ == "__main__":
 
     server.serve_forever()
 else:
-    application = %(invoke_target)s()
+    application = None
+    app_lock = threading.Lock()
+
+    with app_lock:
+        if application is None:
+            application = %(invoke_target)s()
 
 """
 

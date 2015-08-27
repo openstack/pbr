@@ -164,7 +164,7 @@ class TestWsgiScripts(base.BaseTestCase):
                               "%s" % app_name)
 
             else_block = """else:
-    application = %s()""" % app_name
+    application = None"""
 
             self.assertIn(main_block, script_txt)
             self.assertIn(starting_block, script_txt)
