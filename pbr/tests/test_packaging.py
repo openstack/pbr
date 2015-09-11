@@ -479,7 +479,8 @@ class TestRequirementParsing(base.BaseTestCase):
                 [extras]
                 test =
                     foo
-                    baz>3.2 :python_version=='2.7'
+                    baz>3.2 :python_version=='2.7' # MIT
+                    bar>3.3 :python_version=='2.7' # MIT # Apache
             """)))
         # pkg_resources.split_sections uses None as the title of an
         # anonymous section instead of the empty string. Weird.
@@ -489,7 +490,7 @@ class TestRequirementParsing(base.BaseTestCase):
             ":(python_version=='2.7')": ['Routes>=1.12.3,!=2.0,!=2.1',
                                          'requests-kerberos>=0.6'],
             'test': ['foo'],
-            "test:(python_version=='2.7')": ['baz>3.2']
+            "test:(python_version=='2.7')": ['baz>3.2', 'bar>3.3']
         }
 
         setup_py = os.path.join(tempdir, 'setup.py')

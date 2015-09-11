@@ -334,7 +334,7 @@ def setup_cfg_to_setup_kwargs(config):
                 # Split install_requires into package,env_marker tuples
                 # These will be re-assembled later
                 install_requires = []
-                requirement_pattern = '(?P<package>[^;]*);?(?P<env_marker>.*)$'
+                requirement_pattern = '(?P<package>[^;]*);?(?P<env_marker>[^#]*?)(?:\s*#.*)?$'
                 for requirement in in_cfg_value:
                     m = re.match(requirement_pattern, requirement)
                     requirement_package = m.group('package').strip()
@@ -394,7 +394,7 @@ def setup_cfg_to_setup_kwargs(config):
     # -> {'fred': ['bar'], 'fred:marker':['foo']}
 
     if 'extras' in config:
-        requirement_pattern = '(?P<package>[^:]*):?(?P<env_marker>.*)$'
+        requirement_pattern = '(?P<package>[^:]*):?(?P<env_marker>[^#]*?)(?:\s*#.*)?$'
         extras = config['extras']
         for extra in extras:
             extra_requirements = []
