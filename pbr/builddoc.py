@@ -17,7 +17,9 @@
 from distutils import log
 import fnmatch
 import os
+import pkg_resources
 import sys
+import warnings
 
 try:
     import cStringIO
@@ -130,14 +132,19 @@ class LocalBuildDoc(setup_command.BuildDoc):
         if self.today:
             confoverrides['today'] = self.today
         sphinx_config = config.Config(self.config_dir, 'conf.py', {}, [])
-        sphinx_config.init_values()
+        sphinx_ver = pkg_resources.get_distribution("sphinx").version
+        if pkg_resources.parse_version(sphinx_ver) >= \
+                pkg_resources.parse_version('1.3.1'):
+            sphinx_config.init_values(warnings.warn)
+        else:
+            sphinx_config.init_values()
         if self.builder == 'man' and len(sphinx_config.man_pages) == 0:
             return
         app = application.Sphinx(
             self.source_dir, self.config_dir,
             self.builder_target_dir, self.doctree_dir,
             self.builder, confoverrides, status_stream,
-            freshenv=self.fresh_env, warningiserror=True)
+            freshenv=self.fresh_env, warningiserror=False)
 
         try:
             app.build(force_all=self.all_files)
