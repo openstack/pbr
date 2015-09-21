@@ -13,12 +13,15 @@
 
 import os.path
 import shlex
+import sys
 
 import fixtures
 import testtools
+import textwrap
 import virtualenv
 
 from pbr.tests import base
+from pbr.tests.test_packaging import TestRepo
 
 PIPFLAGS = shlex.split(os.environ.get('PIPFLAGS', ''))
 PIPVERSION = os.environ.get('PIPVERSION', 'pip')
@@ -27,6 +30,7 @@ REPODIR = os.environ.get('REPODIR', '')
 WHEELHOUSE = os.environ.get('WHEELHOUSE', '')
 PIP_CMD = ['-m', 'pip'] + PIPFLAGS + ['install', '-f', WHEELHOUSE]
 PROJECTS = shlex.split(os.environ.get('PROJECTS', ''))
+PBR_ROOT = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
 
 
 def all_projects():
@@ -148,3 +152,75 @@ class TestIntegration(base.BaseTestCase):
         python = venv.python
         self.useFixture(base.CapturedSubprocess(
             'install-e', [python] + PIP_CMD + ['-e', path]))
+
+
+class TestInstallWithoutPbr(base.BaseTestCase):
+
+    @testtools.skipUnless(
+        os.environ.get('PBR_INTEGRATION', None) == '1',
+        'integration tests not enabled')
+    def test_install_without_pbr(self):
+        # Test easy-install of a thing that depends on a thing using pbr
+        tempdir = self.useFixture(fixtures.TempDir()).path
+        # A directory containing sdists of the things we're going to depend on
+        # in using-package.
+        dist_dir = os.path.join(tempdir, 'distdir')
+        os.mkdir(dist_dir)
+        self._run_cmd(sys.executable, ('setup.py', 'sdist', '-d', dist_dir),
+                      allow_fail=False, cwd=PBR_ROOT)
+        # testpkg - this requires a pbr-using package
+        test_pkg_dir = os.path.join(tempdir, 'testpkg')
+        os.mkdir(test_pkg_dir)
+        with open(os.path.join(test_pkg_dir, 'setup.py'), 'wt') as f:
+            f.write(textwrap.dedent("""\
+                #!/usr/bin/env python
+                import setuptools
+                setuptools.setup(
+                    name = 'pkgTest',
+                    tests_require = ['pkgReq'],
+                    test_suite='pkgReq'
+                )
+                """))
+        with open(os.path.join(test_pkg_dir, 'setup.cfg'), 'wt') as f:
+            f.write(textwrap.dedent("""\
+                [easy_install]
+                find_links = %s
+                """ % dist_dir))
+        repoTest = self.useFixture(TestRepo(test_pkg_dir))
+        repoTest.commit()
+        # reqpkg - this is a package that requires pbr
+        req_pkg_dir = os.path.join(tempdir, 'reqpkg')
+        pkg_req_module = os.path.join(req_pkg_dir, 'pkgReq/')
+        os.makedirs(pkg_req_module)
+        with open(os.path.join(req_pkg_dir, 'setup.py'), 'wt') as f:
+            f.write(textwrap.dedent("""\
+                #!/usr/bin/env python
+                import setuptools
+                setuptools.setup(
+                    setup_requires=['pbr'],
+                    pbr=True
+                )
+                """))
+        with open(os.path.join(req_pkg_dir, 'setup.cfg'), 'wt') as f:
+            f.write(textwrap.dedent("""\
+                [metadata]
+                name = pkgReq
+                """))
+        with open(os.path.join(req_pkg_dir, 'requirements.txt'), 'wt') as f:
+            f.write(textwrap.dedent("""\
+                pbr
+                """))
+        with open(os.path.join(req_pkg_dir, 'pkgReq/__init__.py'), 'wt') as f:
+            f.write(textwrap.dedent("""\
+                print("FakeTest loaded and ran")
+                """))
+        repoReq = self.useFixture(TestRepo(req_pkg_dir))
+        repoReq.commit()
+        self._run_cmd(sys.executable, ('setup.py', 'sdist', '-d', dist_dir),
+                      allow_fail=False, cwd=req_pkg_dir)
+        # A venv to test within
+        venv = self.useFixture(Venv('nopbr', install_pbr=False))
+        python = venv.python
+        # Run the depending script
+        self.useFixture(base.CapturedSubprocess(
+            'nopbr', [python] + ['setup.py', 'test'], cwd=test_pkg_dir))
