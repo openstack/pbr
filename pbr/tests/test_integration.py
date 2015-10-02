@@ -49,6 +49,41 @@ def all_projects():
         yield (short_name, dict(name=name, short_name=short_name))
 
 
+class Venv(fixtures.Fixture):
+    """Create a virtual environment for testing with.
+
+    :attr path: The path to the environment root.
+    :attr python: The path to the python binary in the environment.
+    """
+
+    def __init__(self, reason, install_pbr=True):
+        """Create a Venv fixture.
+
+        :param reason: A human readable string to bake into the venv
+            file path to aid diagnostics in the case of failures.
+        :param install_pbr: By default pbr is installed inside the
+            venv. Setting this to false will disable that.
+        """
+        self._reason = reason
+        self._install_pbr = install_pbr
+
+    def _setUp(self):
+        path = self.useFixture(fixtures.TempDir()).path
+        virtualenv.create_environment(path, clear=True)
+        python = os.path.join(path, 'bin', 'python')
+        command = [python] + PIP_CMD + [
+            '-U', PIPVERSION, 'wheel']
+        if self._install_pbr:
+            command.append(PBRVERSION)
+        self.useFixture(base.CapturedSubprocess(
+            'mkvenv-' + self._reason, command))
+        self.addCleanup(delattr, self, 'path')
+        self.addCleanup(delattr, self, 'python')
+        self.path = path
+        self.python = python
+        return path, python
+
+
 class TestIntegration(base.BaseTestCase):
 
     scenarios = list(all_projects())
@@ -56,19 +91,11 @@ class TestIntegration(base.BaseTestCase):
     def setUp(self):
         # Integration tests need a higher default - big repos can be slow to
         # clone, particularly under guest load.
-        os.environ['OS_TEST_TIMEOUT'] = os.environ.get('OS_TEST_TIMEOUT',
-                                                       '600')
-        super(TestIntegration, self).setUp()
+        env = fixtures.EnvironmentVariable(
+            'OS_TEST_TIMEOUT', os.environ.get('OS_TEST_TIMEOUT', '600'))
+        with env:
+            super(TestIntegration, self).setUp()
         base._config_git()
-
-    def venv(self, reason):
-        path = self.useFixture(fixtures.TempDir()).path
-        virtualenv.create_environment(path, clear=True)
-        python = os.path.join(path, 'bin', 'python')
-        self.useFixture(base.CapturedSubprocess(
-            'mkvenv-' + reason, [python] + PIP_CMD + [
-                '-U', PIPVERSION, 'wheel', PBRVERSION]))
-        return path, python
 
     @testtools.skipUnless(
         os.environ.get('PBR_INTEGRATION', None) == '1',
@@ -95,15 +122,19 @@ class TestIntegration(base.BaseTestCase):
         self.useFixture(base.CapturedSubprocess(
             'clone',
             ['git', 'clone', os.path.join(REPODIR, self.short_name), path]))
-        _, python = self.venv('sdist')
+        venv = self.useFixture(Venv('sdist'))
+        python = venv.python
         self.useFixture(base.CapturedSubprocess(
             'sdist', [python, 'setup.py', 'sdist'], cwd=path))
-        _, python = self.venv('tarball')
+        venv = self.useFixture(Venv('tarball'))
+        python = venv.python
         filename = os.path.join(
             path, 'dist', os.listdir(os.path.join(path, 'dist'))[0])
         self.useFixture(base.CapturedSubprocess(
             'tarball', [python] + PIP_CMD + [filename]))
-        root, python = self.venv('install-git')
+        venv = self.useFixture(Venv('install-git'))
+        root = venv.path
+        python = venv.python
         self.useFixture(base.CapturedSubprocess(
             'install-git', [python] + PIP_CMD + ['git+file://' + path]))
         if self.short_name == 'nova':
@@ -112,6 +143,8 @@ class TestIntegration(base.BaseTestCase):
                 if 'migrate.cfg' in filenames:
                     found = True
             self.assertTrue(found)
-        _, python = self.venv('install-e')
+        venv = self.useFixture(Venv('install-e'))
+        root = venv.path
+        python = venv.python
         self.useFixture(base.CapturedSubprocess(
             'install-e', [python] + PIP_CMD + ['-e', path]))
