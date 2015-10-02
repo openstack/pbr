@@ -48,7 +48,6 @@ import fixtures
 import mock
 import pkg_resources
 import six
-import testscenarios
 from testtools import matchers
 
 from pbr import git
@@ -514,7 +513,3 @@ class TestRequirementParsing(base.BaseTestCase):
                 pkg_resources.split_sections(requires))
 
         self.assertEqual(expected_requirements, generated_requirements)
-
-
-def load_tests(loader, in_tests, pattern):
-    return testscenarios.load_tests_apply_scenarios(loader, in_tests, pattern)

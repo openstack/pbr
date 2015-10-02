@@ -15,7 +15,6 @@ import os.path
 import shlex
 
 import fixtures
-import testscenarios
 import testtools
 import virtualenv
 
@@ -116,7 +115,3 @@ class TestIntegration(base.BaseTestCase):
         _, python = self.venv('install-e')
         self.useFixture(base.CapturedSubprocess(
             'install-e', [python] + PIP_CMD + ['-e', path]))
-
-
-def load_tests(loader, in_tests, pattern):
-    return testscenarios.load_tests_apply_scenarios(loader, in_tests, pattern)

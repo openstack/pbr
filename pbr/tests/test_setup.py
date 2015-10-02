@@ -28,7 +28,6 @@ except ImportError:
     BytesIO = io.BytesIO
 
 import fixtures
-import testscenarios
 
 from pbr import git
 from pbr import options
@@ -424,7 +423,3 @@ class ParseDependencyLinksTest(base.BaseTestCase):
         self.assertEqual(
             ["git://foo.com/zipball#egg=bar"],
             packaging.parse_dependency_links([self.tmp_file]))
-
-
-def load_tests(loader, in_tests, pattern):
-    return testscenarios.load_tests_apply_scenarios(loader, in_tests, pattern)

@@ -17,7 +17,6 @@ import textwrap
 
 import six
 from six.moves import configparser
-import testscenarios
 
 from pbr.tests import base
 from pbr import util
@@ -74,7 +73,3 @@ class TestExtrasRequireParsingScenarios(base.BaseTestCase):
 
         self.assertEqual(self.expected_extra_requires,
                          kwargs['extras_require'])
-
-
-def load_tests(loader, in_tests, pattern):
-    return testscenarios.load_tests_apply_scenarios(loader, in_tests, pattern)
