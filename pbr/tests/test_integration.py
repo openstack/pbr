@@ -37,7 +37,7 @@ def all_projects():
     if not REPODIR:
         return
     # Future: make this path parameterisable.
-    excludes = set(['pypi-mirror', 'jeepyb', 'tempest', 'requirements'])
+    excludes = set(['tempest', 'requirements'])
     for name in PROJECTS:
         name = name.strip()
         short_name = name.split('/')[-1]
