@@ -23,6 +23,8 @@ PBR can and does do a bunch of things for you:
  * **Version**: Manage version number based on git revisions and tags
  * **AUTHORS**: Generate AUTHORS file from git log
  * **ChangeLog**: Generate ChangeLog from git log
+ * **Manifest**: Generate a sensible manifest from git files and some standard
+   files
  * **Sphinx Autodoc**: Generate autodoc stub files for your whole module
  * **Requirements**: Store your dependencies in a pip requirements file
  * **long_description**: Use your README file as a long_description
@@ -81,6 +83,16 @@ AUTHORS and ChangeLog
 Why keep an AUTHORS or a ChangeLog file, when git already has all of the
 information you need. AUTHORS generation supports filtering/combining based
 on a standard .mailmap file.
+
+Manifest
+--------
+
+Just like AUTHORS and ChangeLog, why keep a list of files you wish to include
+when you can find many of these in git. Manifest generation ensures almost all
+files stored in git, with the exception of '.gitignore', '.gitreview' and
+'.pyc' files, are automatically included in your distribution. In addition, the
+generated 'AUTHORS' and 'ChangeLog' files are also included. In many cases,
+this removes the need for an explicit 'MANIFEST.in' file
 
 Sphinx Autodoc
 --------------
