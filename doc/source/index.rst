@@ -345,6 +345,11 @@ version number used to install the package):
 
 Only the first file found is used to install the list of packages it contains.
 
+.. note::
+
+   The 'requirements-pyN.txt' file is deprecated - 'requirements.txt' should
+   be universal. You can use `Environment markers`_ for this purpose.
+
 Extra requirements
 ~~~~~~~~~~~~~~~~~~
 
