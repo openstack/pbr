@@ -20,23 +20,23 @@ What It Does
 
 PBR can and does do a bunch of things for you:
 
- * **Version**: Manage version number based on git revisions and tags
- * **AUTHORS**: Generate AUTHORS file from git log
- * **ChangeLog**: Generate ChangeLog from git log
- * **Manifest**: Generate a sensible manifest from git files and some standard
-   files
- * **Sphinx Autodoc**: Generate autodoc stub files for your whole module
- * **Requirements**: Store your dependencies in a pip requirements file
- * **long_description**: Use your README file as a long_description
- * **Smart find_packages**: Smartly find packages under your root package
+* **Version**: Manage version number based on git revisions and tags
+* **AUTHORS**: Generate AUTHORS file from git log
+* **ChangeLog**: Generate ChangeLog from git log
+* **Manifest**: Generate a sensible manifest from git files and some standard
+  files
+* **Sphinx Autodoc**: Generate autodoc stub files for your whole module
+* **Requirements**: Store your dependencies in a pip requirements file
+* **long_description**: Use your README file as a long_description
+* **Smart find_packages**: Smartly find packages under your root package
 
 Version
 -------
 
 Versions can be managed two ways - postversioning and preversioning.
 Postversioning is the default, and preversioning is enabeld by setting
-``version`` in the setup.cfg ``metadata`` section. In both cases
-version strings are inferred from git.
+``version`` in the setup.cfg ``metadata`` section. In both cases version
+strings are inferred from git.
 
 If a given revision is tagged, that's the version.
 
@@ -46,7 +46,7 @@ get a minimum target version.
 We then walk git history back to the last release. Within each commit we look
 for a Sem-Ver: pseudo header, and if found parse it looking for keywords.
 Unknown symbols are not an error (so that folk can't wedge pbr or break their
-tree), but we will emit an info level warning message.  Known symbols:
+tree), but we will emit an info level warning message. Known symbols:
 ``feature``, ``api-break``, ``deprecation``, ``bugfix``. A missing
 Sem-Ver line is equivalent to ``Sem-Ver: bugfix``. The ``bugfix`` symbol causes
 a patch level increment to the version. The ``feature`` and ``deprecation``
@@ -56,10 +56,10 @@ major version increment.
 If postversioning is in use, we use the resulting version number as the target
 version.
 
-If preversioning is in use - that is if there is a version set in setup.cfg
+If preversioning is in use - that is if there is a version set in `setup.cfg`
 metadata - then we check that that version is higher than the target version
 we inferred above. If it is not, we raise an error, otherwise we use the
-version from setup.cfg as the target.
+version from `setup.cfg` as the target.
 
 We then generate dev version strings based on the commits since the last
 release and include the current git sha to disambiguate multiple dev versions
@@ -67,8 +67,7 @@ with the same number of commits since the release.
 
 .. note::
 
-   Note that `pbr` expects git tags to be signed, for using it to
-   calculate version.
+   `pbr` expects git tags to be signed for use in calculating versions
 
 The versions are expected to be compliant with :doc:`semver`.
 
@@ -80,28 +79,29 @@ package and present it in various forms - ``debian_version()``,
 AUTHORS and ChangeLog
 ---------------------
 
-Why keep an AUTHORS or a ChangeLog file, when git already has all of the
-information you need. AUTHORS generation supports filtering/combining based
-on a standard .mailmap file.
+Why keep an `AUTHORS` or a `ChangeLog` file when git already has all of the
+information you need? `AUTHORS` generation supports filtering/combining based
+on a standard `.mailmap` file.
 
 Manifest
 --------
 
-Just like AUTHORS and ChangeLog, why keep a list of files you wish to include
-when you can find many of these in git. Manifest generation ensures almost all
-files stored in git, with the exception of '.gitignore', '.gitreview' and
-'.pyc' files, are automatically included in your distribution. In addition, the
-generated 'AUTHORS' and 'ChangeLog' files are also included. In many cases,
-this removes the need for an explicit 'MANIFEST.in' file
+Just like `AUTHORS` and `ChangeLog`, why keep a list of files you wish to
+include when you can find many of these in git. `MANIFEST.in` generation
+ensures almost all files stored in git, with the exception of `.gitignore`,
+`.gitreview` and `.pyc` files, are automatically included in your
+distribution. In addition, the generated `AUTHORS` and `ChangeLog` files are
+also included. In many cases, this removes the need for an explicit
+'MANIFEST.in' file
 
 Sphinx Autodoc
 --------------
 
 Sphinx can produce auto documentation indexes based on signatures and
-docstrings of your project- but you have to give it index files to tell it
-to autodoc each module. That's kind of repetitive and boring. PBR will
-scan your project, find all of your modules, and generate all of the stub
-files for you.
+docstrings of your project but you have to give it index files to tell it
+to autodoc each module: that's kind of repetitive and boring. PBR will scan
+your project, find all of your modules, and generate all of the stub files for
+you.
 
 Sphinx documentation setups are altered to generate man pages by default. They
 also have several pieces of information that are known to setup.py injected
@@ -151,14 +151,14 @@ setup.py
 project. This is because most configuration is located in static configuration
 files. This minimal `setup.py` file should look something like this::
 
- #!/usr/bin/env python
+    #!/usr/bin/env python
 
- from setuptools import setup
+    from setuptools import setup
 
- setup(
-     setup_requires=['pbr'],
-     pbr=True,
- )
+    setup(
+        setup_requires=['pbr'],
+        pbr=True,
+    )
 
 .. note::
 
@@ -174,41 +174,42 @@ setup.cfg
 
 The `setup.cfg` file is an ini-like file that can mostly replace the `setup.py`
 file. It is based on the distutils2_ `setup.cfg` file. A simple sample can be
-found in pbr's own `setup.cfg` (it uses its own machinery to install itself)::
+found in `pbr`'s own `setup.cfg` (it uses its own machinery to install
+itself)::
 
- [metadata]
- name = pbr
- author = OpenStack Foundation
- author-email = openstack-dev@lists.openstack.org
- summary = OpenStack's setup automation in a reusable form
- description-file = README
- home-page = https://launchpad.net/pbr
- license = Apache-2
- classifier =
-     Development Status :: 4 - Beta
-         Environment :: Console
-         Environment :: OpenStack
-         Intended Audience :: Developers
-         Intended Audience :: Information Technology
-         License :: OSI Approved :: Apache Software License
-         Operating System :: OS Independent
-         Programming Language :: Python
- keywords =
-     setup
-     distutils
- [files]
- packages =
-     pbr
- data_files =
-     etc/pbr = etc/*
-     etc/init =
-         pbr.packaging.conf
-         pbr.version.conf
- [entry_points]
- console_scripts =
-     pbr = pbr.cmd:main
- pbr.config.drivers =
-     plain = pbr.cfg.driver:Plain
+    [metadata]
+    name = pbr
+    author = OpenStack Foundation
+    author-email = openstack-dev@lists.openstack.org
+    summary = OpenStack's setup automation in a reusable form
+    description-file = README
+    home-page = https://launchpad.net/pbr
+    license = Apache-2
+    classifier =
+        Development Status :: 4 - Beta
+            Environment :: Console
+            Environment :: OpenStack
+            Intended Audience :: Developers
+            Intended Audience :: Information Technology
+            License :: OSI Approved :: Apache Software License
+            Operating System :: OS Independent
+            Programming Language :: Python
+    keywords =
+        setup
+        distutils
+    [files]
+    packages =
+        pbr
+    data_files =
+        etc/pbr = etc/*
+        etc/init =
+            pbr.packaging.conf
+            pbr.version.conf
+    [entry_points]
+    console_scripts =
+        pbr = pbr.cmd:main
+    pbr.config.drivers =
+        plain = pbr.cfg.driver:Plain
 
 There are a number of sections in these documents. These are:
 
@@ -323,13 +324,13 @@ Comments may be used in `setup.cfg`, however all comments should start with a
 character immediately preceding the `#`. Semicolons are not a supported comment
 delimiter. For instance::
 
- [section]
- # A comment at the start of a dedicated line
- key =
-     value1 # An in line comment
-     value2
-     # A comment on a dedicated line
-     value3
+    [section]
+    # A comment at the start of a dedicated line
+    key =
+        value1 # An in line comment
+        value2
+        # A comment on a dedicated line
+        value3
 
 Requirements
 ------------
