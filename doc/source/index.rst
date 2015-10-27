@@ -186,11 +186,42 @@ for you.
 
 Usage
 =====
-pbr requires a distribution to use setuptools.  Your distribution
-must include a distutils2-like setup.cfg file, and a minimal setup.py script.
 
-A simple sample can be found in pbr's own setup.cfg
-(it uses its own machinery to install itself)::
+`pbr` is a setuptools plugin and so to use it you must use setuptools and call
+``setuptools.setup()``. While the normal setuptools facilities are available,
+pbr makes it possible to express them through static data files.
+
+setup.py
+--------
+
+`pbr` only requires a minimal `setup.py` file compared to a standard setuptools
+project. This is because most configuration is located in static configuration
+files. This minimal `setup.py` file should look something like this::
+
+ #!/usr/bin/env python
+
+ from setuptools import setup
+
+ setup(
+     setup_requires=['pbr'],
+     pbr=True,
+ )
+
+.. note::
+
+   It is necessary to specify ``pbr=True`` to enabled `pbr` functionality.
+
+.. note::
+
+   While one can pass any arguments supported by setuptools to `setup()`,
+   any conflicting arguments supplied in `setup.cfg` will take precedence.
+
+setup.cfg
+---------
+
+The `setup.cfg` file is an ini-like file that can mostly replace the `setup.py`
+file. It is based on the distutils2_ `setup.cfg` file. A simple sample can be
+found in pbr's own `setup.cfg` (it uses its own machinery to install itself)::
 
  [metadata]
  name = pbr
@@ -226,46 +257,35 @@ A simple sample can be found in pbr's own setup.cfg
  pbr.config.drivers =
      plain = pbr.cfg.driver:Plain
 
-The minimal setup.py should look something like this::
+There are a number of sections in these documents. These are:
 
- #!/usr/bin/env python
-
- from setuptools import setup
-
- setup(
-     setup_requires=['pbr'],
-     pbr=True,
- )
-
-Note that it's important to specify `pbr=True` or else the pbr functionality
-will not be enabled.
-
-It should also work fine if additional arguments are passed to `setup()`,
-but it should be noted that they will be clobbered by any options in the
-setup.cfg file.
+* metadata
+* files
+* entry_points
+* pbr
 
 files
------
+~~~~~
 
-The format of the files section is worth explaining. There are three
-fundamental keys one is likely to care about, `packages`,
-`namespace_packages`, and `data_files`.
+The ``files`` section defines the install location of files in the package
+using three fundamental keys: ``packages``, ``namespace_packages``, and
+``data_files``.
 
-`packages` is a list of top-level packages that should be installed. The
-behavior of packages is similar to `setuptools.find_packages` in that it
+``packages`` is a list of top-level packages that should be installed. The
+behavior of packages is similar to ``setuptools.find_packages`` in that it
 recurses the python package hierarchy below the given top level and installs
-all of it. If `packages` is not specified, it defaults to the name given
-in the `[metadata]` section.
+all of it. If ``packages`` is not specified, it defaults to the value of the
+``name`` field given in the ``[metadata]`` section.
 
-`namespace_packages` is the same, but is a list of packages that provide
+``namespace_packages`` is the same, but is a list of packages that provide
 namespace packages.
 
-`data_files` lists files to be installed. The format is an indented block
-that contains key value pairs which specify target directory and source
-file to install there. More than one source file for a directory may be
-indicated with a further indented list. Source files are stripped of leading
-directories. Additionally, `pbr` supports a simple file globbing syntax
-for installing entire directory structures, so::
+``data_files`` lists files to be installed. The format is an indented block
+that contains key value pairs which specify target directory and source file
+to install there. More than one source file for a directory may be indicated
+with a further indented list. Source files are stripped of leading directories.
+Additionally, `pbr` supports a simple file globbing syntax for installing
+entire directory structures, thus::
 
  [files]
  data_files =
@@ -275,7 +295,7 @@ for installing entire directory structures, so::
          etc/dhcp-agent.ini
      etc/init.d = neutron.init
 
-Will result in `/etc/neutron` containing `api-paste.ini` and `dhcp-agent.ini`,
+will result in `/etc/neutron` containing `api-paste.ini` and `dhcp-agent.ini`,
 both of which pbr will expect to find in the `etc` directory in the root of
 the source tree. Additionally, `neutron.init` from that dir will be installed
 in `/etc/init.d`. All of the files and directories located under `etc/pbr` in
@@ -287,7 +307,10 @@ this could be the actual system-wide `/etc` directory or just a top-level `etc`
 subdirectory of a virtualenv.
 
 entry_points
-------------
+~~~~~~~~~~~~
+
+The `entry_points` section defines entry points for generated console scripts
+and python libraries.
 
 The general syntax of specifying entry points is a top level name indicating
 the entry point group name, followed by one or more key value pairs naming
@@ -307,44 +330,45 @@ installed for `pbr.config.drivers`, one called `plain` which maps to the
 `Fancy` class in `pbr.cfg.driver`.
 
 pbr
----
+~~~
+
 The pbr section controls pbr specific options and behaviours.
 
-The `autodoc_tree_index_modules` is a boolean option controlling whether pbr
-should generate an index of modules using `sphinx-apidoc`. By default, setup.py
-is excluded. The list of excluded modules can be specified with the
-`autodoc_tree_excludes` option. See the
-`sphinx-apidoc man page <http://sphinx-doc.org/man/sphinx-apidoc.html>`_
-for more information.
+The ``autodoc_tree_index_modules`` is a boolean option controlling whether pbr
+should generate an index of modules using ``sphinx-apidoc``. By default,
+`setup.py` is excluded. The list of excluded modules can be specified with the
+``autodoc_tree_excludes`` option. See the `sphinx-apidoc man page`_ for more
+information.
 
-The `autodoc_index_modules` is a boolean option controlling whether pbr should
-itself generates documentation for Python modules of the project. By default,
-all found Python modules are included; some of them can be excluded by listing
-them in `autodoc_exclude_modules`. This list of modules can contains `fnmatch`
-style pattern (e.g. `myapp.tests.*`) to exclude some modules.
+The ``autodoc_index_modules`` is a boolean option controlling whether `pbr`
+should itself generates documentation for Python modules of the project. By
+default, all found Python modules are included; some of them can be excluded
+by listing them in ``autodoc_exclude_modules``. This list of modules can
+contains `fnmatch` style pattern (e.g. `myapp.tests.*`) to exclude some modules.
 
-The `warnerrors` boolean option is used to tell Sphinx builders to treat
+The ``warnerrors`` boolean option is used to tell Sphinx builders to treat
 warnings as errors which will cause sphinx-build to fail if it encounters
 warnings. This is generally useful to ensure your documentation stays clean
 once you have a good docs build.
 
 .. note::
 
-   When using `autodoc_tree_excludes` or `autodoc_index_modules` you may also
-   need to set `exclude_patterns` in your Sphinx configuration file (generally
-   found at doc/source/conf.py in most OpenStack projects) otherwise
-   Sphinx may complain about documents that are not in a toctree. This is
-   especially true if the `warnerrors=True` option is set. See
-   http://sphinx-doc.org/config.html for more information on configuring
+   When using ``autodoc_tree_excludes`` or ``autodoc_index_modules`` you may
+   also need to set ``exclude_patterns`` in your Sphinx configuration file
+   (generally found at `doc/source/conf.py` in most OpenStack projects)
+   otherwise Sphinx may complain about documents that are not in a toctree.
+   This is especially true if the ``warnerrors=True`` option is set. See the
+   `Sphinx build configuration file`_ documentation for more information on
+   configuring
    Sphinx.
 
 Comments
---------
+~~~~~~~~
 
-Comments may be used in setup.cfg, however all comments should start with a
+Comments may be used in `setup.cfg`, however all comments should start with a
 `#` and may be on a single line, or in line, with at least one white space
-character immediately preceding the `#`.  Semicolons are not a supported
-comment delimiter.  For instance::
+character immediately preceding the `#`. Semicolons are not a supported comment
+delimiter. For instance::
 
  [section]
  # A comment at the start of a dedicated line
@@ -370,3 +394,7 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. _distutils2: http://alexis.notmyidea.org/distutils2/setupcfg.html
+.. _sphinx-apidoc man page: http://sphinx-doc.org/man/sphinx-apidoc.html
+.. _Sphinx build configuration file: http://sphinx-doc.org/config.html
