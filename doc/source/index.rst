@@ -113,68 +113,21 @@ Requirements
 ------------
 
 You may not have noticed, but there are differences in how pip
-requirements.txt files work and how distutils wants to be told about
-requirements. The pip way is nicer, because it sure does make it easier to
-populate a virtualenv for testing, or to just install everything you need.
-Duplicating the information, though, is super lame. So PBR will let you
-keep requirements.txt format files around describing the requirements for
-your project, will parse them and split them up appropriately, and inject
-them into the install_requires and/or tests_require and/or dependency_links
-arguments to setup. Voila!
+`requirements.txt` files work and how distutils wants to be told about
+requirements. The pip way is nicer because it sure does make it easier to
+populate a virtualenv for testing or to just install everything you need.
+Duplicating the information, though, is super lame. To solve this issue, `pbr`
+will let you use `requirements.txt`-format files to describe the requirements
+for your project and will then parse these files, split them up appropriately,
+and inject them into the `install_requires`, `tests_require` and/or
+`dependency_links` arguments to `setup`. Voila!
 
-You can also have a requirement file for each specific major version of
-Python. If you want to have a different package list for Python 3, just drop
-a requirements-py3.txt, and it will be used instead.
+You can also have a requirement file for each specific major version of Python.
+If you want to have a different package list for Python 3 then just drop a
+`requirements-py3.txt` and it will be used instead.
 
-The requirement files are tried in that order (N being the Python major
-version number used to install the package):
-
-* requirements-pyN.txt
-* tools/pip-requires-py3
-* requirements.txt
-* tools/pip-requires
-
-Only the first file found is used to install the list of packages it
-contains.
-
-Extra requirements
-------------------
-
-Groups of optional dependencies (`"extra" requirements
-<https://www.python.org/dev/peps/pep-0426/#extras-optional-dependencies>`_)
-can be described in your setup.cfg, rather than needing to be added to
-setup.py. An example (which also demonstrates the use of environment
-markers) is shown below.
-
-Environment markers
--------------------
-
-Environment markers are `conditional dependencies
-<https://www.python.org/dev/peps/pep-0426/#environment-markers>`_
-which can be added to the requirements (or to a group of extra
-requirements) automatically, depending on the environment the
-installer is running in. They can be added to requirements in the
-requirements file, or to extras definied in setup.cfg - but the format
-is slightly different for each.
-
-For ``requirements.txt``::
-
-    argparse; python_version=='2.6'
-
-will result in the package depending on ``argparse`` only if it's being
-installed into python2.6
-
-For extras specifed in setup.cfg, add an ``extras`` section. For
-instance, to create two groups of extra requirements with additional
-constraints on the environment, you can use::
-
-    [extras]
-    security =
-        aleph
-        bet:python_version=='3.2'
-        gimel:python_version=='2.7'
-    testing =
-        quux:python_version=='2.7'
+Finally, it is possible to specify groups of optional dependencies, or
+`"extra" requirements`_, in your `setup.cfg` rather than `setup.py`.
 
 long_description
 ----------------
@@ -378,6 +331,55 @@ delimiter. For instance::
      # A comment on a dedicated line
      value3
 
+Requirements
+------------
+
+Requirement files should be given one of the below names. This order is also
+the order that the requirements are tried in (where `N` is the Python major
+version number used to install the package):
+
+* requirements-pyN.txt
+* tools/pip-requires-py3
+* requirements.txt
+* tools/pip-requires
+
+Only the first file found is used to install the list of packages it contains.
+
+Extra requirements
+~~~~~~~~~~~~~~~~~~
+
+Groups of optional dependencies, or `"extra" requirements`_, can be described
+in your `setup.cfg`, rather than needing to be added to `setup.py`. An example
+(which also demonstrates the use of environment markers) is shown below.
+
+Environment markers
+~~~~~~~~~~~~~~~~~~~
+
+Environment markers are `conditional dependencies`_ which can be added to the
+requirements (or to a group of extra requirements) automatically, depending
+on the environment the installer is running in. They can be added to
+requirements in the requirements file, or to extras defined in `setup.cfg`,
+but the format is slightly different for each.
+
+For ``requirements.txt``::
+
+    argparse; python_version=='2.6'
+
+This will result in the package depending on ``argparse`` only if it's being
+installed into Python 2.6
+
+For extras specifed in `setup.cfg`, add an ``extras`` section. For instance,
+to create two groups of extra requirements with additional constraints on the
+environment, you can use::
+
+    [extras]
+    security =
+        aleph
+        bet:python_version=='3.2'
+        gimel:python_version=='2.7'
+    testing =
+        quux:python_version=='2.7'
+
 Additional Docs
 ===============
 
@@ -395,6 +397,10 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+.. _"extra" requirements:
+ https://www.python.org/dev/peps/pep-0426/#extras-optional-dependencies
+.. _conditional dependencies:
+ https://www.python.org/dev/peps/pep-0426/#environment-markers
 .. _distutils2: http://alexis.notmyidea.org/distutils2/setupcfg.html
 .. _sphinx-apidoc man page: http://sphinx-doc.org/man/sphinx-apidoc.html
 .. _Sphinx build configuration file: http://sphinx-doc.org/config.html
