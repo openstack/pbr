@@ -188,7 +188,7 @@ def resolve_name(name):
     return ret
 
 
-def cfg_to_args(path='setup.cfg'):
+def cfg_to_args(path='setup.cfg', script_args=()):
     """ Distutils2 to distutils1 compatibility util.
 
         This method uses an existing setup.cfg to generate a dictionary of
@@ -196,6 +196,8 @@ def cfg_to_args(path='setup.cfg'):
 
         :param file:
             The setup.cfg path.
+        :parm script_args:
+            List of commands setup.py was called with.
         :raises DistutilsFileError:
             When the setup.cfg file is not found.
 
@@ -243,7 +245,7 @@ def cfg_to_args(path='setup.cfg'):
         # Run the pbr hook
         pbr.hooks.setup_hook(config)
 
-        kwargs = setup_cfg_to_setup_kwargs(config)
+        kwargs = setup_cfg_to_setup_kwargs(config, script_args)
 
         # Set default config overrides
         kwargs['include_package_data'] = True
@@ -274,14 +276,14 @@ def cfg_to_args(path='setup.cfg'):
     return kwargs
 
 
-def setup_cfg_to_setup_kwargs(config):
+def setup_cfg_to_setup_kwargs(config, script_args=()):
     """Processes the setup.cfg options and converts them to arguments accepted
     by setuptools' setup() function.
     """
 
     kwargs = {}
 
-    # Temporarily holds install_reqires and extra_requires while we
+    # Temporarily holds install_requires and extra_requires while we
     # parse env_markers.
     all_requirements = {}
 
@@ -420,6 +422,16 @@ def setup_cfg_to_setup_kwargs(config):
         for requirement, env_marker in all_requirements[req_group]:
             if env_marker:
                 extras_key = '%s:(%s)' % (req_group, env_marker)
+                # We do not want to poison wheel creation with locally
+                # evaluated markers.  sdists always re-create the egg_info
+                # and as such do not need guarded, and pip will never call
+                # multiple setup.py commands at once.
+                if 'bdist_wheel' not in script_args:
+                    try:
+                        if pkg_resources.evaluate_marker('(%s)' % env_marker):
+                            extras_key = req_group
+                    except SyntaxError:
+                        pass
             else:
                 extras_key = req_group
             extras_require.setdefault(extras_key, []).append(requirement)

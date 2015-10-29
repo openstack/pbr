@@ -106,7 +106,7 @@ def pbr(dist, attr, value):
 
         # Converts the setup.cfg file to setup() arguments
         try:
-            attrs = util.cfg_to_args(path)
+            attrs = util.cfg_to_args(path, dist.script_args)
         except Exception:
             e = sys.exc_info()[1]
             # NB: This will output to the console if no explicit logging has
