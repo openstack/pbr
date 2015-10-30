@@ -147,7 +147,7 @@ is slightly different for each.
 
 For ``requirements.txt``::
 
-    argparse; python=='2.6'
+    argparse; python_version=='2.6'
 
 will result in the package depending on ``argparse`` only if it's being
 installed into python2.6
