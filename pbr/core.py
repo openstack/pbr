@@ -70,8 +70,8 @@ if sys.version_info[0] == 3:
     string_type = str
     integer_types = (int,)
 else:
-    string_type = basestring
-    integer_types = (int, long)
+    string_type = basestring  # flake8: noqa
+    integer_types = (int, long)  # flake8: noqa
 
 
 def pbr(dist, attr, value):
