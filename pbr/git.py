@@ -236,12 +236,14 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
             changelog = _iter_changelog(changelog)
     if not changelog:
         return
-    log.info('[pbr] Writing ChangeLog')
     new_changelog = os.path.join(dest_dir, 'ChangeLog')
     # If there's already a ChangeLog and it's not writable, just use it
     if (os.path.exists(new_changelog)
             and not os.access(new_changelog, os.W_OK)):
+        log.info('[pbr] ChangeLog not written (file already'
+                 ' exists and it is not writeable)')
         return
+    log.info('[pbr] Writing ChangeLog')
     with io.open(new_changelog, "w", encoding="utf-8") as changelog_file:
         for release, content in changelog:
             changelog_file.write(content)
