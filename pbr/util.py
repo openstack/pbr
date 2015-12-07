@@ -69,6 +69,7 @@ import traceback
 from collections import defaultdict
 
 import distutils.ccompiler
+import pkg_resources
 
 from distutils import log
 from distutils.errors import (DistutilsOptionError, DistutilsModuleError,
@@ -537,6 +538,14 @@ def wrap_commands(kwargs):
     # that the actual Distribution will see (not counting cmdclass, which is
     # handled below)
     dist.parse_config_files()
+
+    # Setuptools doesn't patch get_command_list, and as such we do not get
+    # extra commands from entry_points.  As we need to be compatable we deal
+    # with this here.
+    for ep in pkg_resources.iter_entry_points('distutils.commands'):
+        if ep.name not in dist.cmdclass:
+            cmdclass = ep.resolve()
+            dist.cmdclass[ep.name] = cmdclass
 
     for cmd, _ in dist.get_command_list():
         hooks = {}
