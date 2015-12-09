@@ -75,8 +75,10 @@ else:
 
 
 def pbr(dist, attr, value):
-    """Implements the actual pbr setup() keyword.  When used, this should be
-    the only keyword in your setup() aside from `setup_requires`.
+    """Implements the actual pbr setup() keyword.
+
+    When used, this should be the only keyword in your setup() aside from
+    `setup_requires`.
 
     If given as a string, the value of pbr is assumed to be the relative path
     to the setup.cfg file to use.  Otherwise, if it evaluates to true, it
