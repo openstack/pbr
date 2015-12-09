@@ -634,10 +634,12 @@ def _get_version_from_pkg_metadata(package_name):
 
 
 def get_version(package_name, pre_version=None):
-    """Get the version of the project. First, try getting it from PKG-INFO or
-    METADATA, if it exists. If it does, that means we're in a distribution
-    tarball or that install has happened. Otherwise, if there is no PKG-INFO
-    or METADATA file, pull the version from git.
+    """Get the version of the project.
+
+    First, try getting it from PKG-INFO or METADATA, if it exists. If it does,
+    that means we're in a distribution tarball or that install has happened.
+    Otherwise, if there is no PKG-INFO or METADATA file, pull the version
+    from git.
 
     We do not support setup.py version sanity in git archive tarballs, nor do
     we support packagers directly sucking our git repo into theirs. We expect
