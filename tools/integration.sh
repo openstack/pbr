@@ -163,4 +163,6 @@ export REPODIR
 export WHEELHOUSE
 export OS_TEST_TIMEOUT=600
 cd $REPODIR/pbr
+tox -epy27 --notest
+.tox/py27/bin/python -m pip install ${REPODIR}/requirements
 tox -epy27 -- test_integration
