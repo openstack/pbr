@@ -556,7 +556,15 @@ def wrap_commands(kwargs):
     # with this here.
     for ep in pkg_resources.iter_entry_points('distutils.commands'):
         if ep.name not in dist.cmdclass:
-            cmdclass = ep.resolve()
+            if hasattr(ep, 'resolve'):
+                cmdclass = ep.resolve()
+            else:
+                # Old setuptools does not have ep.resolve, and load with
+                # arguments is depricated in 11+.  Use resolve, 12+, if we
+                # can, otherwise fall back to load.
+                # Setuptools 11 will throw a deprication warning, as it
+                # uses _load instead of resolve.
+                cmdclass = ep.load(False)
             dist.cmdclass[ep.name] = cmdclass
 
     for cmd, _ in dist.get_command_list():

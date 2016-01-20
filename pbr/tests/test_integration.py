@@ -184,9 +184,12 @@ class TestInstallWithoutPbr(base.BaseTestCase):
 class TestMarkersPip(base.BaseTestCase):
 
     scenarios = [
-        ('pip-1.5', {'version': 'pip>=1.5,<1.6'}),
-        ('pip-6.0', {'version': 'pip>=6.0,<6.1'}),
-        ('pip-latest', {'version': 'pip'}),
+        ('pip-1.5', {'modules': ['pip>=1.5,<1.6']}),
+        ('pip-6.0', {'modules': ['pip>=6.0,<6.1']}),
+        ('pip-latest', {'modules': ['pip']}),
+        ('setuptools-EL7', {'modules': ['pip==1.4.1', 'setuptools==0.9.8']}),
+        ('setuptools-Trusty', {'modules': ['pip==1.5', 'setuptools==2.2']}),
+        ('setuptools-minimum', {'modules': ['pip==1.5', 'setuptools==0.7.2']}),
     ]
 
     @testtools.skipUnless(
@@ -208,14 +211,15 @@ class TestMarkersPip(base.BaseTestCase):
         venv = self.useFixture(Venv('markers'))
         bin_python = venv.python
         os.mkdir(repo_dir)
+        for module in self.modules:
+            self._run_cmd(
+                bin_python,
+                ['-m', 'pip', 'install', '--upgrade', module],
+                cwd=venv.path, allow_fail=False)
         for pkg in pkg_dirs:
             self._run_cmd(
                 bin_python, ['setup.py', 'sdist', '-d', repo_dir],
                 cwd=pkg_dirs[pkg], allow_fail=False)
-        self._run_cmd(
-            bin_python,
-            ['-m', 'pip', 'install', '--upgrade', self.version],
-            cwd=venv.path, allow_fail=False)
         self._run_cmd(
             bin_python,
             ['-m', 'pip', 'install', '--no-index', '-f', repo_dir,
@@ -224,3 +228,29 @@ class TestMarkersPip(base.BaseTestCase):
         self.assertIn('pkg-b', self._run_cmd(
             bin_python, ['-m', 'pip', 'freeze'], cwd=venv.path,
             allow_fail=False)[0])
+
+
+class TestLTSSupport(base.BaseTestCase):
+
+    # These versions come from the versions installed from the 'virtualenv'
+    # command from the 'python-virtualenv' package.
+    scenarios = [
+        ('EL7', {'modules': ['pip==1.4.1', 'setuptools==0.9.8']}),  # And EPEL6
+        ('Trusty', {'modules': ['pip==1.5', 'setuptools==2.2']}),
+        ('Jessie', {'modules': ['pip==1.5.6', 'setuptools==5.5.1']}),
+        # Wheezy has pip1.1, which cannot be called with '-m pip'
+        # So we'll use a different version of pip here.
+        ('WheezyPrecise', {'modules': ['pip==1.4.1', 'setuptools==0.6c11']})
+    ]
+
+    @testtools.skipUnless(
+        os.environ.get('PBR_INTEGRATION', None) == '1',
+        'integration tests not enabled')
+    def test_lts_venv_default_versions(self):
+        venv = self.useFixture(Venv('setuptools', modules=self.modules))
+        bin_python = venv.python
+        pbr = 'file://%s#egg=pbr' % PBR_ROOT
+        # Installing PBR is a reasonable indication that we are not broken on
+        # this particular combination of setuptools and pip.
+        self._run_cmd(bin_python, ['-m', 'pip', 'install', pbr],
+                      cwd=venv.path, allow_fail=False)
