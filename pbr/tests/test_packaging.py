@@ -38,8 +38,10 @@
 # INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
 
+import imp
 import os
 import re
+import sysconfig
 import tempfile
 import textwrap
 
@@ -47,8 +49,10 @@ import fixtures
 import mock
 import pkg_resources
 import six
+import testtools
 from testtools import matchers
 import virtualenv
+import wheel.install
 
 from pbr import git
 from pbr import packaging
@@ -316,6 +320,94 @@ class TestPackagingInGitRepoWithoutCommit(base.BaseTestCase):
         with open(os.path.join(self.package_dir, 'ChangeLog'), 'r') as f:
             body = f.read()
         self.assertEqual(body, 'CHANGES\n=======\n\n')
+
+
+class TestPackagingWheels(base.BaseTestCase):
+
+    def setUp(self):
+        super(TestPackagingWheels, self).setUp()
+        self.useFixture(TestRepo(self.package_dir))
+        # Build the wheel
+        self.run_setup('bdist_wheel', allow_fail=False)
+        # Slowly construct the path to the generated whl
+        dist_dir = os.path.join(self.package_dir, 'dist')
+        relative_wheel_filename = os.listdir(dist_dir)[0]
+        absolute_wheel_filename = os.path.join(
+            dist_dir, relative_wheel_filename)
+        wheel_file = wheel.install.WheelFile(absolute_wheel_filename)
+        wheel_name = wheel_file.parsed_filename.group('namever')
+        # Create a directory path to unpack the wheel to
+        self.extracted_wheel_dir = os.path.join(dist_dir, wheel_name)
+        # Extract the wheel contents to the directory we just created
+        wheel_file.zipfile.extractall(self.extracted_wheel_dir)
+        wheel_file.zipfile.close()
+
+    def test_data_directory_has_wsgi_scripts(self):
+        # Build the path to the scripts directory
+        scripts_dir = os.path.join(
+            self.extracted_wheel_dir, 'pbr_testpackage-0.0.data/scripts')
+        self.assertTrue(os.path.exists(scripts_dir))
+        scripts = os.listdir(scripts_dir)
+
+        self.assertIn('pbr_test_wsgi', scripts)
+        self.assertIn('pbr_test_wsgi_with_class', scripts)
+        self.assertNotIn('pbr_test_cmd', scripts)
+        self.assertNotIn('pbr_test_cmd_with_class', scripts)
+
+    def test_generates_c_extensions(self):
+        built_package_dir = os.path.join(
+            self.extracted_wheel_dir, 'pbr_testpackage')
+        static_object_filename = 'testext.so'
+        soabi = get_soabi()
+        if soabi:
+            static_object_filename = 'testext.{0}.so'.format(soabi)
+        static_object_path = os.path.join(
+            built_package_dir, static_object_filename)
+
+        self.assertTrue(os.path.exists(built_package_dir))
+        self.assertTrue(os.path.exists(static_object_path))
+
+
+class TestPackagingHelpers(testtools.TestCase):
+
+    def test_generate_script(self):
+        group = 'console_scripts'
+        entry_point = pkg_resources.EntryPoint(
+            name='test-ep',
+            module_name='pbr.packaging',
+            attrs=('LocalInstallScripts',))
+        header = '#!/usr/bin/env fake-header\n'
+        template = ('%(group)s %(module_name)s %(import_target)s '
+                    '%(invoke_target)s')
+
+        generated_script = packaging.generate_script(
+            group, entry_point, header, template)
+
+        expected_script = (
+            '#!/usr/bin/env fake-header\nconsole_scripts pbr.packaging '
+            'LocalInstallScripts LocalInstallScripts'
+        )
+        self.assertEqual(expected_script, generated_script)
+
+    def test_generate_script_validates_expectations(self):
+        group = 'console_scripts'
+        entry_point = pkg_resources.EntryPoint(
+            name='test-ep',
+            module_name='pbr.packaging')
+        header = '#!/usr/bin/env fake-header\n'
+        template = ('%(group)s %(module_name)s %(import_target)s '
+                    '%(invoke_target)s')
+        self.assertRaises(
+            ValueError, packaging.generate_script, group, entry_point, header,
+            template)
+
+        entry_point = pkg_resources.EntryPoint(
+            name='test-ep',
+            module_name='pbr.packaging',
+            attrs=('attr1', 'attr2', 'attr3'))
+        self.assertRaises(
+            ValueError, packaging.generate_script, group, entry_point, header,
+            template)
 
 
 class TestPackagingInPlainDirectory(base.BaseTestCase):
@@ -618,3 +710,19 @@ class TestRequirementParsing(base.BaseTestCase):
                 pkg_resources.split_sections(requires))
 
         self.assertEqual(expected_requirements, generated_requirements)
+
+
+def get_soabi():
+    try:
+        return sysconfig.get_config_var('SOABI')
+    except IOError:
+        pass
+
+    if 'pypy' in sysconfig.get_scheme_names():
+        # NOTE(sigmavirus24): PyPy only added support for the SOABI config var
+        # to sysconfig in 2015. That was well after 2.2.1 was published in the
+        # Ubuntu 14.04 archive.
+        for suffix, _, _ in imp.get_suffixes():
+            if suffix.startswith('.pypy') and suffix.endswith('.so'):
+                return suffix.split('.')[1]
+    return None
