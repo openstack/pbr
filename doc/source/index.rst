@@ -34,7 +34,7 @@ Version
 -------
 
 Versions can be managed two ways - postversioning and preversioning.
-Postversioning is the default, and preversioning is enabeld by setting
+Postversioning is the default, and preversioning is enabled by setting
 ``version`` in the setup.cfg ``metadata`` section. In both cases version
 strings are inferred from git.
 
