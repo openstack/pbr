@@ -38,6 +38,8 @@
 # INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
 
+import email
+import email.errors
 import imp
 import os
 import re
@@ -476,6 +478,19 @@ class TestVersions(base.BaseTestCase):
         self.repo = self.useFixture(TestRepo(self.package_dir))
         self.useFixture(GPGKeyFixture())
         self.useFixture(base.DiveDir(self.package_dir))
+
+    def test_email_parsing_errors_are_handled(self):
+        mocked_open = mock.mock_open()
+        with mock.patch('pbr.packaging.open', mocked_open):
+            with mock.patch('email.message_from_file') as message_from_file:
+                message_from_file.side_effect = [
+                    email.errors.MessageError('Test'),
+                    {'Name': 'pbr_testpackage'}]
+                version = packaging._get_version_from_pkg_metadata(
+                    'pbr_testpackage')
+
+        self.assertTrue(message_from_file.called)
+        self.assertIsNone(version)
 
     def test_capitalized_headers(self):
         self.repo.commit()

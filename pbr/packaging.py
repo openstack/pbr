@@ -23,6 +23,7 @@ from __future__ import unicode_literals
 from distutils.command import install as du_install
 from distutils import log
 import email
+import email.errors
 import os
 import re
 import sys
@@ -663,7 +664,7 @@ def _get_version_from_pkg_metadata(package_name):
             continue
         try:
             pkg_metadata = email.message_from_file(pkg_metadata_file)
-        except email.MessageError:
+        except email.errors.MessageError:
             continue
 
     # Check to make sure we're in our own dir
