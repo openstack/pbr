@@ -144,19 +144,21 @@ Usage
 ``setuptools.setup()``. While the normal setuptools facilities are available,
 pbr makes it possible to express them through static data files.
 
+.. _setup_py:
+
 setup.py
 --------
 
 `pbr` only requires a minimal `setup.py` file compared to a standard setuptools
 project. This is because most configuration is located in static configuration
-files. This minimal `setup.py` file should look something like this::
+files. This recommended minimal `setup.py` file should look something like this::
 
     #!/usr/bin/env python
 
     from setuptools import setup
 
     setup(
-        setup_requires=['pbr'],
+        setup_requires=['pbr>=1.9', 'setuptools>=17.1'],
         pbr=True,
     )
 
@@ -395,6 +397,7 @@ Additional Docs
    packagers
    semver
    testing
+   compatibility
 
 Indices and tables
 ==================
