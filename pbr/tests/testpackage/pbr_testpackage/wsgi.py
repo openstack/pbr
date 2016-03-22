@@ -14,21 +14,27 @@
 # limitations under the License.
 from __future__ import print_function
 
+import argparse
+import functools
 import sys
 
 
-def application(env, start_response):
+def application(env, start_response, data):
     sys.stderr.flush()  # Force the previous request log to be written.
     start_response('200 OK', [('Content-Type', 'text/html')])
-    return [b"Hello World"]
+    return [data.encode('utf-8')]
 
 
 def main():
-    return application
+    parser = argparse.ArgumentParser(description='Return a string.')
+    parser.add_argument('--content', '-c', help='String returned',
+                        default='Hello World')
+    args = parser.parse_args()
+    return functools.partial(application, data=args.content)
 
 
 class WSGI(object):
 
     @classmethod
     def app(self):
-        return application
+        return functools.partial(application, data='Hello World')

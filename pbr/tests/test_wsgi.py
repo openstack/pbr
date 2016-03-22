@@ -23,14 +23,22 @@ except ImportError:
     # python 3
     from urllib.request import urlopen
 
-import fixtures
-
 from pbr.tests import base
 
 
 class TestWsgiScripts(base.BaseTestCase):
 
     cmd_names = ('pbr_test_wsgi', 'pbr_test_wsgi_with_class')
+
+    def _get_path(self):
+        if os.path.isdir("%s/lib64" % self.temp_dir):
+            path = "%s/lib64" % self.temp_dir
+        else:
+            path = "%s/lib" % self.temp_dir
+        return ".:%s/python%s.%s/site-packages" % (
+            path,
+            sys.version_info[0],
+            sys.version_info[1])
 
     def test_wsgi_script_install(self):
         """Test that we install a non-pkg-resources wsgi script."""
@@ -39,13 +47,6 @@ class TestWsgiScripts(base.BaseTestCase):
 
         stdout, _, return_code = self.run_setup(
             'install', '--prefix=%s' % self.temp_dir)
-
-        self.useFixture(
-            fixtures.EnvironmentVariable(
-                'PYTHONPATH', ".:%s/lib/python%s.%s/site-packages" % (
-                    self.temp_dir,
-                    sys.version_info[0],
-                    sys.version_info[1])))
 
         self._check_wsgi_install_content(stdout)
 
@@ -63,56 +64,58 @@ class TestWsgiScripts(base.BaseTestCase):
         stdout, _, return_code = self.run_setup(
             'install', '--prefix=%s' % self.temp_dir)
 
-        self.useFixture(
-            fixtures.EnvironmentVariable(
-                'PYTHONPATH', ".:%s/lib/python%s.%s/site-packages" % (
-                    self.temp_dir,
-                    sys.version_info[0],
-                    sys.version_info[1])))
         self._check_wsgi_install_content(stdout)
 
         # Live test run the scripts and see that they respond to wsgi
         # requests.
-        self._test_wsgi()
-
-    def _test_wsgi(self):
         for cmd_name in self.cmd_names:
-            cmd = os.path.join(self.temp_dir, 'bin', cmd_name)
-            print("Running %s -p 0" % cmd)
-            p = subprocess.Popen([cmd, '-p', '0'], stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE, cwd=self.temp_dir)
-            self.addCleanup(p.kill)
+            self._test_wsgi(cmd_name, b'Hello World')
 
-            stdoutdata = p.stdout.readline()  # ****...
+    def _test_wsgi(self, cmd_name, output, extra_args=None):
+        cmd = os.path.join(self.temp_dir, 'bin', cmd_name)
+        print("Running %s -p 0" % cmd)
+        popen_cmd = [cmd, '-p', '0']
+        if extra_args:
+            popen_cmd.extend(extra_args)
 
-            stdoutdata = p.stdout.readline()  # STARTING test server...
-            self.assertIn(
-                b"STARTING test server pbr_testpackage.wsgi",
-                stdoutdata)
+        env = {'PYTHONPATH': self._get_path()}
 
-            stdoutdata = p.stdout.readline()  # Available at ...
-            print(stdoutdata)
-            m = re.search(b'(http://[^:]+:\d+)/', stdoutdata)
-            self.assertIsNotNone(m, "Regex failed to match on %s" % stdoutdata)
+        p = subprocess.Popen(popen_cmd, stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE, cwd=self.temp_dir,
+                             env=env)
+        self.addCleanup(p.kill)
 
-            stdoutdata = p.stdout.readline()  # DANGER! ...
-            self.assertIn(
-                b"DANGER! For testing only, do not use in production",
-                stdoutdata)
+        stdoutdata = p.stdout.readline()  # ****...
 
-            stdoutdata = p.stdout.readline()  # ***...
+        stdoutdata = p.stdout.readline()  # STARTING test server...
+        self.assertIn(
+            b"STARTING test server pbr_testpackage.wsgi",
+            stdoutdata)
 
-            f = urlopen(m.group(1).decode('utf-8'))
-            self.assertEqual(b"Hello World", f.read())
+        stdoutdata = p.stdout.readline()  # Available at ...
+        print(stdoutdata)
+        m = re.search(b'(http://[^:]+:\d+)/', stdoutdata)
+        self.assertIsNotNone(m, "Regex failed to match on %s" % stdoutdata)
 
-            # Request again so that the application can force stderr.flush(),
-            # otherwise the log is buffered and the next readline() will hang.
-            urlopen(m.group(1).decode('utf-8'))
+        stdoutdata = p.stdout.readline()  # DANGER! ...
+        self.assertIn(
+            b"DANGER! For testing only, do not use in production",
+            stdoutdata)
 
-            stdoutdata = p.stderr.readline()
-            # we should have logged an HTTP request, return code 200, that
-            # returned 11 bytes
-            self.assertIn(b'"GET / HTTP/1.1" 200 11', stdoutdata)
+        stdoutdata = p.stdout.readline()  # ***...
+
+        f = urlopen(m.group(1).decode('utf-8'))
+        self.assertEqual(output, f.read())
+
+        # Request again so that the application can force stderr.flush(),
+        # otherwise the log is buffered and the next readline() will hang.
+        urlopen(m.group(1).decode('utf-8'))
+
+        stdoutdata = p.stderr.readline()
+        # we should have logged an HTTP request, return code 200, that
+        # returned the right amount of bytes
+        status = '"GET / HTTP/1.1" 200 %d' % len(output)
+        self.assertIn(status.encode('utf-8'), stdoutdata)
 
     def _check_wsgi_install_content(self, install_stdout):
         for cmd_name in self.cmd_names:
@@ -145,3 +148,12 @@ class TestWsgiScripts(base.BaseTestCase):
             self.assertIn(main_block, script_txt)
             self.assertIn(starting_block, script_txt)
             self.assertIn(else_block, script_txt)
+
+    def test_with_argument(self):
+        if os.name == 'nt':
+            self.skipTest('Windows support is passthrough')
+
+        stdout, _, return_code = self.run_setup(
+            'install', '--prefix=%s' % self.temp_dir)
+
+        self._test_wsgi('pbr_test_wsgi', b'Foo Bar', ["--", "-c", "Foo Bar"])

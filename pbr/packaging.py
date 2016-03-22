@@ -265,10 +265,23 @@ if __name__ == "__main__":
     my_ip = socket.gethostbyname(socket.gethostname())
     parser = argparse.ArgumentParser(
         description=%(import_target)s.__doc__,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        usage='%%(prog)s [-h] [--port PORT] -- [passed options]')
     parser.add_argument('--port', '-p', type=int, default=8000,
                         help='TCP port to listen on')
+    parser.add_argument('args',
+                        nargs=argparse.REMAINDER,
+                        metavar='-- [passed options]',
+                        help="'--' is the separator of the arguments used "
+                        "to start the WSGI server and the arguments passed "
+                        "to the WSGI application.")
     args = parser.parse_args()
+    if args.args:
+        if args.args[0] == '--':
+            args.args.pop(0)
+        else:
+            parser.error("unrecognized arguments: %%s" %% ' '.join(args.args))
+    sys.argv[1:] = args.args
     server = wss.make_server('', args.port, %(invoke_target)s())
 
     print("*" * 80)
