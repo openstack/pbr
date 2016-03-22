@@ -308,22 +308,39 @@ ENTRY_POINTS_MAP = {
 }
 
 
+def generate_script(group, entry_point, header, template):
+    """Generate the script based on the template.
+
+    :param str group:
+        The entry-point group name, e.g., "console_scripts".
+    :param str header:
+        The first line of the script, e.g., "!#/usr/bin/env python".
+    :param str template:
+        The script template.
+    :returns:
+        The templated script content
+    :rtype:
+        str
+    """
+    if not entry_point.attrs or len(entry_point.attrs) > 2:
+        raise ValueError("Script targets must be of the form "
+                         "'func' or 'Class.class_method'.")
+    script_text = template % dict(
+        group=group,
+        module_name=entry_point.module_name,
+        import_target=entry_point.attrs[0],
+        invoke_target='.'.join(entry_point.attrs),
+    )
+    return header + script_text
+
+
 def override_get_script_args(
         dist, executable=os.path.normpath(sys.executable), is_wininst=False):
     """Override entrypoints console_script."""
     header = easy_install.get_script_header("", executable, is_wininst)
     for group, template in ENTRY_POINTS_MAP.items():
         for name, ep in dist.get_entry_map(group).items():
-            if not ep.attrs or len(ep.attrs) > 2:
-                raise ValueError("Script targets must be of the form "
-                                 "'func' or 'Class.class_method'.")
-            script_text = template % dict(
-                group=group,
-                module_name=ep.module_name,
-                import_target=ep.attrs[0],
-                invoke_target='.'.join(ep.attrs),
-            )
-            yield (name, header + script_text)
+            yield (name, generate_script(group, ep, header, template))
 
 
 class LocalDevelop(develop.develop):
@@ -342,6 +359,14 @@ class LocalInstallScripts(install_scripts.install_scripts):
     """Intercepts console scripts entry_points."""
     command_name = 'install_scripts'
 
+    def _make_wsgi_scripts_only(self, dist, executable, is_wininst):
+        header = easy_install.get_script_header("", executable, is_wininst)
+        wsgi_script_template = ENTRY_POINTS_MAP['wsgi_scripts']
+        for name, ep in dist.get_entry_map('wsgi_scripts').items():
+            content = generate_script(
+                'wsgi_scripts', ep, header, wsgi_script_template)
+            self.write_script(name, content)
+
     def run(self):
         import distutils.command.install_scripts
 
@@ -351,9 +376,6 @@ class LocalInstallScripts(install_scripts.install_scripts):
             distutils.command.install_scripts.install_scripts.run(self)
         else:
             self.outfiles = []
-        if self.no_ep:
-            # don't install entry point scripts into .egg file!
-            return
 
         ei_cmd = self.get_finalized_command("egg_info")
         dist = pkg_resources.Distribution(
@@ -367,6 +389,19 @@ class LocalInstallScripts(install_scripts.install_scripts):
         is_wininst = getattr(
             self.get_finalized_command("bdist_wininst"), '_is_running', False
         )
+
+        if 'bdist_wheel' in self.distribution.have_run:
+            # We're building a wheel which has no way of generating mod_wsgi
+            # scripts for us. Let's build them.
+            # NOTE(sigmavirus24): This needs to happen here because, as the
+            # comment below indicates, no_ep is True when building a wheel.
+            self._make_wsgi_scripts_only(dist, executable, is_wininst)
+
+        if self.no_ep:
+            # no_ep is True if we're installing into an .egg file or building
+            # a .whl file, in those cases, we do not want to build all of the
+            # entry-points listed for this package.
+            return
 
         if os.name != 'nt':
             get_script_args = override_get_script_args
