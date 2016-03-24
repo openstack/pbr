@@ -497,6 +497,13 @@ class TestVersions(base.BaseTestCase):
         version = packaging._get_version_from_git('1.2.3')
         self.assertEqual('1.2.3', version)
 
+    def test_non_canonical_tagged_version_bump(self):
+        self.repo.commit()
+        self.repo.tag('1.4')
+        self.repo.commit('Sem-Ver: api-break')
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('2.0.0.dev1'))
+
     def test_untagged_version_has_dev_version_postversion(self):
         self.repo.commit()
         self.repo.tag('1.2.3')

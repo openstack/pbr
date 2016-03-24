@@ -560,13 +560,16 @@ def _get_revno_and_last_tag(git_dir):
     row_count = 0
     for row_count, (ignored, tag_set, ignored) in enumerate(changelog):
         version_tags = set()
+        semver_to_tag = dict()
         for tag in list(tag_set):
             try:
-                version_tags.add(version.SemanticVersion.from_pip_string(tag))
+                semver = version.SemanticVersion.from_pip_string(tag)
+                semver_to_tag[semver] = tag
+                version_tags.add(semver)
             except Exception:
                 pass
         if version_tags:
-            return max(version_tags).release_string(), row_count
+            return semver_to_tag[max(version_tags)], row_count
     return "", row_count
 
 
