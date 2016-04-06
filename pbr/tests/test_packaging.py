@@ -735,16 +735,17 @@ class TestRequirementParsing(base.BaseTestCase):
 
 
 def get_soabi():
+    soabi = None
     try:
-        return sysconfig.get_config_var('SOABI')
+        soabi = sysconfig.get_config_var('SOABI')
     except IOError:
         pass
-
-    if 'pypy' in sysconfig.get_scheme_names():
+    if soabi is None and 'pypy' in sysconfig.get_scheme_names():
         # NOTE(sigmavirus24): PyPy only added support for the SOABI config var
         # to sysconfig in 2015. That was well after 2.2.1 was published in the
         # Ubuntu 14.04 archive.
         for suffix, _, _ in imp.get_suffixes():
             if suffix.startswith('.pypy') and suffix.endswith('.so'):
-                return suffix.split('.')[1]
-    return None
+                soabi = suffix.split('.')[1]
+                break
+    return soabi
