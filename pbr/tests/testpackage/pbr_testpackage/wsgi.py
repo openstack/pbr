@@ -14,10 +14,13 @@
 # limitations under the License.
 from __future__ import print_function
 
+import sys
+
 
 def application(env, start_response):
+    sys.stderr.flush()  # Force the previous request log to be written.
     start_response('200 OK', [('Content-Type', 'text/html')])
-    return ["Hello World"]
+    return [b"Hello World"]
 
 
 def main():

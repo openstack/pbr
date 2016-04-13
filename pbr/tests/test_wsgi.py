@@ -16,8 +16,6 @@ import os
 import re
 import subprocess
 import sys
-import tempfile
-import time
 try:
     # python 2
     from urllib2 import urlopen
@@ -56,13 +54,9 @@ class TestWsgiScripts(base.BaseTestCase):
 
         This test actually attempts to start and interact with the
         wsgi script in question to demonstrate that it's a working
-        wsgi script using simple server. It's a bit hokey because of
-        process management that has to be done.
+        wsgi script using simple server.
 
         """
-        self.skipTest("Test skipped until we can determine a reliable "
-                      "way to capture subprocess stdout without blocking")
-
         if os.name == 'nt':
             self.skipTest('Windows support is passthrough')
 
@@ -75,12 +69,6 @@ class TestWsgiScripts(base.BaseTestCase):
                     self.temp_dir,
                     sys.version_info[0],
                     sys.version_info[1])))
-        # NOTE(sdague): making python unbuffered is critical to
-        # getting output out of the subprocess.
-        self.useFixture(
-            fixtures.EnvironmentVariable(
-                'PYTHONUNBUFFERED', '1'))
-
         self._check_wsgi_install_content(stdout)
 
         # Live test run the scripts and see that they respond to wsgi
@@ -90,54 +78,41 @@ class TestWsgiScripts(base.BaseTestCase):
     def _test_wsgi(self):
         for cmd_name in self.cmd_names:
             cmd = os.path.join(self.temp_dir, 'bin', cmd_name)
-            stdout = tempfile.NamedTemporaryFile()
-            print("Running %s > %s" % (cmd, stdout.name))
-            # NOTE(sdague): ok, this looks a little janky, and it
-            # is. However getting python to not hang with
-            # popen.communicate is beyond me.
-            #
-            # We're opening with a random port (so no conflicts), and
-            # redirecting all stdout and stderr to files. We can then
-            # safely read these files and not deadlock later in the
-            # test. This requires shell expansion.
-            p = subprocess.Popen(
-                "%s -p 0 > %s 2>&1" % (cmd, stdout.name),
-                shell=True,
-                close_fds=True,
-                cwd=self.temp_dir)
-
+            print("Running %s -p 0" % cmd)
+            p = subprocess.Popen([cmd, '-p', '0'], stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, cwd=self.temp_dir)
             self.addCleanup(p.kill)
 
-            # the sleep is important to force a context switch to the
-            # subprocess
-            time.sleep(0.1)
+            stdoutdata = p.stdout.readline()  # ****...
 
-            stdoutdata = stdout.read()
+            stdoutdata = p.stdout.readline()  # STARTING test server...
             self.assertIn(
-                "STARTING test server pbr_testpackage.wsgi",
-                stdoutdata)
-            self.assertIn(
-                "DANGER! For testing only, do not use in production",
+                b"STARTING test server pbr_testpackage.wsgi",
                 stdoutdata)
 
-            m = re.search('(http://[^:]+:\d+)/', stdoutdata)
+            stdoutdata = p.stdout.readline()  # Available at ...
+            print(stdoutdata)
+            m = re.search(b'(http://[^:]+:\d+)/', stdoutdata)
             self.assertIsNotNone(m, "Regex failed to match on %s" % stdoutdata)
 
-            f = urlopen(m.group(1))
-            self.assertEqual("Hello World", f.read())
+            stdoutdata = p.stdout.readline()  # DANGER! ...
+            self.assertIn(
+                b"DANGER! For testing only, do not use in production",
+                stdoutdata)
 
-            # the sleep is important to force a context switch to the
-            # subprocess
-            time.sleep(0.1)
+            stdoutdata = p.stdout.readline()  # ***...
 
-            # Kill off the child, it should force a flush of the stdout.
-            p.kill()
-            time.sleep(0.1)
+            f = urlopen(m.group(1).decode('utf-8'))
+            self.assertEqual(b"Hello World", f.read())
 
-            stdoutdata = stdout.read()
+            # Request again so that the application can force stderr.flush(),
+            # otherwise the log is buffered and the next readline() will hang.
+            urlopen(m.group(1).decode('utf-8'))
+
+            stdoutdata = p.stderr.readline()
             # we should have logged an HTTP request, return code 200, that
             # returned 11 bytes
-            self.assertIn('"GET / HTTP/1.1" 200 11', stdoutdata)
+            self.assertIn(b'"GET / HTTP/1.1" 200 11', stdoutdata)
 
     def _check_wsgi_install_content(self, install_stdout):
         for cmd_name in self.cmd_names:
@@ -153,6 +128,7 @@ class TestWsgiScripts(base.BaseTestCase):
             main_block = """if __name__ == "__main__":
     import argparse
     import socket
+    import sys
     import wsgiref.simple_server as wss"""
 
             if cmd_name == 'pbr_test_wsgi':
