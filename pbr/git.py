@@ -205,7 +205,7 @@ def _iter_log_inner(git_dir):
     :return: An iterator of (hash, tags_set, 1st_line) tuples.
     """
     log.info('[pbr] Generating ChangeLog')
-    log_cmd = ['log', '--format=%h%x00%s%x00%d']
+    log_cmd = ['log', '--decorate=full', '--format=%h%x00%s%x00%d']
     changelog = _run_git_command(log_cmd, git_dir)
     for line in changelog.split('\n'):
         line_parts = line.split('\x00')
@@ -216,14 +216,15 @@ def _iter_log_inner(git_dir):
 
         # refname can be:
         #  <empty>
-        #  HEAD, tag: 1.4.0, origin/master, master
-        #  tag: 1.3.4
-        if "tag:" in refname:
+        #  HEAD, tag: refs/tags/1.4.0, refs/remotes/origin/master, \
+        #    refs/heads/master
+        #  refs/tags/1.3.4
+        if "refs/tags/" in refname:
             refname = refname.strip()[1:-1]  # remove wrapping ()'s
-            # If we start with "tag: 1.2b1, tag: 1.2"
-            # The first split gives us "['', '1.2b1, ', '1.2']"
+            # If we start with "tag: refs/tags/1.2b1, tag: refs/tags/1.2"
+            # The first split gives us "['', '1.2b1, tag:', '1.2']"
             # Which is why we do the second split below on the comma
-            for tag_string in refname.split("tag: ")[1:]:
+            for tag_string in refname.split("refs/tags/")[1:]:
                 # git tag does not allow : or " " in tag names, so we split
                 # on ", " which is the separator between elements
                 candidate = tag_string.split(", ")[0]
