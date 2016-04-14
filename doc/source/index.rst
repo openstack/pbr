@@ -58,10 +58,10 @@ major version increment.
 If postversioning is in use, we use the resulting version number as the target
 version.
 
-If preversioning is in use - that is, if there is a version set in
-`setup.cfg` metadata - then we check that that version is higher than
-the target version we inferred above. If it is not, we raise an error,
-otherwise we use the version from `setup.cfg` as the target.
+If preversioning is in use we check that the version set in the metadata
+section of `setup.cfg` is greater than the version we infer using the above
+method.  If the inferred version is greater than the preversioning value we
+raise an error, otherwise we use the version from `setup.cfg` as the target.
 
 We then generate dev version strings based on the commits since the last
 release and include the current git sha to disambiguate multiple dev versions
