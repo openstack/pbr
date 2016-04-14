@@ -259,6 +259,7 @@ from %(module_name)s import %(import_target)s
 if __name__ == "__main__":
     import argparse
     import socket
+    import sys
     import wsgiref.simple_server as wss
 
     my_ip = socket.gethostbyname(socket.gethostname())
@@ -276,6 +277,7 @@ if __name__ == "__main__":
     print("Available at %%s" %% url)
     print("DANGER! For testing only, do not use in production")
     print("*" * 80)
+    sys.stdout.flush()
 
     server.serve_forever()
 else:
