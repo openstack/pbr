@@ -31,4 +31,4 @@ def write_pbr_json(cmd, basename, filename):
     if git_version is not None:
         values['git_version'] = git_version
         values['is_release'] = is_release
-        cmd.write_file('pbr', filename, json.dumps(values))
+        cmd.write_file('pbr', filename, json.dumps(values, sort_keys=True))
