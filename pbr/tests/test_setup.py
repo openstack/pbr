@@ -205,29 +205,21 @@ class GitLogsTest(base.BaseTestCase):
             self.assertTrue(co_author in authors)
 
 
-class BuildSphinxTest(base.BaseTestCase):
-
-    scenarios = [
-        ('true_autodoc_caps',
-         dict(has_opt=True, autodoc='True', has_autodoc=True)),
-        ('true_autodoc_caps_with_excludes',
-         dict(has_opt=True, autodoc='True', has_autodoc=True,
-              excludes="fake_package.fake_private_module\n"
-              "fake_package.another_fake_*\n"
-              "fake_package.unknown_module")),
-        ('true_autodoc_lower',
-         dict(has_opt=True, autodoc='true', has_autodoc=True)),
-        ('false_autodoc',
-         dict(has_opt=True, autodoc='False', has_autodoc=False)),
-        ('no_autodoc',
-         dict(has_opt=False, autodoc='False', has_autodoc=False)),
-    ]
+class BaseSphinxTest(base.BaseTestCase):
 
     def setUp(self):
-        super(BuildSphinxTest, self).setUp()
+        super(BaseSphinxTest, self).setUp()
 
         self.useFixture(fixtures.MonkeyPatch(
-            "sphinx.setup_command.BuildDoc.run", lambda self: None))
+            "sphinx.application.Sphinx.__init__", lambda *a, **kw: None))
+        self.useFixture(fixtures.MonkeyPatch(
+            "sphinx.application.Sphinx.build", lambda *a, **kw: None))
+        self.useFixture(fixtures.MonkeyPatch(
+            "sphinx.config.Config.man_pages", ['foo']))
+        self.useFixture(fixtures.MonkeyPatch(
+            "sphinx.config.Config.init_values", lambda *a: None))
+        self.useFixture(fixtures.MonkeyPatch(
+            "sphinx.config.Config.__init__", lambda *a: None))
         from distutils import dist
         self.distr = dist.Distribution()
         self.distr.packages = ("fake_package",)
@@ -246,9 +238,38 @@ class BuildSphinxTest(base.BaseTestCase):
                 "fake_package.fake_private_module\n"
                 "fake_package.another_fake_*\n"
                 "fake_package.unknown_module")
-        if self.has_opt:
+        if hasattr(self, 'has_opt') and self.has_opt:
             options = self.distr.command_options["pbr"]
             options["autodoc_index_modules"] = ('setup.cfg', self.autodoc)
+        if hasattr(self, 'warnerrors') and self.warnerrors:
+            options = self.distr.command_options["pbr"]
+            options["warnerrors"] = ('setup.cfg', 'true')
+
+
+class BuildSphinxTest(BaseSphinxTest):
+
+    scenarios = [
+        ('true_autodoc_caps',
+         dict(has_opt=True, autodoc='True', has_autodoc=True)),
+        ('true_autodoc_caps_with_excludes',
+         dict(has_opt=True, autodoc='True', has_autodoc=True,
+              excludes="fake_package.fake_private_module\n"
+              "fake_package.another_fake_*\n"
+              "fake_package.unknown_module")),
+        ('true_autodoc_lower',
+         dict(has_opt=True, autodoc='true', has_autodoc=True)),
+        ('false_autodoc',
+         dict(has_opt=True, autodoc='False', has_autodoc=False)),
+        ('no_autodoc',
+         dict(has_opt=False, autodoc='False', has_autodoc=False)),
+    ]
+
+    scenarios = testscenarios.scenarios.multiply_scenarios(
+        scenarios,
+        [
+            ('warnerrors', dict(warnerrors=True)),
+            ('nowarnerrors', dict(warnerrors=False))
+        ])
 
     def test_build_doc(self):
         build_doc = packaging.LocalBuildDoc(self.distr)
@@ -333,6 +354,30 @@ class BuildSphinxTest(base.BaseTestCase):
         build_doc.finalize_options()
 
         self.assertEqual(["builder1", "builder2"], build_doc.builders)
+
+
+class WarnErrorSphinxTest(BaseSphinxTest):
+
+    def setUp(self):
+        self.warnerrors = True
+        super(WarnErrorSphinxTest, self).setUp()
+
+    def testWarnErrors(self):
+        """Ensure when warnerror is used, we pass warningiserror true"""
+        self.app_init_executed = False
+
+        def app_init(appSelf, *args, **kwargs):
+            self.assertTrue('warningiserror' in kwargs)
+            self.assertTrue(isinstance(kwargs['warningiserror'], bool))
+            self.assertTrue(kwargs['warningiserror'])
+            appSelf.build = lambda *a, **b: None
+            self.app_init_executed = True
+
+        self.useFixture(fixtures.MonkeyPatch(
+            "sphinx.application.Sphinx.__init__", app_init))
+        build_doc = packaging.LocalBuildDoc(self.distr)
+        build_doc.run()
+        self.assertTrue(self.app_init_executed)
 
 
 class ParseRequirementsTestScenarios(base.BaseTestCase):
