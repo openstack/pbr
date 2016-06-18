@@ -64,3 +64,13 @@ class TestCommands(base.BaseTestCase):
         self.addDetail('stderr', content.text_content(stderr))
         self.assertIn('Extracting rpm version', stdout)
         self.assertEqual(return_code, 0)
+
+    def test_freeze_command(self):
+        """Test that freeze output is sorted in a case-insensitive manner."""
+        stdout, stderr, return_code = self.run_pbr('freeze')
+        self.assertEqual(return_code, 0)
+        pkgs = []
+        for l in stdout.split('\n'):
+            pkgs.append(l.split('==')[0].lower())
+        pkgs_sort = sorted(pkgs[:])
+        self.assertEqual(pkgs_sort, pkgs)
