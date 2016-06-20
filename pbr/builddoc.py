@@ -66,8 +66,9 @@ def _find_modules(arg, dirname, files):
 
 class LocalBuildDoc(setup_command.BuildDoc):
 
-    command_name = 'build_sphinx'
     builders = ['html', 'man']
+    command_name = 'build_sphinx'
+    sphinx_initialized = False
 
     def _get_source_dir(self):
         option_dict = self.distribution.get_option_dict('build_sphinx')
@@ -119,12 +120,14 @@ class LocalBuildDoc(setup_command.BuildDoc):
             cmd = ['apidoc', '.', '-H', 'Modules', '-o', source_dir]
             apidoc.main(cmd + self.autodoc_tree_excludes)
 
-    def _sphinx_run(self):
+    def _sphinx_run(self, warnerrors):
         if not self.verbose:
             status_stream = cStringIO.StringIO()
         else:
             status_stream = sys.stdout
         confoverrides = {}
+        if self.project:
+            confoverrides['project'] = self.project
         if self.version:
             confoverrides['version'] = self.version
         if self.release:
@@ -132,19 +135,31 @@ class LocalBuildDoc(setup_command.BuildDoc):
         if self.today:
             confoverrides['today'] = self.today
         sphinx_config = config.Config(self.config_dir, 'conf.py', {}, [])
-        sphinx_ver = pkg_resources.get_distribution("sphinx").version
-        if pkg_resources.parse_version(sphinx_ver) > \
-                pkg_resources.parse_version('1.2.3'):
+        sphinx_ver = pkg_resources.parse_version(
+            pkg_resources.get_distribution("sphinx").version)
+        if sphinx_ver > pkg_resources.parse_version('1.2.3'):
             sphinx_config.init_values(warnings.warn)
         else:
             sphinx_config.init_values()
         if self.builder == 'man' and len(sphinx_config.man_pages) == 0:
             return
+        if self.sphinx_initialized:
+            if sphinx_ver >= pkg_resources.parse_version('1.4.2'):
+                confoverrides['suppress_warnings'] = [
+                    'app.add_directive', 'app.add_role',
+                    'app.add_generic_role', 'app.add_node']
+            elif sphinx_ver >= pkg_resources.parse_version('1.4.0'):
+                log.warn("[pbr] WARN: Sphinx versions 1.4.0 and 1.4.1 raise "
+                         "warnings during this run and will cause warnerrors "
+                         "to fail.  For more information see: "
+                         "http://docs.openstack.org/developer/pbr/"
+                         "compatibility.html#sphinx-1.4")
         app = application.Sphinx(
             self.source_dir, self.config_dir,
             self.builder_target_dir, self.doctree_dir,
             self.builder, confoverrides, status_stream,
-            freshenv=self.fresh_env, warningiserror=False)
+            freshenv=self.fresh_env, warningiserror=warnerrors)
+        self.sphinx_initialized = True
 
         try:
             app.build(force_all=self.all_files)
@@ -174,6 +189,8 @@ class LocalBuildDoc(setup_command.BuildDoc):
         auto_index = options.get_boolean_option(option_dict,
                                                 'autodoc_index_modules',
                                                 'AUTODOC_INDEX_MODULES')
+        warnerrors = options.get_boolean_option(option_dict, 'warnerrors',
+                                                'WARNERRORS')
         if not os.getenv('SPHINX_DEBUG'):
             # NOTE(afazekas): These options can be used together,
             # but they do a very similar thing in a different way
@@ -188,14 +205,7 @@ class LocalBuildDoc(setup_command.BuildDoc):
         for builder in self.builders:
             self.builder = builder
             self.finalize_options()
-            self.project = self.distribution.get_name()
-            self.version = self.distribution.get_version()
-            self.release = self.distribution.get_version()
-            if options.get_boolean_option(option_dict,
-                                          'warnerrors', 'WARNERRORS'):
-                self._sphinx_run()
-            else:
-                setup_command.BuildDoc.run(self)
+            self._sphinx_run(warnerrors)
 
     def initialize_options(self):
         # Not a new style class, super keyword does not work.
@@ -215,6 +225,9 @@ class LocalBuildDoc(setup_command.BuildDoc):
         # Allow builders to be configurable - as a comma separated list.
         if not isinstance(self.builders, list) and self.builders:
             self.builders = self.builders.split(',')
+        self.project = self.distribution.get_name()
+        self.version = self.distribution.get_version()
+        self.release = self.distribution.get_version()
 
         # NOTE(dstanek): check for autodoc tree exclusion overrides
         # in the setup.cfg
