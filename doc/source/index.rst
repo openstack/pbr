@@ -400,6 +400,7 @@ Additional Docs
    semver
    testing
    compatibility
+   api/modules
 
 Indices and tables
 ==================

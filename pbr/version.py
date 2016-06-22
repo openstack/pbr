@@ -380,10 +380,10 @@ class SemanticVersion(object):
         extended the releaselevel field to have alphadev, betadev and
         candidatedev values. When they are present the dev count is used
         to provide the serial.
-         - a/b/rc take precedence.
-         - if there is no pre-release version the dev version is used.
-         - serial is taken from the dev/a/b/c component.
-         - final non-dev versions never get serials.
+        - a/b/rc take precedence.
+        - if there is no pre-release version the dev version is used.
+        - serial is taken from the dev/a/b/c component.
+        - final non-dev versions never get serials.
         """
         segments = [self._major, self._minor, self._patch]
         if self._prerelease_type:
