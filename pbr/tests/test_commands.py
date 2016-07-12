@@ -55,7 +55,7 @@ class TestCommands(base.BaseTestCase):
         self.addDetail('stdout', content.text_content(stdout))
         self.addDetail('stderr', content.text_content(stderr))
         self.assertIn('Running custom build_py command.', stdout)
-        self.assertEqual(return_code, 0)
+        self.assertEqual(0, return_code)
 
     def test_custom_rpm_version_py_command(self):
         """Test custom rpm_version command."""
@@ -63,12 +63,12 @@ class TestCommands(base.BaseTestCase):
         self.addDetail('stdout', content.text_content(stdout))
         self.addDetail('stderr', content.text_content(stderr))
         self.assertIn('Extracting rpm version', stdout)
-        self.assertEqual(return_code, 0)
+        self.assertEqual(0, return_code)
 
     def test_freeze_command(self):
         """Test that freeze output is sorted in a case-insensitive manner."""
         stdout, stderr, return_code = self.run_pbr('freeze')
-        self.assertEqual(return_code, 0)
+        self.assertEqual(0, return_code)
         pkgs = []
         for l in stdout.split('\n'):
             pkgs.append(l.split('==')[0].lower())
