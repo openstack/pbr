@@ -315,13 +315,13 @@ class TestPackagingInGitRepoWithoutCommit(base.BaseTestCase):
         # No commits, no authors in list
         with open(os.path.join(self.package_dir, 'AUTHORS'), 'r') as f:
             body = f.read()
-        self.assertEqual(body, '\n')
+        self.assertEqual('\n', body)
 
     def test_changelog(self):
         # No commits, nothing should be in the ChangeLog list
         with open(os.path.join(self.package_dir, 'ChangeLog'), 'r') as f:
             body = f.read()
-        self.assertEqual(body, 'CHANGES\n=======\n\n')
+        self.assertEqual('CHANGES\n=======\n\n', body)
 
 
 class TestPackagingWheels(base.BaseTestCase):
@@ -463,7 +463,7 @@ class TestNestedRequirements(base.BaseTestCase):
         with open(nested, 'w') as f:
             f.write('pbr')
         result = packaging.parse_requirements([requirements])
-        self.assertEqual(result, ['pbr'])
+        self.assertEqual(['pbr'], result)
 
 
 class TestVersions(base.BaseTestCase):
