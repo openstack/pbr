@@ -738,8 +738,11 @@ def get_soabi():
     soabi = None
     try:
         soabi = sysconfig.get_config_var('SOABI')
+        arch = sysconfig.get_config_var('MULTIARCH')
     except IOError:
         pass
+    if soabi and arch and 'pypy' in sysconfig.get_scheme_names():
+        soabi = '%s-%s' % (soabi, arch)
     if soabi is None and 'pypy' in sysconfig.get_scheme_names():
         # NOTE(sigmavirus24): PyPy only added support for the SOABI config var
         # to sysconfig in 2015. That was well after 2.2.1 was published in the
