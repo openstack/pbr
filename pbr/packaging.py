@@ -225,6 +225,25 @@ class LocalRPMVersion(setuptools.Command):
         pass
 
 
+class LocalDebVersion(setuptools.Command):
+    __doc__ = """Output the deb *compatible* version string of this package"""
+    description = __doc__
+
+    user_options = []
+    command_name = "deb_version"
+
+    def run(self):
+        log.info("[pbr] Extracting deb version")
+        name = self.distribution.get_name()
+        print(version.VersionInfo(name).semantic_version().debian_string())
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+
 def have_testr():
     return testr_command.have_testr
 
