@@ -378,7 +378,7 @@ For ``requirements.txt``::
 This will result in the package depending on ``argparse`` only if it's being
 installed into Python 2.6
 
-For extras specifed in `setup.cfg`, add an ``extras`` section. For instance,
+For extras specified in `setup.cfg`, add an ``extras`` section. For instance,
 to create two groups of extra requirements with additional constraints on the
 environment, you can use::
 
