@@ -368,7 +368,7 @@ class WarnErrorSphinxTest(BaseSphinxTest):
 
         def app_init(appSelf, *args, **kwargs):
             self.assertTrue('warningiserror' in kwargs)
-            self.assertTrue(isinstance(kwargs['warningiserror'], bool))
+            self.assertIsInstance(kwargs['warningiserror'], bool)
             self.assertTrue(kwargs['warningiserror'])
             appSelf.build = lambda *a, **b: None
             self.app_init_executed = True
