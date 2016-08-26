@@ -743,7 +743,11 @@ def get_version(package_name, pre_version=None):
         return version
     raise Exception("Versioning for this project requires either an sdist"
                     " tarball, or access to an upstream git repository."
-                    " Are you sure that git is installed?")
+                    " It's also possible that there is a mismatch between"
+                    " the package name in setup.cfg and the argument given"
+                    " to pbr.version.VersionInfo. Project name {name} was"
+                    " given, but was not able to be found.".format(
+                        name=package_name))
 
 
 # This is added because pbr uses pbr to install itself. That means that
