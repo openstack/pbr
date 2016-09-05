@@ -50,20 +50,7 @@ import os
 import sys
 import warnings
 
-from setuptools import dist
-
 from pbr import util
-
-
-_saved_core_distribution = core.Distribution
-
-
-def _monkeypatch_distribution():
-    core.Distribution = dist._get_unpatched(core.Distribution)
-
-
-def _restore_distribution_monkeypatch():
-    core.Distribution = _saved_core_distribution
 
 
 if sys.version_info[0] == 3:
@@ -94,8 +81,7 @@ def pbr(dist, attr, value):
     not work well with distributions that do use a `Distribution` subclass.
     """
 
-    try:
-        _monkeypatch_distribution()
+    if True:
         if not value:
             return
         if isinstance(value, string_type):
@@ -135,11 +121,15 @@ def pbr(dist, attr, value):
                     warnings.warn(msg)
 
         # Re-finalize the underlying Distribution
-        core.Distribution.finalize_options(dist)
+        try:
+            super(dist.__class__, dist).finalize_options()
+        except TypeError:
+            # If dist is not declared as a new-style class (with object as
+            # a subclass) then super() will not work on it. This is the case
+            # for Python 2. In that case, fall back to doing this the ugly way
+            dist.__class__.__bases__[-1].finalize_options(dist)
 
         # This bit comes out of distribute/setuptools
         if isinstance(dist.metadata.version, integer_types + (float,)):
             # Some people apparently take "version number" too literally :)
             dist.metadata.version = str(dist.metadata.version)
-    finally:
-        _restore_distribution_monkeypatch()
