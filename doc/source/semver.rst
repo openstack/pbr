@@ -211,6 +211,51 @@ Semantic Versioning is to declare that you are doing so and then follow
 the rules. Link to this website from your README so others know the
 rules and can benefit from them.
 
+Examples
+---------
+
+.. code::
+
+   # MAJOR.MINOR.PATCH versions
+   1.0.0
+   2.0.0
+   2.1.0
+   2.1.1
+   10.0.0
+
+   # Pre-release versions
+   1.0.0.a1
+   1.0.0.a10
+   1.0.0.b99
+   1.0.0.c1000
+
+   # Development versions
+   1.0.0.dev1
+   1.0.0.dev2
+   1.0.0.dev10
+   1.0.0.a1.dev1
+   1.0.0.a1.dev2
+   1.0.0.a1.dev10
+
+   # Git short-sha Development (*) versions
+   1.0.0.a1.g95a9beb
+   1.0.0.c999.g95a9beb (TODO: ?)
+
+   # Build metadata
+   1.0.0.a1+001
+   1.0.0+20130313144700
+   1.0.0.b1+exp.sha.5114f85
+
+   # Git short-sha and build metadata
+   1.0.0.a1.g95a9beb+001
+   1.0.0.a1.g95a9beb+20130313144700
+   1.0.0.a1.g95a9beb+exp.sha.5114f85
+
+   # Git short-sha and ISO8601 build metadata (* TODO: ?)
+   1.0.0.a1.g95a9beb+2013-03-13T14:47:00-0000
+   1.0.0.a1.g95a9beb+2013-03-13T14:47:00+Z
+
+
 FAQ
 ---
 
