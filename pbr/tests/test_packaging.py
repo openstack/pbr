@@ -304,6 +304,17 @@ class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
         self.expectThat(stdout, matchers.Contains('Generating ChangeLog'))
 
 
+class TestExtrafileInstallation(base.BaseTestCase):
+    def test_install_glob(self):
+        stdout, _, _ = self.run_setup(
+            'install', '--root', self.temp_dir + 'installed',
+            allow_fail=False)
+        self.expectThat(
+            stdout, matchers.Contains('copying data_files/a.txt'))
+        self.expectThat(
+            stdout, matchers.Contains('copying data_files/b.txt'))
+
+
 class TestPackagingInGitRepoWithoutCommit(base.BaseTestCase):
 
     def setUp(self):

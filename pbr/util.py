@@ -105,7 +105,7 @@ D1_D2_SETUP_ARGS = {
     "description": ("metadata", "summary"),
     "keywords": ("metadata",),
     "long_description": ("metadata", "description"),
-    "download-url": ("metadata",),
+    "download_url": ("metadata",),
     "classifiers": ("metadata", "classifier"),
     "platforms": ("metadata", "platform"),  # **
     "license": ("metadata",),
@@ -215,6 +215,8 @@ def cfg_to_args(path='setup.cfg', script_args=()):
     config = {}
     for section in parser.sections():
         config[section] = dict(parser.items(section))
+        for k in config[section]:
+            config[section][k.replace('-', '_')] = config[section].pop(k)
 
     # Run setup_hooks, if configured
     setup_hooks = has_get_option(config, 'global', 'setup_hooks')
@@ -652,8 +654,6 @@ def run_command_hooks(cmd_obj, hook_kind):
 def has_get_option(config, section, option):
     if section in config and option in config[section]:
         return config[section][option]
-    elif section in config and option.replace('_', '-') in config[section]:
-        return config[section][option.replace('_', '-')]
     else:
         return False
 
