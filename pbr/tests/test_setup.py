@@ -99,27 +99,46 @@ class SkipFileWrites(base.BaseTestCase):
             (self.option_value.lower() in options.TRUE_VALUES
              or self.env_value is not None))
 
-_changelog_content = """7780758\x00Break parser\x00 (tag: 1_foo.1)
-04316fe\x00Make python\x00 (review/monty_taylor/27519)
+_changelog_content = """7780758\x00Break parser\x00 (tag: refs/tags/1_foo.1)
+04316fe\x00Make python\x00 (refs/heads/review/monty_taylor/27519)
 378261a\x00Add an integration test script.\x00
-3c373ac\x00Merge "Lib\x00 (HEAD, tag: 2013.2.rc2, tag: 2013.2, mile-proposed)
-182feb3\x00Fix pip invocation for old versions of pip.\x00 (tag: 0.5.17)
-fa4f46e\x00Remove explicit depend on distribute.\x00 (tag: 0.5.16)
+3c373ac\x00Merge "Lib\x00 (HEAD, tag: refs/tags/2013.2.rc2, tag: refs/tags/2013.2, refs/heads/mile-proposed)
+182feb3\x00Fix pip invocation for old versions of pip.\x00 (tag: refs/tags/0.5.17)
+fa4f46e\x00Remove explicit depend on distribute.\x00 (tag: refs/tags/0.5.16)
 d1c53dd\x00Use pip instead of easy_install for installation.\x00
 a793ea1\x00Merge "Skip git-checkout related tests when .git is missing"\x00
 6c27ce7\x00Skip git-checkout related tests when .git is missing\x00
 451e513\x00Bug fix: create_stack() fails when waiting\x00
-4c8cfe4\x00Improve test coverage: network delete API\x00 (tag: (evil))
-d7e6167\x00Bug fix: Fix pass thru filtering in list_networks\x00 (tag: ev()il)
-c47ec15\x00Consider 'in-use' a non-pending volume for caching\x00 (tag: ev)il)
-8696fbd\x00Improve test coverage: private extension API\x00 (tag: ev(il)
-f0440f8\x00Improve test coverage: hypervisor list\x00 (tag: e(vi)l)
-04984a5\x00Refactor hooks file.\x00 (HEAD, tag: 0.6.7,b, tag: (12), master)
-a65e8ee\x00Remove jinja pin.\x00 (tag: 0.5.14, tag: 0.5.13)
-"""
+4c8cfe4\x00Improve test coverage: network delete API\x00 (tag: refs/tags/(evil))
+d7e6167\x00Bug fix: Fix pass thru filtering in list_networks\x00 (tag: refs/tags/ev()il)
+c47ec15\x00Consider 'in-use' a non-pending volume for caching\x00 (tag: refs/tags/ev)il)
+8696fbd\x00Improve test coverage: private extension API\x00 (tag: refs/tags/ev(il)
+f0440f8\x00Improve test coverage: hypervisor list\x00 (tag: refs/tags/e(vi)l)
+04984a5\x00Refactor hooks file.\x00 (HEAD, tag: 0.6.7,b, tag: refs/tags/(12), refs/heads/master)
+a65e8ee\x00Remove jinja pin.\x00 (tag: refs/tags/0.5.14, tag: refs/tags/0.5.13)
+"""  # noqa
+
+
+def _make_old_git_changelog_format(line):
+    """Convert post-1.8.1 git log format to pre-1.8.1 git log format"""
+
+    if not line.strip():
+        return line
+    sha, msg, refname = line.split('\x00')
+    refname = refname.replace('tag: ', '')
+    return '\x00'.join((sha, msg, refname))
+
+_old_git_changelog_content = '\n'.join(
+    _make_old_git_changelog_format(line)
+    for line in _changelog_content.split('\n'))
 
 
 class GitLogsTest(base.BaseTestCase):
+
+    scenarios = [
+        ('pre1.8.3', {'changelog': _old_git_changelog_content}),
+        ('post1.8.3', {'changelog': _changelog_content}),
+    ]
 
     def setUp(self):
         super(GitLogsTest, self).setUp()
@@ -133,7 +152,7 @@ class GitLogsTest(base.BaseTestCase):
 
     def test_write_git_changelog(self):
         self.useFixture(fixtures.FakePopen(lambda _: {
-            "stdout": BytesIO(_changelog_content.encode('utf-8'))
+            "stdout": BytesIO(self.changelog.encode('utf-8'))
         }))
 
         git.write_git_changelog(git_dir=self.git_dir,
