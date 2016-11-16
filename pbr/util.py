@@ -189,18 +189,17 @@ def resolve_name(name):
 
 
 def cfg_to_args(path='setup.cfg', script_args=()):
-    """ Distutils2 to distutils1 compatibility util.
+    """Distutils2 to distutils1 compatibility util.
 
-        This method uses an existing setup.cfg to generate a dictionary of
-        keywords that can be used by distutils.core.setup(kwargs**).
+    This method uses an existing setup.cfg to generate a dictionary of
+    keywords that can be used by distutils.core.setup(kwargs**).
 
-        :param file:
-            The setup.cfg path.
-        :parm script_args:
-            List of commands setup.py was called with.
-        :raises DistutilsFileError:
-            When the setup.cfg file is not found.
-
+    :param file:
+        The setup.cfg path.
+    :parm script_args:
+        List of commands setup.py was called with.
+    :raises DistutilsFileError:
+        When the setup.cfg file is not found.
     """
 
     # The method source code really starts here.
