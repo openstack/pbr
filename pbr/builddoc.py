@@ -141,7 +141,8 @@ class LocalBuildDoc(setup_command.BuildDoc):
             sphinx_config.init_values(warnings.warn)
         else:
             sphinx_config.init_values()
-        if self.builder == 'man' and len(sphinx_config.man_pages) == 0:
+        if self.builder == 'man' and len(
+                getattr(sphinx_config, 'man_pages', '')) == 0:
             return
         if self.sphinx_initialized:
             if sphinx_ver >= pkg_resources.parse_version('1.4.2'):

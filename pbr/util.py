@@ -213,9 +213,9 @@ def cfg_to_args(path='setup.cfg', script_args=()):
     parser.read(path)
     config = {}
     for section in parser.sections():
-        config[section] = dict(parser.items(section))
-        for k in config[section]:
-            config[section][k.replace('-', '_')] = config[section].pop(k)
+        config[section] = dict()
+        for k, value in parser.items(section):
+            config[section][k.replace('-', '_')] = value
 
     # Run setup_hooks, if configured
     setup_hooks = has_get_option(config, 'global', 'setup_hooks')
