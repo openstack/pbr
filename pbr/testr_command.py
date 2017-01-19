@@ -26,16 +26,18 @@
 # license you chose for the specific language governing permissions and
 # limitations under that license.
 
-"""setuptools/distutils commands to run testr via setup.py
+"""setuptools/distutils command to run testr via setup.py
 
-Currently provides 'testr' which runs tests using testr. You can pass
---coverage which will also export PYTHON='coverage run --source <your package>'
-and automatically combine the coverage from each testr backend test runner
-after the run completes.
+PBR will hook in the Testr class to provide "setup.py test" when
+.testr.conf is present in the repository (see pbr/hooks/commands.py).
 
-To use, just use setuptools/distribute and depend on testr, and it should be
-picked up automatically (as the commands are exported in the testrepository
-package metadata.
+If we are activated but testrepository is not installed, we provide a
+sensible error.
+
+You can pass --coverage which will also export PYTHON='coverage run
+--source <your package>' and automatically combine the coverage from
+each testr backend test runner after the run completes.
+
 """
 
 from distutils import cmd

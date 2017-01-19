@@ -390,6 +390,53 @@ environment, you can use::
     testing =
         quux:python_version=='2.7'
 
+
+Testing
+-------
+
+pbr overrides the ``setuptools`` hook ``test`` (i.e. ``setup.py
+test``).  The following sequence is followed:
+
+#. If a ``.testr.conf`` file exists and `testrepository
+   <https://pypi.python.org/pypi/testrepository>`__ is installed, PBR
+   will use it as the test runner.  See the ``testr`` documentation
+   for more details.
+
+   .. note::
+
+     This is separate to ``setup.py testr`` (note the extra ``r``) which
+     is provided directly by the ``testrepository`` package.  Be careful
+     as there is some overlap of command arguments.
+
+#. Although deprecated, if ``[nosetests]`` is defined in ``setup.cfg``
+   and `nose <http://nose.readthedocs.io/en/latest/>`__ is installed,
+   the ``nose`` runner will be used.
+
+#. In other cases no override will be installed and the ``test``
+   command will revert to `setuptools
+   <http://setuptools.readthedocs.io/en/latest/setuptools.html#test-build-package-and-run-a-unittest-suite>`__.
+
+A typical usage would be in ``tox.ini`` such as::
+
+  [tox]
+  minversion = 2.0
+  skipsdist = True
+  envlist = py33,py34,py35,py26,py27,pypy,pep8,docs
+
+  [testenv]
+  usedevelop = True
+  setenv =
+    VIRTUAL_ENV={envdir}
+    CLIENT_NAME=pbr
+  deps = .
+       -r{toxinidir}/test-requirements.txt
+  commands =
+    python setup.py test --testr-args='{posargs}'
+
+The argument ``--coverage`` will set ``PYTHON`` to ``coverage run`` to
+produce a coverage report.  ``--coverage-package-name`` can be used to
+modify or narrow the packages traced.
+
 Additional Docs
 ===============
 
