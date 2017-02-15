@@ -133,6 +133,7 @@ class TestrReal(cmd.Command):
         logger.debug("_coverage_after called")
         os.system("coverage combine")
         os.system("coverage html -d ./cover %s" % self.omit)
+        os.system("coverage xml -o ./cover/coverage.xml %s" % self.omit)
 
 
 class TestrFake(cmd.Command):
