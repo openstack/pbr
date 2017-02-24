@@ -215,12 +215,31 @@ itself)::
     pbr.config.drivers =
         plain = pbr.cfg.driver:Plain
 
-There are a number of sections in these documents. These are:
+pbr provides its own section in these documents, ostensibly called `pbr`. Most
+other sections are provided by setuptools and may influence either the build
+itself or the output of various `setuptools commands`__. The remaining sections
+are provided by libraries that provide setuptools extensions, such as
+`extract_mesages` (provided by `Babel`__) or `sphinx_build` (provided by
+`Sphinx`__). Some of these are described below.
 
-* metadata
-* files
-* entry_points
-* pbr
+__ https://setuptools.readthedocs.io/en/latest/setuptools.html#command-reference
+__ http://babel.pocoo.org/en/latest/setup.html
+__ http://www.sphinx-doc.org/en/stable/setuptools.html
+
+.. note::
+
+   Comments may be used in `setup.cfg`, however all comments should start with
+   a `#` and may be on a single line, or in line, with at least one white space
+   character immediately preceding the `#`. Semicolons are not a supported
+   comment delimiter. For instance::
+
+       [section]
+       # A comment at the start of a dedicated line
+       key =
+           value1 # An in line comment
+           value2
+           # A comment on a dedicated line
+           value3
 
 files
 ~~~~~
@@ -264,33 +283,10 @@ into which the packages are installed, so depending on available permissions
 this could be the actual system-wide `/etc` directory or just a top-level `etc`
 subdirectory of a virtualenv.
 
-entry_points
-~~~~~~~~~~~~
-
-The `entry_points` section defines entry points for generated console scripts
-and python libraries.
-
-The general syntax of specifying entry points is a top level name indicating
-the entry point group name, followed by one or more key value pairs naming
-the entry point to be installed. For instance::
-
- [entry_points]
- console_scripts =
-     pbr = pbr.cmd:main
- pbr.config.drivers =
-     plain = pbr.cfg.driver:Plain
-     fancy = pbr.cfg.driver:Fancy
-
-Will cause a console script called `pbr` to be installed that executes the
-`main` function found in `pbr.cmd`. Additionally, two entry points will be
-installed for `pbr.config.drivers`, one called `plain` which maps to the
-`Plain` class in `pbr.cfg.driver` and one called `fancy` which maps to the
-`Fancy` class in `pbr.cfg.driver`.
-
 pbr
 ~~~
 
-The pbr section controls pbr specific options and behaviours.
+The ``pbr`` section controls pbr specific options and behaviours.
 
 The ``autodoc_tree_index_modules`` is a boolean option controlling whether pbr
 should generate an index of modules using ``sphinx-apidoc``. By default,
@@ -304,37 +300,41 @@ default, all found Python modules are included; some of them can be excluded
 by listing them in ``autodoc_exclude_modules``. This list of modules can
 contains `fnmatch` style pattern (e.g. `myapp.tests.*`) to exclude some modules.
 
-The ``warnerrors`` boolean option is used to tell Sphinx builders to treat
-warnings as errors which will cause sphinx-build to fail if it encounters
-warnings. This is generally useful to ensure your documentation stays clean
-once you have a good docs build.
-
 .. note::
 
    When using ``autodoc_tree_excludes`` or ``autodoc_index_modules`` you may
    also need to set ``exclude_patterns`` in your Sphinx configuration file
    (generally found at `doc/source/conf.py` in most OpenStack projects)
    otherwise Sphinx may complain about documents that are not in a toctree.
-   This is especially true if the ``warnerrors=True`` option is set. See the
-   `Sphinx build configuration file`_ documentation for more information on
-   configuring
-   Sphinx.
+   This is especially true if the ``[sphinx_build] warning-is-error`` option is
+   set. See the `Sphinx build configuration file`_ documentation for more
+   information on configuring Sphinx.
 
-Comments
-~~~~~~~~
+entry_points
+~~~~~~~~~~~~
 
-Comments may be used in `setup.cfg`, however all comments should start with a
-`#` and may be on a single line, or in line, with at least one white space
-character immediately preceding the `#`. Semicolons are not a supported comment
-delimiter. For instance::
+The ``entry_points`` section defines entry points for generated console scripts
+and python libraries. This is actually provided by `setuptools`__ but is
+documented here owing to its importance.
 
-    [section]
-    # A comment at the start of a dedicated line
-    key =
-        value1 # An in line comment
-        value2
-        # A comment on a dedicated line
-        value3
+The general syntax of specifying entry points is a top level name indicating
+the entry point group name, followed by one or more key value pairs naming
+the entry point to be installed. For instance::
+
+    [entry_points]
+    console_scripts =
+        pbr = pbr.cmd:main
+    pbr.config.drivers =
+        plain = pbr.cfg.driver:Plain
+        fancy = pbr.cfg.driver:Fancy
+
+Will cause a console script called `pbr` to be installed that executes the
+`main` function found in `pbr.cmd`. Additionally, two entry points will be
+installed for `pbr.config.drivers`, one called `plain` which maps to the
+`Plain` class in `pbr.cfg.driver` and one called `fancy` which maps to the
+`Fancy` class in `pbr.cfg.driver`.
+
+__ https://setuptools.readthedocs.io/en/latest/setuptools.html#options
 
 Requirements
 ------------
