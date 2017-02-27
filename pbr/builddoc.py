@@ -120,7 +120,7 @@ class LocalBuildDoc(setup_command.BuildDoc):
             cmd = ['apidoc', '.', '-H', 'Modules', '-o', source_dir]
             apidoc.main(cmd + self.autodoc_tree_excludes)
 
-    def _sphinx_run(self, warnerrors):
+    def _sphinx_run(self):
         if not self.verbose:
             status_stream = cStringIO.StringIO()
         else:
@@ -145,21 +145,14 @@ class LocalBuildDoc(setup_command.BuildDoc):
                 getattr(sphinx_config, 'man_pages', '')) == 0:
             return
         if self.sphinx_initialized:
-            if sphinx_ver >= pkg_resources.parse_version('1.4.2'):
-                confoverrides['suppress_warnings'] = [
-                    'app.add_directive', 'app.add_role',
-                    'app.add_generic_role', 'app.add_node']
-            elif sphinx_ver >= pkg_resources.parse_version('1.4.0'):
-                log.warn("[pbr] WARN: Sphinx versions 1.4.0 and 1.4.1 raise "
-                         "warnings during this run and will cause warnerrors "
-                         "to fail.  For more information see: "
-                         "http://docs.openstack.org/developer/pbr/"
-                         "compatibility.html#sphinx-1.4")
+            confoverrides['suppress_warnings'] = [
+                'app.add_directive', 'app.add_role',
+                'app.add_generic_role', 'app.add_node']
         app = application.Sphinx(
             self.source_dir, self.config_dir,
             self.builder_target_dir, self.doctree_dir,
             self.builder, confoverrides, status_stream,
-            freshenv=self.fresh_env, warningiserror=warnerrors)
+            freshenv=self.fresh_env, warningiserror=self.warning_is_error)
         self.sphinx_initialized = True
 
         try:
@@ -190,8 +183,6 @@ class LocalBuildDoc(setup_command.BuildDoc):
         auto_index = options.get_boolean_option(option_dict,
                                                 'autodoc_index_modules',
                                                 'AUTODOC_INDEX_MODULES')
-        warnerrors = options.get_boolean_option(option_dict, 'warnerrors',
-                                                'WARNERRORS')
         if not os.getenv('SPHINX_DEBUG'):
             # NOTE(afazekas): These options can be used together,
             # but they do a very similar thing in a different way
@@ -206,7 +197,7 @@ class LocalBuildDoc(setup_command.BuildDoc):
         for builder in self.builders:
             self.builder = builder
             self.finalize_options()
-            self._sphinx_run(warnerrors)
+            self._sphinx_run()
 
     def initialize_options(self):
         # Not a new style class, super keyword does not work.
@@ -219,6 +210,7 @@ class LocalBuildDoc(setup_command.BuildDoc):
     def finalize_options(self):
         # Not a new style class, super keyword does not work.
         setup_command.BuildDoc.finalize_options(self)
+
         # Handle builder option from command line - override cfg
         option_dict = self.distribution.get_option_dict('build_sphinx')
         if 'command line' in option_dict.get('builder', [[]])[0]:
@@ -226,6 +218,7 @@ class LocalBuildDoc(setup_command.BuildDoc):
         # Allow builders to be configurable - as a comma separated list.
         if not isinstance(self.builders, list) and self.builders:
             self.builders = self.builders.split(',')
+
         self.project = self.distribution.get_name()
         self.version = self.distribution.get_version()
         self.release = self.distribution.get_version()
@@ -237,6 +230,10 @@ class LocalBuildDoc(setup_command.BuildDoc):
         if opt in option_dict:
             self.autodoc_tree_excludes = option_dict[opt][1]
             self.ensure_string_list(opt)
+
+        # handle Sphinx < 1.5.0
+        if not hasattr(self, 'warning_is_error'):
+            self.warning_is_error = False
 
 
 class LocalBuildLatex(LocalBuildDoc):

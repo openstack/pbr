@@ -260,9 +260,6 @@ class BaseSphinxTest(base.BaseTestCase):
         if hasattr(self, 'has_opt') and self.has_opt:
             options = self.distr.command_options["pbr"]
             options["autodoc_index_modules"] = ('setup.cfg', self.autodoc)
-        if hasattr(self, 'warnerrors') and self.warnerrors:
-            options = self.distr.command_options["pbr"]
-            options["warnerrors"] = ('setup.cfg', 'true')
 
 
 class BuildSphinxTest(BaseSphinxTest):
@@ -282,13 +279,6 @@ class BuildSphinxTest(BaseSphinxTest):
         ('no_autodoc',
          dict(has_opt=False, autodoc='False', has_autodoc=False)),
     ]
-
-    scenarios = testscenarios.scenarios.multiply_scenarios(
-        scenarios,
-        [
-            ('warnerrors', dict(warnerrors=True)),
-            ('nowarnerrors', dict(warnerrors=False))
-        ])
 
     def test_build_doc(self):
         build_doc = packaging.LocalBuildDoc(self.distr)
@@ -373,30 +363,6 @@ class BuildSphinxTest(BaseSphinxTest):
         build_doc.finalize_options()
 
         self.assertEqual(["builder1", "builder2"], build_doc.builders)
-
-
-class WarnErrorSphinxTest(BaseSphinxTest):
-
-    def setUp(self):
-        self.warnerrors = True
-        super(WarnErrorSphinxTest, self).setUp()
-
-    def testWarnErrors(self):
-        """Ensure when warnerror is used, we pass warningiserror true"""
-        self.app_init_executed = False
-
-        def app_init(appSelf, *args, **kwargs):
-            self.assertTrue('warningiserror' in kwargs)
-            self.assertIsInstance(kwargs['warningiserror'], bool)
-            self.assertTrue(kwargs['warningiserror'])
-            appSelf.build = lambda *a, **b: None
-            self.app_init_executed = True
-
-        self.useFixture(fixtures.MonkeyPatch(
-            "sphinx.application.Sphinx.__init__", app_init))
-        build_doc = packaging.LocalBuildDoc(self.distr)
-        build_doc.run()
-        self.assertTrue(self.app_init_executed)
 
 
 class ParseRequirementsTestScenarios(base.BaseTestCase):

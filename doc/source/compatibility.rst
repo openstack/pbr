@@ -49,20 +49,10 @@ Recommended setup.py
 Sphinx
 ======
 
-.. _sphinx-1.4:
+.. _sphinx-1.5:
 
-Version 1.4.0 and 1.4.1
------------------------
+Version 1.5.0+
+--------------
 
-Sphinx added new warnings to version 1.4.0 to warn if a directive, role, or
-node exists and is being overridden.  These extensions are registered to
-global values, and as such, executing multiple builders in a single python
-process triggers these warnings as they were loaded during the first run.
-In version 1.4.2 sphinx added the ability to silence these warnings, and as
-such we silence these warnings on sphinx invocations after the first run.
-
-With version 1.4.0 and 1.4.1 we are unable to silence these warnings, and as
-such, a warnings is printed, and sphinx will fail if running with warnerrors,
-or print warnings.
-
-To silence these warnings upgrade Sphinx to 1.4.2 or greater.
+The ``warning-is-error`` flag is only supported by Sphinx 1.5 and will cause
+errors when used with older versions.

@@ -267,34 +267,3 @@ class TestLTSSupport(base.BaseTestCase):
         # this particular combination of setuptools and pip.
         self._run_cmd(bin_python, ['-m', 'pip', 'install', pbr],
                       cwd=venv.path, allow_fail=False)
-
-
-class TestSphinxWarnErrors(base.BaseTestCase):
-    sphinx14warning = "[pbr] WARN: Sphinx versions 1.4.0 and 1.4.1 raise"
-    scenarios = [
-        ('sphinxEL6', {'module': 'sphinx==0.6.6'}),
-        ('sphinxWheezyEL7', {'module': 'sphinx==1.1.3'}),
-        ('sphinxJessie', {'module': 'sphinx==1.2.3'}),
-        ('sphinx<1.3', {'module': 'sphinx<1.3.0'}),
-        ('sphinx1.3x', {'module': 'sphinx<1.4.0>=1.3.0'}),
-        ('sphinx1.4.1', {'module': 'sphinx==1.4.1',
-                         'failure': sphinx14warning}),
-        ('sphinx1.4.2', {'module': 'sphinx==1.4.2'}),
-        ('sphinx-latest', {'module': 'sphinx'}),
-    ]
-
-    @testtools.skipUnless(
-        os.environ.get('PBR_INTEGRATION', None) == '1',
-        'integration tests not enabled')
-    def test_sphinx_runs(self):
-        venv = self.useFixture(test_packaging.Venv('sphinx'))
-        bin_python = venv.python
-        self._run_cmd(bin_python, ['-m', 'pip', 'install', self.module],
-                      cwd=venv.path, allow_fail=False)
-        _, err, ret = self._run_cmd(bin_python, ['setup.py', 'build_sphinx'],
-                                    cwd=self.package_dir, allow_fail=True)
-        if hasattr(self, 'failure'):
-            self.assertNotEqual(0, ret)
-            self.assertIn(self.failure, err)
-        else:
-            self.assertEqual(0, ret)
