@@ -183,6 +183,9 @@ class LocalBuildDoc(setup_command.BuildDoc):
                         "autodoc_exclude_modules",
                         [None, ""])[1].split()))
 
+        # TODO(stephenfin): Deprecate this functionality once we depend on
+        # Sphinx 1.6, which includes a similar feature, in g-r
+        # https://github.com/sphinx-doc/sphinx/pull/3476
         for builder in self.builders:
             self.builder = builder
             self.finalize_options()
