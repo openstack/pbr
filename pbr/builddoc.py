@@ -17,9 +17,7 @@
 from distutils import log
 import fnmatch
 import os
-import pkg_resources
 import sys
-import warnings
 
 try:
     import cStringIO
@@ -29,7 +27,6 @@ except ImportError:
 try:
     from sphinx import apidoc
     from sphinx import application
-    from sphinx import config
     from sphinx import setup_command
 except Exception as e:
     # NOTE(dhellmann): During the installation of docutils, setuptools
@@ -134,16 +131,6 @@ class LocalBuildDoc(setup_command.BuildDoc):
             confoverrides['release'] = self.release
         if self.today:
             confoverrides['today'] = self.today
-        sphinx_config = config.Config(self.config_dir, 'conf.py', {}, [])
-        sphinx_ver = pkg_resources.parse_version(
-            pkg_resources.get_distribution("sphinx").version)
-        if sphinx_ver > pkg_resources.parse_version('1.2.3'):
-            sphinx_config.init_values(warnings.warn)
-        else:
-            sphinx_config.init_values()
-        if self.builder == 'man' and len(
-                getattr(sphinx_config, 'man_pages', '')) == 0:
-            return
         if self.sphinx_initialized:
             confoverrides['suppress_warnings'] = [
                 'app.add_directive', 'app.add_role',
@@ -153,6 +140,10 @@ class LocalBuildDoc(setup_command.BuildDoc):
             self.builder_target_dir, self.doctree_dir,
             self.builder, confoverrides, status_stream,
             freshenv=self.fresh_env, warningiserror=self.warning_is_error)
+        sphinx_config = app.config
+        if self.builder == 'man' and len(
+                getattr(sphinx_config, 'man_pages', '')) == 0:
+            return
         self.sphinx_initialized = True
 
         try:
