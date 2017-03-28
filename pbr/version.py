@@ -22,8 +22,6 @@ import itertools
 import operator
 import sys
 
-import pkg_resources
-
 
 def _is_int(string):
     try:
@@ -435,6 +433,9 @@ class VersionInfo(object):
         record associated with the package, and if there is no such record
         falls back to the logic sdist would use.
         """
+        # Lazy import because pkg_resources is costly to import so defer until
+        # we absolutely need it.
+        import pkg_resources
         try:
             requirement = pkg_resources.Requirement.parse(self.package)
             provider = pkg_resources.get_provider(requirement)
