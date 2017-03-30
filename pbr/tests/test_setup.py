@@ -224,6 +224,10 @@ class GitLogsTest(base.BaseTestCase):
             self.assertTrue(co_author in authors)
 
 
+class _SphinxConfig(object):
+    man_pages = ['foo']
+
+
 class BaseSphinxTest(base.BaseTestCase):
 
     def setUp(self):
@@ -234,7 +238,7 @@ class BaseSphinxTest(base.BaseTestCase):
         self.useFixture(fixtures.MonkeyPatch(
             "sphinx.application.Sphinx.build", lambda *a, **kw: None))
         self.useFixture(fixtures.MonkeyPatch(
-            "sphinx.config.Config.man_pages", ['foo']))
+            "sphinx.application.Sphinx.config", _SphinxConfig))
         self.useFixture(fixtures.MonkeyPatch(
             "sphinx.config.Config.init_values", lambda *a: None))
         self.useFixture(fixtures.MonkeyPatch(
