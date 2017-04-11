@@ -165,7 +165,7 @@ class GitLogsTest(base.BaseTestCase):
             self.assertIn("------", changelog_contents)
             self.assertIn("Refactor hooks file", changelog_contents)
             self.assertIn(
-                "Bug fix: create_stack() fails when waiting",
+                "Bug fix: create\_stack() fails when waiting",
                 changelog_contents)
             self.assertNotIn("Refactor hooks file.", changelog_contents)
             self.assertNotIn("182feb3", changelog_contents)
@@ -179,7 +179,7 @@ class GitLogsTest(base.BaseTestCase):
             self.assertNotIn("ev)il", changelog_contents)
             self.assertNotIn("e(vi)l", changelog_contents)
             self.assertNotIn('Merge "', changelog_contents)
-            self.assertNotIn('1_foo.1', changelog_contents)
+            self.assertNotIn('1\_foo.1', changelog_contents)
 
     def test_generate_authors(self):
         author_old = u"Foo Foo <email@foo.com>"
