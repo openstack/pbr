@@ -217,12 +217,12 @@ itself)::
     pbr.config.drivers =
         plain = pbr.cfg.driver:Plain
 
-pbr provides its own section in these documents, ostensibly called `pbr`, and
-provides a custom version of Sphinx's `build_sphinx` section. Most other
+`pbr` provides its own section in these documents, ostensibly called ``pbr``,
+and provides a custom version of Sphinx's ``build_sphinx`` section. Most other
 sections are provided by setuptools and may influence either the build itself
 or the output of various `setuptools commands`__. The remaining sections are
 provided by libraries that provide setuptools extensions, such as
-`extract_mesages` (provided by `Babel`__). Some of these are described below.
+``extract_mesages`` (provided by `Babel`__). Some of these are described below.
 
 __ https://setuptools.readthedocs.io/en/latest/setuptools.html#command-reference
 __ http://babel.pocoo.org/en/latest/setup.html
@@ -250,57 +250,76 @@ The ``files`` section defines the install location of files in the package
 using three fundamental keys: ``packages``, ``namespace_packages``, and
 ``data_files``.
 
-``packages`` is a list of top-level packages that should be installed. The
-behavior of packages is similar to ``setuptools.find_packages`` in that it
-recurses the python package hierarchy below the given top level and installs
-all of it. If ``packages`` is not specified, it defaults to the value of the
-``name`` field given in the ``[metadata]`` section.
+``packages``
 
-``namespace_packages`` is the same, but is a list of packages that provide
-namespace packages.
+  A list of top-level packages that should be installed. The behavior of
+  packages is similar to ``setuptools.find_packages`` in that it recurses the
+  python package hierarchy below the given top level and installs all of it. If
+  ``packages`` is not specified, it defaults to the value of the ``name`` field
+  given in the ``[metadata]`` section.
 
-``data_files`` lists files to be installed. The format is an indented block
-that contains key value pairs which specify target directory and source file
-to install there. More than one source file for a directory may be indicated
-with a further indented list. Source files are stripped of leading directories.
-Additionally, `pbr` supports a simple file globbing syntax for installing
-entire directory structures, thus::
+``namespace_packages``
 
- [files]
- data_files =
-     etc/pbr = etc/pbr/*
-     etc/neutron =
-         etc/api-paste.ini
-         etc/dhcp-agent.ini
-     etc/init.d = neutron.init
+  Similar to ``packages``, but is a list of packages that provide namespace
+  packages.
 
-will result in `/etc/neutron` containing `api-paste.ini` and `dhcp-agent.ini`,
-both of which pbr will expect to find in the `etc` directory in the root of
-the source tree. Additionally, `neutron.init` from that dir will be installed
-in `/etc/init.d`. All of the files and directories located under `etc/pbr` in
-the source tree will be installed into `/etc/pbr`.
+``data_files``
 
-Note that this behavior is relative to the effective root of the environment
-into which the packages are installed, so depending on available permissions
-this could be the actual system-wide `/etc` directory or just a top-level `etc`
-subdirectory of a virtualenv.
+  A list of files to be installed. The format is an indented block that
+  contains key value pairs which specify target directory and source file to
+  install there. More than one source file for a directory may be indicated
+  with a further indented list. Source files are stripped of leading
+  directories.  Additionally, `pbr` supports a simple file globbing syntax for
+  installing entire directory structures, thus::
+
+   [files]
+   data_files =
+       etc/pbr = etc/pbr/*
+       etc/neutron =
+           etc/api-paste.ini
+           etc/dhcp-agent.ini
+       etc/init.d = neutron.init
+
+  will result in `/etc/neutron` containing `api-paste.ini` and `dhcp-agent.ini`,
+  both of which pbr will expect to find in the `etc` directory in the root of
+  the source tree. Additionally, `neutron.init` from that dir will be installed
+  in `/etc/init.d`. All of the files and directories located under `etc/pbr` in
+  the source tree will be installed into `/etc/pbr`.
+
+  Note that this behavior is relative to the effective root of the environment
+  into which the packages are installed, so depending on available permissions
+  this could be the actual system-wide `/etc` directory or just a top-level
+  `etc` subdirectory of a virtualenv.
 
 pbr
 ~~~
 
-The ``pbr`` section controls pbr specific options and behaviours.
+The ``pbr`` section controls `pbr` specific options and behaviours.
 
-The ``autodoc_tree_index_modules`` is a boolean option controlling whether pbr
-should generate an index of modules using ``sphinx-apidoc``. By default,
-`setup.py` is excluded. The list of excluded modules can be specified with the
-``autodoc_tree_excludes`` option. See the `sphinx-apidoc man page`_ for more
-information.
+``autodoc_tree_index_modules``
 
-The ``autodoc_index_modules`` is a boolean option controlling whether `pbr`
-should itself generates documentation for Python modules of the project. By
-default, all found Python modules are included; some of them can be excluded
-by listing them in ``autodoc_exclude_modules``. This list of modules can
-contains `fnmatch` style pattern (e.g. `myapp.tests.*`) to exclude some modules.
+  A boolean option controlling whether `pbr` should generate an index of
+  modules using `sphinx-apidoc`. By default, all files except `setup.py` are
+  included, but this can be overridden using the ``autodoc_tree_excludes``
+  option.
+
+``autodoc_tree_excludes``
+
+  A list of modules to exclude when building documentation using
+  `sphinx-apidoc`. Defaults to ``[setup.py]``. Refer to the `sphinx-apidoc man
+  page`_ for more information.
+
+``autodoc_index_modules``
+
+  A boolean option controlling whether `pbr` should itself generates
+  documentation for Python modules of the project. By default, all found Python
+  modules are included; some of them can be excluded by listing them in
+  ``autodoc_exclude_modules``.
+
+``autodoc_exclude_modules``
+
+  A list of modules to exclude when building module documentation using `pbr`.
+  `fnmatch` style pattern (e.g. `myapp.tests.*`) can be used.
 
 .. note::
 
@@ -448,11 +467,11 @@ environment, you can use::
 Testing
 -------
 
-pbr overrides the ``setuptools`` hook ``test`` (i.e. ``setup.py
-test``).  The following sequence is followed:
+`pbr` overrides the ``setuptools`` hook ``test`` (i.e. ``setup.py test``). The
+following sequence is followed:
 
 #. If a ``.testr.conf`` file exists and `testrepository
-   <https://pypi.python.org/pypi/testrepository>`__ is installed, PBR
+   <https://pypi.python.org/pypi/testrepository>`__ is installed, `pbr`
    will use it as the test runner.  See the ``testr`` documentation
    for more details.
 
