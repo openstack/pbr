@@ -63,7 +63,7 @@ def _find_modules(arg, dirname, files):
 
 class LocalBuildDoc(setup_command.BuildDoc):
 
-    builders = ['html', 'man']
+    builders = ['html']
     command_name = 'build_sphinx'
     sphinx_initialized = False
 
@@ -142,10 +142,6 @@ class LocalBuildDoc(setup_command.BuildDoc):
             self.builder_target_dir, self.doctree_dir,
             self.builder, confoverrides, status_stream,
             freshenv=self.fresh_env, warningiserror=self.warning_is_error)
-        sphinx_config = app.config
-        if self.builder == 'man' and len(
-                getattr(sphinx_config, 'man_pages', '')) == 0:
-            return
         self.sphinx_initialized = True
 
         try:

@@ -380,6 +380,12 @@ documentation`__. In addition, the ``autodoc_index_modules``,
 ``autodoc_tree_excludes`` options in the ``pbr`` section will affect the output
 of the automatic module documentation generation.
 
+.. versionchanged:: 3.0
+
+   The ``build_sphinx`` plugin used to default to building both HTML and man
+   page output. This is no longer the case, and you should explicitly set
+   ``builders`` to ``html man`` if you wish to retain this behavior.
+
 __ http://www.sphinx-doc.org/en/stable/man/sphinx-apidoc.html
 __ http://www.sphinx-doc.org/en/stable/setuptools.html
 
