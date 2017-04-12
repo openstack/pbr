@@ -49,7 +49,6 @@ class CommandsConfig(base.BaseConfig):
 
         if packaging.have_sphinx():
             self.add_command('pbr.builddoc.LocalBuildDoc')
-            self.add_command('pbr.builddoc.LocalBuildLatex')
 
         if os.path.exists('.testr.conf') and packaging.have_testr():
             # There is a .testr.conf file. We want to use it.

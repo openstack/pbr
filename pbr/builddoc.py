@@ -227,8 +227,3 @@ class LocalBuildDoc(setup_command.BuildDoc):
         # handle Sphinx < 1.5.0
         if not hasattr(self, 'warning_is_error'):
             self.warning_is_error = False
-
-
-class LocalBuildLatex(LocalBuildDoc):
-    builders = ['latex']
-    command_name = 'build_sphinx_latex'

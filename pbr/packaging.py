@@ -536,11 +536,9 @@ try:
     # Import the symbols from their new home so the package API stays
     # compatible.
     LocalBuildDoc = builddoc.LocalBuildDoc
-    LocalBuildLatex = builddoc.LocalBuildLatex
 except ImportError:
     _have_sphinx = False
     LocalBuildDoc = None
-    LocalBuildLatex = None
 
 
 def have_sphinx():
