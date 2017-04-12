@@ -201,6 +201,7 @@ itself)::
     keywords =
         setup
         distutils
+
     [files]
     packages =
         pbr
@@ -209,18 +210,19 @@ itself)::
         etc/init =
             pbr.packaging.conf
             pbr.version.conf
+
     [entry_points]
     console_scripts =
         pbr = pbr.cmd:main
     pbr.config.drivers =
         plain = pbr.cfg.driver:Plain
 
-pbr provides its own section in these documents, ostensibly called `pbr`. Most
-other sections are provided by setuptools and may influence either the build
-itself or the output of various `setuptools commands`__. The remaining sections
-are provided by libraries that provide setuptools extensions, such as
-`extract_mesages` (provided by `Babel`__) or `sphinx_build` (provided by
-`Sphinx`__). Some of these are described below.
+pbr provides its own section in these documents, ostensibly called `pbr`, and
+provides a custom version of Sphinx's `build_sphinx` section. Most other
+sections are provided by setuptools and may influence either the build itself
+or the output of various `setuptools commands`__. The remaining sections are
+provided by libraries that provide setuptools extensions, such as
+`extract_mesages` (provided by `Babel`__). Some of these are described below.
 
 __ https://setuptools.readthedocs.io/en/latest/setuptools.html#command-reference
 __ http://babel.pocoo.org/en/latest/setup.html
@@ -309,6 +311,58 @@ contains `fnmatch` style pattern (e.g. `myapp.tests.*`) to exclude some modules.
    This is especially true if the ``[sphinx_build] warning-is-error`` option is
    set. See the `Sphinx build configuration file`_ documentation for more
    information on configuring Sphinx.
+
+.. versionchanged:: 2.0
+
+   The ``pbr`` section used to take a ``warnerrors`` option that would enable
+   the ``-W`` (Turn warnings into errors.) option when building Sphinx. This
+   feature was broken in 1.10 and was removed in pbr 2.0 in favour of the
+   ``[build_sphinx] warning-is-error`` provided in Sphinx 1.5+.
+
+build_sphinx
+~~~~~~~~~~~~
+
+The ``build_sphinx`` section is a version of the ``build_sphinx`` setuptools
+plugin provided with Sphinx. This plugin extends the original plugin to add the
+following:
+
+- Automatic generation of module documentation using the apidoc__ tool
+
+- Automatic configuration of the `project`, `version` and `release` settings
+  using information from `pbr` itself
+
+- Support for multiple builders using the ``builders`` configuration option
+
+  .. note::
+
+     Sphinx 1.6 adds support for multiple builders using the default `builder`
+     option. You should refer to this file for more information.
+
+The version of ``build_sphinx`` provided by `pbr` provides a single additional
+option.
+
+``builders``
+
+  A space or comma separated list of builders to run. For example, to build
+  both HTML and man page documentation, you would define the following in your
+  `setup.cfg`:
+
+  .. code-block:: ini
+
+      [build_sphinx]
+      builders = html,man
+      source-dir = doc/source
+      build-dir = doc/build
+      all-files = 1
+
+For information on the remaining options, refer to the `Sphinx
+documentation`__. In addition, the ``autodoc_index_modules``,
+``autodoc_tree_index_modules``, ``autodoc_exclude_modules`` and
+``autodoc_tree_excludes`` options in the ``pbr`` section will affect the output
+of the automatic module documentation generation.
+
+__ http://www.sphinx-doc.org/en/stable/man/sphinx-apidoc.html
+__ http://www.sphinx-doc.org/en/stable/setuptools.html
 
 entry_points
 ~~~~~~~~~~~~
