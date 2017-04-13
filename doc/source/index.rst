@@ -448,6 +448,7 @@ Additional Docs
    testing
    compatibility
    api/modules
+   history
 
 Indices and tables
 ==================
