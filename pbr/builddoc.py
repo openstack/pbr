@@ -134,7 +134,9 @@ class LocalBuildDoc(setup_command.BuildDoc):
         if self.sphinx_initialized:
             confoverrides['suppress_warnings'] = [
                 'app.add_directive', 'app.add_role',
-                'app.add_generic_role', 'app.add_node']
+                'app.add_generic_role', 'app.add_node',
+                'image.nonlocal_uri',
+            ]
         app = application.Sphinx(
             self.source_dir, self.config_dir,
             self.builder_target_dir, self.doctree_dir,
