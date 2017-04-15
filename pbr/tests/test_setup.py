@@ -308,9 +308,8 @@ class BuildSphinxTest(BaseSphinxTest):
         build_doc = packaging.LocalBuildDoc(self.distr)
         build_doc.finalize_options()
 
-        self.assertEqual(2, len(build_doc.builders))
+        self.assertEqual(1, len(build_doc.builders))
         self.assertIn('html', build_doc.builders)
-        self.assertIn('man', build_doc.builders)
 
         build_doc = packaging.LocalBuildDoc(self.distr)
         build_doc.builders = ''
