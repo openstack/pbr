@@ -146,15 +146,14 @@ def get_git_short_sha(git_dir=None):
 def _clean_changelog_message(msg):
     """Cleans any instances of invalid sphinx wording.
 
-    This removes any instances of invalid characters or wording
+    This escapes/removes any instances of invalid characters
     that can be interpreted by sphinx as a warning or error
     when translating the Changelog into an HTML file for
     documentation building within projects.
 
-    Currently removes:
-    * Escapes any '_' that sphinx can interpret as a link
-    * Escapes any '*' with sphinx will interpret as a new commit
-
+    * Escapes '_' which is interpreted as a link
+    * Escapes '*' which is interpreted as a new line
+    * Escapes '`' which is interpreted as a literal
     """
 
     msg = msg.replace('*', '\*')
