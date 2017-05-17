@@ -186,6 +186,11 @@ class LocalBuildDoc(setup_command.BuildDoc):
         # TODO(stephenfin): Deprecate this functionality once we depend on
         # Sphinx 1.6, which includes a similar feature, in g-r
         # https://github.com/sphinx-doc/sphinx/pull/3476
+        self.finalize_options()
+        if hasattr(self, "builder_target_dirs"):
+            # Sphinx >= 1.6.1
+            return setup_command.BuildDoc.run(self)
+        # Sphinx < 1.6
         for builder in self.builders:
             self.builder = builder
             self.finalize_options()
