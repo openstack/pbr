@@ -282,12 +282,15 @@ if __name__ == "__main__":
     import wsgiref.simple_server as wss
 
     my_ip = socket.gethostbyname(socket.gethostname())
+
     parser = argparse.ArgumentParser(
         description=%(import_target)s.__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        usage='%%(prog)s [-h] [--port PORT] -- [passed options]')
+        usage='%%(prog)s [-h] [--port PORT] [--host IP] -- [passed options]')
     parser.add_argument('--port', '-p', type=int, default=8000,
                         help='TCP port to listen on')
+    parser.add_argument('--host', '-b', default=my_ip,
+                        help='IP to bind the server to')
     parser.add_argument('args',
                         nargs=argparse.REMAINDER,
                         metavar='-- [passed options]',
@@ -301,11 +304,11 @@ if __name__ == "__main__":
         else:
             parser.error("unrecognized arguments: %%s" %% ' '.join(args.args))
     sys.argv[1:] = args.args
-    server = wss.make_server('', args.port, %(invoke_target)s())
+    server = wss.make_server(args.host, args.port, %(invoke_target)s())
 
     print("*" * 80)
     print("STARTING test server %(module_name)s.%(invoke_target)s")
-    url = "http://%%s:%%d/" %% (my_ip, server.server_port)
+    url = "http://%%s:%%d/" %% (server.server_name, server.server_port)
     print("Available at %%s" %% url)
     print("DANGER! For testing only, do not use in production")
     print("*" * 80)
