@@ -39,7 +39,7 @@ class SemanticVersion(object):
 
     def __init__(
             self, major, minor=0, patch=0, prerelease_type=None,
-            prerelease=None, dev_count=None):
+            prerelease=None, dev_count=None, commit_short_sha=None):
         """Create a SemanticVersion.
 
         :param major: Major component of the version.
@@ -59,6 +59,7 @@ class SemanticVersion(object):
         if self._prerelease_type and not self._prerelease:
             self._prerelease = 0
         self._dev_count = dev_count or 0  # Normalise 0 to None.
+        self._commit_short_sha = commit_short_sha
 
     def __eq__(self, other):
         if not isinstance(other, SemanticVersion):
@@ -339,6 +340,9 @@ class SemanticVersion(object):
                 segments.append('.')
             segments.append('dev')
             segments.append(self._dev_count)
+            if self._commit_short_sha:
+                segments.append("-")
+                segments.append(self._commit_short_sha)
         return "".join(str(s) for s in segments)
 
     def release_string(self):
@@ -358,14 +362,15 @@ class SemanticVersion(object):
         """
         return self._long_version(None)
 
-    def to_dev(self, dev_count):
+    def to_dev(self, dev_count, commit_short_sha=None):
         """Return a development version of this semver.
 
         :param dev_count: The number of commits since the last release.
         """
         return SemanticVersion(
             self._major, self._minor, self._patch, self._prerelease_type,
-            self._prerelease, dev_count=dev_count)
+            self._prerelease, dev_count=dev_count,
+            commit_short_sha=commit_short_sha)
 
     def version_tuple(self):
         """Present the version as a version_info tuple.
