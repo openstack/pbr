@@ -590,6 +590,7 @@ def _get_revno_and_last_tag(git_dir):
     of time.
     """
     changelog = git._iter_log_oneline(git_dir=git_dir)
+    changelog = changelog if changelog else []
     row_count = 0
     for row_count, (ignored, tag_set, ignored) in enumerate(changelog):
         version_tags = set()
