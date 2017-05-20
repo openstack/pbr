@@ -102,6 +102,10 @@ def parse_requirements(requirements_files=None, strip_markers=False):
         if (not line.strip()) or line.startswith('#'):
             continue
 
+        # Ignore index URL lines
+        if re.match(r'^\s*(-i|--index-url|--extra-index-url).*', line):
+            continue
+
         # Handle nested requirements files such as:
         # -r other-requirements.txt
         if line.startswith('-r'):

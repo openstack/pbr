@@ -486,6 +486,19 @@ class TestPresenceOfGit(base.BaseTestCase):
             self.assertEqual(False, git._git_is_installed())
 
 
+class TestIndexInRequirements(base.BaseTestCase):
+
+    def test_index_in_requirement(self):
+        tempdir = tempfile.mkdtemp()
+        requirements = os.path.join(tempdir, 'requirements.txt')
+        with open(requirements, 'w') as f:
+            f.write('-i https://myindex.local')
+            f.write('  --index-url https://myindex.local')
+            f.write(' --extra-index-url https://myindex.local')
+        result = packaging.parse_requirements([requirements])
+        self.assertEqual([], result)
+
+
 class TestNestedRequirements(base.BaseTestCase):
 
     def test_nested_requirement(self):
