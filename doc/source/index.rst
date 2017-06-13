@@ -321,6 +321,12 @@ The ``pbr`` section controls `pbr` specific options and behaviours.
   A list of modules to exclude when building module documentation using `pbr`.
   `fnmatch` style pattern (e.g. `myapp.tests.*`) can be used.
 
+``api_doc_dir``
+
+  A subdirectory inside the ``build_sphinx.source_dir`` where
+  auto-generated API documentation should be written, if
+  ``autodoc_index_modules`` is set to True. Defaults to ``"api"``.
+
 .. note::
 
    When using ``autodoc_tree_excludes`` or ``autodoc_index_modules`` you may
@@ -373,6 +379,11 @@ option.
       source-dir = doc/source
       build-dir = doc/build
       all-files = 1
+
+``source_dir``
+
+  The path to the source directory where the Sphinx documentation tree
+  is.
 
 For information on the remaining options, refer to the `Sphinx
 documentation`__. In addition, the ``autodoc_index_modules``,

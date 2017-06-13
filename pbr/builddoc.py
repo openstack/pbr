@@ -69,10 +69,13 @@ class LocalBuildDoc(setup_command.BuildDoc):
 
     def _get_source_dir(self):
         option_dict = self.distribution.get_option_dict('build_sphinx')
+        pbr_option_dict = self.distribution.get_option_dict('pbr')
+        _, api_doc_dir = pbr_option_dict.get('api_doc_dir', (None, 'api'))
         if 'source_dir' in option_dict:
-            source_dir = os.path.join(option_dict['source_dir'][1], 'api')
+            source_dir = os.path.join(option_dict['source_dir'][1],
+                                      api_doc_dir)
         else:
-            source_dir = 'doc/source/api'
+            source_dir = 'doc/source/' + api_doc_dir
         if not os.path.exists(source_dir):
             os.makedirs(source_dir)
         return source_dir

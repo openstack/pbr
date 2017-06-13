@@ -376,6 +376,78 @@ class BuildSphinxTest(BaseSphinxTest):
         self.assertEqual(["builder1", "builder2"], build_doc.builders)
 
 
+class APIAutoDocTest(base.BaseTestCase):
+
+    def setUp(self):
+        super(APIAutoDocTest, self).setUp()
+
+        # setup_command requires the Sphinx instance to have some
+        # attributes that aren't set normally with the way we use the
+        # class (because we replace the constructor). Add default
+        # values directly to the class definition.
+        import sphinx.application
+        sphinx.application.Sphinx.messagelog = []
+        sphinx.application.Sphinx.statuscode = 0
+
+        self.useFixture(fixtures.MonkeyPatch(
+            "sphinx.application.Sphinx.__init__", lambda *a, **kw: None))
+        self.useFixture(fixtures.MonkeyPatch(
+            "sphinx.application.Sphinx.build", lambda *a, **kw: None))
+        self.useFixture(fixtures.MonkeyPatch(
+            "sphinx.application.Sphinx.config", _SphinxConfig))
+        self.useFixture(fixtures.MonkeyPatch(
+            "sphinx.config.Config.init_values", lambda *a: None))
+        self.useFixture(fixtures.MonkeyPatch(
+            "sphinx.config.Config.__init__", lambda *a: None))
+        from distutils import dist
+        self.distr = dist.Distribution()
+        self.distr.packages = ("fake_package",)
+        self.distr.command_options["build_sphinx"] = {
+            "source_dir": ["a", "."]}
+        self.sphinx_options = self.distr.command_options["build_sphinx"]
+        pkg_fixture = fixtures.PythonPackage(
+            "fake_package", [("fake_module.py", b""),
+                             ("another_fake_module_for_testing.py", b""),
+                             ("fake_private_module.py", b"")])
+        self.useFixture(pkg_fixture)
+        self.useFixture(base.DiveDir(pkg_fixture.base))
+        self.pbr_options = self.distr.command_options.setdefault('pbr', {})
+        self.pbr_options["autodoc_index_modules"] = ('setup.cfg', 'True')
+
+    def test_default_api_build_dir(self):
+        build_doc = packaging.LocalBuildDoc(self.distr)
+        build_doc.run()
+
+        print('PBR OPTIONS:', self.pbr_options)
+        print('DISTR OPTIONS:', self.distr.command_options)
+
+        self.assertTrue(os.path.exists("api/autoindex.rst"))
+        self.assertTrue(os.path.exists("api/fake_package.fake_module.rst"))
+        self.assertTrue(
+            os.path.exists(
+                "api/fake_package.fake_private_module.rst"))
+        self.assertTrue(
+            os.path.exists(
+                "api/fake_package.another_fake_module_for_testing.rst"))
+
+    def test_different_api_build_dir(self):
+        # Options have to come out of the settings dict as a tuple
+        # showing the source and the value.
+        self.pbr_options['api_doc_dir'] = (None, 'contributor/api')
+        build_doc = packaging.LocalBuildDoc(self.distr)
+        build_doc.run()
+
+        print('PBR OPTIONS:', self.pbr_options)
+        print('DISTR OPTIONS:', self.distr.command_options)
+
+        self.assertTrue(os.path.exists("contributor/api/autoindex.rst"))
+        self.assertTrue(
+            os.path.exists("contributor/api/fake_package.fake_module.rst"))
+        self.assertTrue(
+            os.path.exists(
+                "contributor/api/fake_package.fake_private_module.rst"))
+
+
 class ParseRequirementsTestScenarios(base.BaseTestCase):
 
     versioned_scenarios = [
