@@ -233,6 +233,14 @@ class BaseSphinxTest(base.BaseTestCase):
     def setUp(self):
         super(BaseSphinxTest, self).setUp()
 
+        # setup_command requires the Sphinx instance to have some
+        # attributes that aren't set normally with the way we use the
+        # class (because we replace the constructor). Add default
+        # values directly to the class definition.
+        import sphinx.application
+        sphinx.application.Sphinx.messagelog = []
+        sphinx.application.Sphinx.statuscode = 0
+
         self.useFixture(fixtures.MonkeyPatch(
             "sphinx.application.Sphinx.__init__", lambda *a, **kw: None))
         self.useFixture(fixtures.MonkeyPatch(
