@@ -532,10 +532,56 @@ class LocalSDist(sdist.sdist):
 
     command_name = 'sdist'
 
+    def checking_reno(self):
+        """Ensure reno is installed and configured.
+
+        We can't run reno-based commands if reno isn't installed/available, and
+        don't want to if the user isn't using it.
+        """
+        if hasattr(self, '_has_reno'):
+            return self._has_reno
+
+        try:
+            # versions of reno witout this module will not have the required
+            # feature, hence the import
+            from reno import setup_command  # noqa
+        except ImportError:
+            log.info('[pbr] reno was not found or is too old. Skipping '
+                     'release notes')
+            self._has_reno = False
+            return False
+
+        conf, output_file, cache_file = setup_command.load_config(
+            self.distribution)
+
+        if not os.path.exists(os.path.join(conf.reporoot, conf.notespath)):
+            log.info('[pbr] reno does not appear to be configured. Skipping '
+                     'release notes')
+            self._has_reno = False
+            return False
+
+        self._files = [output_file, cache_file]
+
+        log.info('[pbr] Generating release notes')
+        self._has_reno = True
+
+        return True
+
+    sub_commands = [('build_reno', checking_reno)] + sdist.sdist.sub_commands
+
     def run(self):
         _from_git(self.distribution)
         # sdist.sdist is an old style class, can't use super()
         sdist.sdist.run(self)
+
+    def make_distribution(self):
+        # This is included in make_distribution because setuptools doesn't use
+        # 'get_file_list'. As such, this is the only hook point that runs after
+        # the commands in 'sub_commands'
+        if self.checking_reno():
+            self.filelist.extend(self._files)
+            self.filelist.sort()
+        sdist.sdist.make_distribution(self)
 
 try:
     from pbr import builddoc
