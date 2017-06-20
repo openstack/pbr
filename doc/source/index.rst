@@ -160,7 +160,7 @@ files. This recommended minimal `setup.py` file should look something like this:
     from setuptools import setup
 
     setup(
-        setup_requires=['pbr>=1.9', 'setuptools>=17.1'],
+        setup_requires=['pbr'],
         pbr=True,
     )
 
