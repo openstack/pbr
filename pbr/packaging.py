@@ -293,7 +293,7 @@ if __name__ == "__main__":
         usage='%%(prog)s [-h] [--port PORT] [--host IP] -- [passed options]')
     parser.add_argument('--port', '-p', type=int, default=8000,
                         help='TCP port to listen on')
-    parser.add_argument('--host', '-b', default=my_ip,
+    parser.add_argument('--host', '-b', default='',
                         help='IP to bind the server to')
     parser.add_argument('args',
                         nargs=argparse.REMAINDER,
