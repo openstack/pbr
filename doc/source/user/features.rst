@@ -81,7 +81,8 @@ Sphinx documentation setups are altered to generate man pages by default. They
 also have several pieces of information that are known to setup.py injected
 into the sphinx config.
 
-See the pbr_ section for details on configuring your project for autodoc.
+See the :ref:`pbr-setup-cfg` section of the configuration file for
+details on configuring your project for autodoc.
 
 Requirements
 ------------
@@ -101,7 +102,8 @@ If you want to have a different package list for Python 3 then just drop a
 `requirements-py3.txt` and it will be used instead.
 
 Finally, it is possible to specify groups of optional dependencies, or
-`"extra" requirements`_, in your `setup.cfg` rather than `setup.py`.
+:ref:`"extra" requirements <extra-requirements>`, in your `setup.cfg`
+rather than `setup.py`.
 
 long_description
 ----------------
