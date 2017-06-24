@@ -193,9 +193,9 @@ def cfg_to_args(path='setup.cfg', script_args=()):
     This method uses an existing setup.cfg to generate a dictionary of
     keywords that can be used by distutils.core.setup(kwargs**).
 
-    :param file:
+    :param path:
         The setup.cfg path.
-    :parm script_args:
+    :param script_args:
         List of commands setup.py was called with.
     :raises DistutilsFileError:
         When the setup.cfg file is not found.
