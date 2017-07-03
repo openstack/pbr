@@ -39,7 +39,11 @@ setup.cfg
 The `setup.cfg` file is an ini-like file that can mostly replace the `setup.py`
 file. It is based on the distutils2_ `setup.cfg` file. A simple sample can be
 found in `pbr`'s own `setup.cfg` (it uses its own machinery to install
-itself)::
+itself):
+
+.. _distutils2: http://alexis.notmyidea.org/distutils2/setupcfg.html
+
+::
 
     [metadata]
     name = pbr
@@ -80,13 +84,13 @@ itself)::
 `pbr` provides its own section in these documents, ostensibly called ``pbr``,
 and provides a custom version of Sphinx's ``build_sphinx`` section. Most other
 sections are provided by setuptools and may influence either the build itself
-or the output of various `setuptools commands`__. The remaining sections are
+or the output of various `setuptools commands`_. The remaining sections are
 provided by libraries that provide setuptools extensions, such as
-``extract_mesages`` (provided by `Babel`__). Some of these are described below.
+``extract_mesages`` (provided by Babel_). Some of these are described below.
 
-__ https://setuptools.readthedocs.io/en/latest/setuptools.html#command-reference
-__ http://babel.pocoo.org/en/latest/setup.html
-__ http://www.sphinx-doc.org/en/stable/setuptools.html
+.. _setuptools commands: https://setuptools.readthedocs.io/en/latest/setuptools.html#command-reference
+.. _Babel: http://babel.pocoo.org/en/latest/setup.html
+.. _setuptools: http://www.sphinx-doc.org/en/stable/setuptools.html
 
 .. note::
 
@@ -151,6 +155,8 @@ using three fundamental keys: ``packages``, ``namespace_packages``, and
   this could be the actual system-wide `/etc` directory or just a top-level
   `etc` subdirectory of a virtualenv.
 
+.. _pbr-setup-cfg:
+
 pbr
 ~~~
 
@@ -166,8 +172,10 @@ The ``pbr`` section controls `pbr` specific options and behaviours.
 ``autodoc_tree_excludes``
 
   A list of modules to exclude when building documentation using
-  `sphinx-apidoc`. Defaults to ``[setup.py]``. Refer to the `sphinx-apidoc man
-  page`_ for more information.
+  `sphinx-apidoc`. Defaults to ``[setup.py]``. Refer to the
+  `sphinx-apidoc man page`_ for more information.
+
+.. _sphinx-apidoc man page: http://sphinx-doc.org/man/sphinx-apidoc.html
 
 ``autodoc_index_modules``
 
@@ -197,6 +205,8 @@ The ``pbr`` section controls `pbr` specific options and behaviours.
    set. See the `Sphinx build configuration file`_ documentation for more
    information on configuring Sphinx.
 
+.. _Sphinx build configuration file: http://sphinx-doc.org/config.html
+
 .. versionchanged:: 2.0
 
    The ``pbr`` section used to take a ``warnerrors`` option that would enable
@@ -211,7 +221,7 @@ The ``build_sphinx`` section is a version of the ``build_sphinx`` setuptools
 plugin provided with Sphinx. This plugin extends the original plugin to add the
 following:
 
-- Automatic generation of module documentation using the apidoc__ tool
+- Automatic generation of module documentation using the apidoc tool
 
 - Automatic configuration of the `project`, `version` and `release` settings
   using information from `pbr` itself
@@ -246,7 +256,7 @@ option.
   is.
 
 For information on the remaining options, refer to the `Sphinx
-documentation`__. In addition, the ``autodoc_index_modules``,
+documentation`_. In addition, the ``autodoc_index_modules``,
 ``autodoc_tree_index_modules``, ``autodoc_exclude_modules`` and
 ``autodoc_tree_excludes`` options in the ``pbr`` section will affect the output
 of the automatic module documentation generation.
@@ -257,14 +267,13 @@ of the automatic module documentation generation.
    page output. This is no longer the case, and you should explicitly set
    ``builders`` to ``html man`` if you wish to retain this behavior.
 
-__ http://www.sphinx-doc.org/en/stable/man/sphinx-apidoc.html
-__ http://www.sphinx-doc.org/en/stable/setuptools.html
+.. _Sphinx documentation: http://www.sphinx-doc.org/en/stable/man/sphinx-apidoc.html
 
 entry_points
 ~~~~~~~~~~~~
 
 The ``entry_points`` section defines entry points for generated console scripts
-and python libraries. This is actually provided by `setuptools`__ but is
+and python libraries. This is actually provided by setuptools_ but is
 documented here owing to its importance.
 
 The general syntax of specifying entry points is a top level name indicating
@@ -283,8 +292,6 @@ Will cause a console script called `pbr` to be installed that executes the
 installed for `pbr.config.drivers`, one called `plain` which maps to the
 `Plain` class in `pbr.cfg.driver` and one called `fancy` which maps to the
 `Fancy` class in `pbr.cfg.driver`.
-
-__ https://setuptools.readthedocs.io/en/latest/setuptools.html#options
 
 Requirements
 ------------
@@ -305,12 +312,17 @@ Only the first file found is used to install the list of packages it contains.
    The 'requirements-pyN.txt' file is deprecated - 'requirements.txt' should
    be universal. You can use `Environment markers`_ for this purpose.
 
+.. _extra-requirements:
+
 Extra requirements
 ~~~~~~~~~~~~~~~~~~
 
 Groups of optional dependencies, or `"extra" requirements`_, can be described
 in your `setup.cfg`, rather than needing to be added to `setup.py`. An example
 (which also demonstrates the use of environment markers) is shown below.
+
+.. _"extra" requirements:
+ https://www.python.org/dev/peps/pep-0426/#extras-optional-dependencies
 
 Environment markers
 ~~~~~~~~~~~~~~~~~~~
@@ -320,6 +332,9 @@ requirements (or to a group of extra requirements) automatically, depending
 on the environment the installer is running in. They can be added to
 requirements in the requirements file, or to extras defined in `setup.cfg`,
 but the format is slightly different for each.
+
+.. _conditional dependencies:
+ https://www.python.org/dev/peps/pep-0426/#environment-markers
 
 For ``requirements.txt``::
 
@@ -388,6 +403,5 @@ produce a coverage report.  ``--coverage-package-name`` can be used to
 modify or narrow the packages traced.
 
 .. _d2to1: https://pypi.python.org/pypi/d2to1
-.. _distutils2: https://pypi.python.org/pypi/Distutils2
 .. _PEP 426: http://legacy.python.org/dev/peps/pep-0426/
 .. _OpenStack: https://www.openstack.org/

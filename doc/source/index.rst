@@ -43,10 +43,3 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. _"extra" requirements:
- https://www.python.org/dev/peps/pep-0426/#extras-optional-dependencies
-.. _conditional dependencies:
- https://www.python.org/dev/peps/pep-0426/#environment-markers
-.. _distutils2: http://alexis.notmyidea.org/distutils2/setupcfg.html
-.. _sphinx-apidoc man page: http://sphinx-doc.org/man/sphinx-apidoc.html
-.. _Sphinx build configuration file: http://sphinx-doc.org/config.html
