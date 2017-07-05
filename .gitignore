@@ -23,6 +23,7 @@ develop-eggs
 # Other
 .testrepository
 .tox
+.venv
 .*.swp
 .coverage
 cover
