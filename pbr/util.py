@@ -401,6 +401,13 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
     if 'extras' in config:
         requirement_pattern = '(?P<package>[^:]*):?(?P<env_marker>[^#]*?)(?:\s*#.*)?$'
         extras = config['extras']
+        # Add contents of test-requirements, if any, into an extra named
+        # 'test' if one does not already exist.
+        if 'test' not in extras:
+            from pbr import packaging
+            extras['test'] = "\n".join(packaging.parse_requirements(
+                packaging.TEST_REQUIREMENTS_FILES)).replace(';', ':')
+
         for extra in extras:
             extra_requirements = []
             requirements = split_multiline(extras[extra])
