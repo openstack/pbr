@@ -390,8 +390,6 @@ class LocalDevelop(develop.develop):
     command_name = 'develop'
 
     def install_wrapper_scripts(self, dist):
-        if sys.platform == 'win32':
-            return develop.develop.install_wrapper_scripts(self, dist)
         if not self.exclude_scripts:
             for args in override_get_script_args(dist):
                 self.write_script(*args)
@@ -445,13 +443,7 @@ class LocalInstallScripts(install_scripts.install_scripts):
             # entry-points listed for this package.
             return
 
-        if os.name != 'nt':
-            get_script_args = override_get_script_args
-        else:
-            get_script_args = easy_install.get_script_args
-            executable = '"%s"' % executable
-
-        for args in get_script_args(dist, executable, is_wininst):
+        for args in override_get_script_args(dist, executable, is_wininst):
             self.write_script(*args)
 
 
