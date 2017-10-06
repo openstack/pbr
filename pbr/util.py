@@ -674,21 +674,6 @@ def split_csv(value):
     return value
 
 
-def monkeypatch_method(cls):
-    """A function decorator to monkey-patch a method of the same name on the
-    given class.
-    """
-
-    def wrapper(func):
-        orig = getattr(cls, func.__name__, None)
-        if orig and not hasattr(orig, '_orig'):  # Already patched
-            setattr(func, '_orig', orig)
-            setattr(cls, func.__name__, func)
-        return func
-
-    return wrapper
-
-
 # The following classes are used to hack Distribution.command_options a bit
 class DefaultGetDict(defaultdict):
     """Like defaultdict, but the get() method also sets and returns the default
