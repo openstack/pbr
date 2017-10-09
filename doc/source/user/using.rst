@@ -230,16 +230,15 @@ following:
 
   .. note::
 
-     Sphinx 1.6 adds support for multiple builders using the default `builder`
-     option. You should refer to this file for more information.
+     Only applies to Sphinx < 1.6. See documentation on ``builders`` below.
 
 The version of ``build_sphinx`` provided by `pbr` provides a single additional
 option.
 
 ``builders``
 
-  A space or comma separated list of builders to run. For example, to build
-  both HTML and man page documentation, you would define the following in your
+  A comma separated list of builders to run. For example, to build both HTML
+  and man page documentation, you would define the following in your
   `setup.cfg`:
 
   .. code-block:: ini
@@ -249,11 +248,13 @@ option.
       source-dir = doc/source
       build-dir = doc/build
       all-files = 1
+      warning-is-error = 1
 
-``source_dir``
+  .. deprecated:: 3.2.0
 
-  The path to the source directory where the Sphinx documentation tree
-  is.
+     Sphinx 1.6+ adds support for specifying multiple builders in the default
+     ``builder`` option. You should use this option instead. Refer to the
+     `Sphinx documentation`_ for more information.
 
 For information on the remaining options, refer to the `Sphinx
 documentation`_. In addition, the ``autodoc_index_modules``,
@@ -267,7 +268,7 @@ of the automatic module documentation generation.
    page output. This is no longer the case, and you should explicitly set
    ``builders`` to ``html man`` if you wish to retain this behavior.
 
-.. _Sphinx documentation: http://www.sphinx-doc.org/en/stable/man/sphinx-apidoc.html
+.. _Sphinx documentation: http://www.sphinx-doc.org/en/stable/setuptools.html
 
 entry_points
 ~~~~~~~~~~~~

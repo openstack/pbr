@@ -193,18 +193,29 @@ class LocalBuildDoc(setup_command.BuildDoc):
         is_multibuilder_sphinx = version.SemanticVersion.from_pip_string(
             sphinx.__version__) >= version.SemanticVersion(1, 6)
 
-        if self.builders != ['html'] and is_multibuilder_sphinx:
-            self.builder = self.builders
+        # TODO(stephenfin): Remove support for Sphinx < 1.6 in 4.0
+        if not is_multibuilder_sphinx:
+            log.warning('[pbr] Support for Sphinx < 1.6 will be dropped in '
+                        'pbr 4.0. Upgrade to Sphinx 1.6+')
 
-        # TODO(stephenfin): Deprecate this functionality once we decide on
-        # Sphinx 1.6, which includes a similar feature, in g-r
-        # https://github.com/sphinx-doc/sphinx/pull/3476
+        # TODO(stephenfin): Remove this at the next MAJOR version bump
+        if self.builders != ['html']:
+            log.warning("[pbr] Sphinx 1.6 added native support for "
+                        "specifying multiple builders in the "
+                        "'[sphinx_build] builder' configuration option, "
+                        "found in 'setup.cfg'. As a result, the "
+                        "'[sphinx_build] builders' option has been "
+                        "deprecated and will be removed in pbr 4.0. Migrate "
+                        "to the 'builder' configuration option.")
+            if is_multibuilder_sphinx:
+                self.builder = self.builders
+
         if is_multibuilder_sphinx:
             # Sphinx >= 1.6
             return setup_command.BuildDoc.run(self)
 
         # Sphinx < 1.6
-        for builder in self.builders:
+        for builder in self.builder:
             self.builder = builder
             self.finalize_options()
             self._sphinx_run()
