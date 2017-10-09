@@ -5,7 +5,10 @@
 *.so
 
 # Sphinx
-_build
+doc/source/reference/api/
+
+# Files created by releasenotes build
+releasenotes/build
 
 # Packages/installer info
 *.egg
@@ -29,7 +32,6 @@ develop-eggs
 cover
 AUTHORS
 ChangeLog
-doc/source/reference/api/
 
 # Editor files
 *~
