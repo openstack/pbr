@@ -141,16 +141,5 @@ def pbr(dist, attr, value):
         if isinstance(dist.metadata.version, integer_types + (float,)):
             # Some people apparently take "version number" too literally :)
             dist.metadata.version = str(dist.metadata.version)
-
-        # This bit of hackery is necessary so that the Distribution will ignore
-        # normally unsupport command options (namely pre-hooks and post-hooks).
-        # dist.command_options is normally a dict mapping command names to
-        # dicts of their options.  Now it will be a defaultdict that returns
-        # IgnoreDicts for the each command's options so we can pass through the
-        # unsupported options
-        ignore = ['pre_hook.*', 'post_hook.*']
-        dist.command_options = util.DefaultGetDict(
-            lambda: util.IgnoreDict(ignore)
-        )
     finally:
         _restore_distribution_monkeypatch()

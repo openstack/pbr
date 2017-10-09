@@ -264,8 +264,6 @@ def cfg_to_args(path='setup.cfg', script_args=()):
         if entry_points:
             kwargs['entry_points'] = entry_points
 
-        wrap_commands(kwargs)
-
         # Handle the [files]/extra_files option
         files_extra_files = has_get_option(config, 'files', 'extra_files')
         if files_extra_files:
@@ -552,103 +550,6 @@ def get_entry_points(config):
                 for option, value in config['entry_points'].items())
 
 
-def wrap_commands(kwargs):
-    dist = st_dist.Distribution()
-
-    # This should suffice to get the same config values and command classes
-    # that the actual Distribution will see (not counting cmdclass, which is
-    # handled below)
-    dist.parse_config_files()
-
-    # Setuptools doesn't patch get_command_list, and as such we do not get
-    # extra commands from entry_points.  As we need to be compatable we deal
-    # with this here.
-    for ep in pkg_resources.iter_entry_points('distutils.commands'):
-        if ep.name not in dist.cmdclass:
-            if hasattr(ep, 'resolve'):
-                cmdclass = ep.resolve()
-            else:
-                # Old setuptools does not have ep.resolve, and load with
-                # arguments is depricated in 11+.  Use resolve, 12+, if we
-                # can, otherwise fall back to load.
-                # Setuptools 11 will throw a deprication warning, as it
-                # uses _load instead of resolve.
-                cmdclass = ep.load(False)
-            dist.cmdclass[ep.name] = cmdclass
-
-    for cmd, _ in dist.get_command_list():
-        hooks = {}
-        for opt, val in dist.get_option_dict(cmd).items():
-            val = val[1]
-            if opt.startswith('pre_hook.') or opt.startswith('post_hook.'):
-                hook_type, alias = opt.split('.', 1)
-                hook_dict = hooks.setdefault(hook_type, {})
-                hook_dict[alias] = val
-        if not hooks:
-            continue
-
-        if 'cmdclass' in kwargs and cmd in kwargs['cmdclass']:
-            cmdclass = kwargs['cmdclass'][cmd]
-        else:
-            cmdclass = dist.get_command_class(cmd)
-
-        new_cmdclass = wrap_command(cmd, cmdclass, hooks)
-        kwargs.setdefault('cmdclass', {})[cmd] = new_cmdclass
-
-
-def wrap_command(cmd, cmdclass, hooks):
-    def run(self, cmdclass=cmdclass):
-        self.run_command_hooks('pre_hook')
-        cmdclass.run(self)
-        self.run_command_hooks('post_hook')
-
-    return type(cmd, (cmdclass, object),
-                {'run': run, 'run_command_hooks': run_command_hooks,
-                 'pre_hook': hooks.get('pre_hook'),
-                 'post_hook': hooks.get('post_hook')})
-
-
-def run_command_hooks(cmd_obj, hook_kind):
-    """Run hooks registered for that command and phase.
-
-    *cmd_obj* is a finalized command object; *hook_kind* is either
-    'pre_hook' or 'post_hook'.
-    """
-
-    if hook_kind not in ('pre_hook', 'post_hook'):
-        raise ValueError('invalid hook kind: %r' % hook_kind)
-
-    hooks = getattr(cmd_obj, hook_kind, None)
-
-    if hooks is None:
-        return
-
-    for hook in hooks.values():
-        if isinstance(hook, str):
-            try:
-                hook_obj = resolve_name(hook)
-            except ImportError:
-                err = sys.exc_info()[1] # For py3k
-                raise errors.DistutilsModuleError('cannot find hook %s: %s' %
-                                                  (hook,err))
-        else:
-            hook_obj = hook
-
-        if not hasattr(hook_obj, '__call__'):
-            raise errors.DistutilsOptionError('hook %r is not callable' % hook)
-
-        log.info('running %s %s for command %s',
-                 hook_kind, hook, cmd_obj.get_command_name())
-
-        try :
-            hook_obj(cmd_obj)
-        except:
-            e = sys.exc_info()[1]
-            log.error('hook %s raised exception: %s\n' % (hook, e))
-            log.error(traceback.format_exc())
-            sys.exit(1)
-
-
 def has_get_option(config, section, option):
     if section in config and option in config[section]:
         return config[section][option]
@@ -684,20 +585,3 @@ class DefaultGetDict(defaultdict):
         if default is None:
             default = self.default_factory()
         return super(DefaultGetDict, self).setdefault(key, default)
-
-
-class IgnoreDict(dict):
-    """A dictionary that ignores any insertions in which the key is a string
-    matching any string in `ignore`.  The ignore list can also contain wildcard
-    patterns using '*'.
-    """
-
-    def __init__(self, ignore):
-        self.__ignore = re.compile(r'(%s)' % ('|'.join(
-                                   [pat.replace('*', '.*')
-                                    for pat in ignore])))
-
-    def __setitem__(self, key, val):
-        if self.__ignore.match(key):
-            return
-        super(IgnoreDict, self).__setitem__(key, val)
