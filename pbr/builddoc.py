@@ -25,6 +25,7 @@ except ImportError:
     import io as cStringIO
 
 try:
+    import sphinx
     from sphinx import apidoc
     from sphinx import application
     from sphinx import setup_command
@@ -42,6 +43,7 @@ except Exception as e:
     raise ImportError(str(e))
 from pbr import git
 from pbr import options
+from pbr import version
 
 
 _rst_template = """%(heading)s
@@ -186,13 +188,21 @@ class LocalBuildDoc(setup_command.BuildDoc):
                         "autodoc_exclude_modules",
                         [None, ""])[1].split()))
 
-        # TODO(stephenfin): Deprecate this functionality once we depend on
+        self.finalize_options()
+
+        is_multibuilder_sphinx = version.SemanticVersion.from_pip_string(
+            sphinx.__version__) >= version.SemanticVersion(1, 6)
+
+        if self.builders != ['html'] and is_multibuilder_sphinx:
+            self.builder = self.builders
+
+        # TODO(stephenfin): Deprecate this functionality once we decide on
         # Sphinx 1.6, which includes a similar feature, in g-r
         # https://github.com/sphinx-doc/sphinx/pull/3476
-        self.finalize_options()
-        if hasattr(self, "builder_target_dirs"):
-            # Sphinx >= 1.6.1
+        if is_multibuilder_sphinx:
+            # Sphinx >= 1.6
             return setup_command.BuildDoc.run(self)
+
         # Sphinx < 1.6
         for builder in self.builders:
             self.builder = builder
