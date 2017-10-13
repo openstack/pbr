@@ -5,10 +5,6 @@ Introduction
     :target: https://pypi.python.org/pypi/pbr/
     :alt: Latest Version
 
-.. image:: https://img.shields.io/pypi/dm/pbr.svg
-    :target: https://pypi.python.org/pypi/pbr/
-    :alt: Downloads
-
 PBR is a library that injects some useful and sensible default behaviors
 into your setuptools run. It started off life as the chunks of code that
 were copied between all of the `OpenStack`_ projects. Around the time that
