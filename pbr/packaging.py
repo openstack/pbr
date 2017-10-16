@@ -46,6 +46,8 @@ from pbr import testr_command
 from pbr import version
 
 REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
+PY_REQUIREMENTS_FILES = [x % sys.version_info[0] for x in (
+    'requirements-py%d.txt', 'tools/pip-requires-py%d')]
 TEST_REQUIREMENTS_FILES = ('test-requirements.txt', 'tools/test-requires')
 
 
@@ -57,9 +59,8 @@ def get_requirements_files():
     # - REQUIREMENTS_FILES with -py2 or -py3 in the name
     #   (e.g. requirements-py3.txt)
     # - REQUIREMENTS_FILES
-    return (list(map(('-py' + str(sys.version_info[0])).join,
-                     map(os.path.splitext, REQUIREMENTS_FILES)))
-            + list(REQUIREMENTS_FILES))
+
+    return PY_REQUIREMENTS_FILES + list(REQUIREMENTS_FILES)
 
 
 def append_text_list(config, key, text_list):
@@ -78,9 +79,20 @@ def _any_existing(file_list):
 
 # Get requirements from the first file that exists
 def get_reqs_from_files(requirements_files):
-    for requirements_file in _any_existing(requirements_files):
+    existing = _any_existing(requirements_files)
+
+    deprecated = [f for f in existing if f in PY_REQUIREMENTS_FILES]
+    if deprecated:
+        warnings.warn('Support for \'-pyN\'-suffixed requirements files is '
+                      'deprecated in pbr 4.0 and will be removed in 5.0. '
+                      'Use environment markers instead. Conflicting files: '
+                      '%r' % deprecated,
+                      DeprecationWarning)
+
+    for requirements_file in existing:
         with open(requirements_file, 'r') as fil:
             return fil.read().split('\n')
+
     return []
 
 
