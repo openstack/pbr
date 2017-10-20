@@ -81,55 +81,54 @@ def pbr(dist, attr, value):
     not work well with distributions that do use a `Distribution` subclass.
     """
 
-    if True:
-        if not value:
-            return
-        if isinstance(value, string_type):
-            path = os.path.abspath(value)
-        else:
-            path = os.path.abspath('setup.cfg')
-        if not os.path.exists(path):
-            raise errors.DistutilsFileError(
-                'The setup.cfg file %s does not exist.' % path)
+    if not value:
+        return
+    if isinstance(value, string_type):
+        path = os.path.abspath(value)
+    else:
+        path = os.path.abspath('setup.cfg')
+    if not os.path.exists(path):
+        raise errors.DistutilsFileError(
+            'The setup.cfg file %s does not exist.' % path)
 
-        # Converts the setup.cfg file to setup() arguments
-        try:
-            attrs = util.cfg_to_args(path, dist.script_args)
-        except Exception:
-            e = sys.exc_info()[1]
-            # NB: This will output to the console if no explicit logging has
-            # been setup - but thats fine, this is a fatal distutils error, so
-            # being pretty isn't the #1 goal.. being diagnosable is.
-            logging.exception('Error parsing')
-            raise errors.DistutilsSetupError(
-                'Error parsing %s: %s: %s' % (path, e.__class__.__name__, e))
+    # Converts the setup.cfg file to setup() arguments
+    try:
+        attrs = util.cfg_to_args(path, dist.script_args)
+    except Exception:
+        e = sys.exc_info()[1]
+        # NB: This will output to the console if no explicit logging has
+        # been setup - but thats fine, this is a fatal distutils error, so
+        # being pretty isn't the #1 goal.. being diagnosable is.
+        logging.exception('Error parsing')
+        raise errors.DistutilsSetupError(
+            'Error parsing %s: %s: %s' % (path, e.__class__.__name__, e))
 
-        # Repeat some of the Distribution initialization code with the newly
-        # provided attrs
-        if attrs:
-            # Skips 'options' and 'licence' support which are rarely used; may
-            # add back in later if demanded
-            for key, val in attrs.items():
-                if hasattr(dist.metadata, 'set_' + key):
-                    getattr(dist.metadata, 'set_' + key)(val)
-                elif hasattr(dist.metadata, key):
-                    setattr(dist.metadata, key, val)
-                elif hasattr(dist, key):
-                    setattr(dist, key, val)
-                else:
-                    msg = 'Unknown distribution option: %s' % repr(key)
-                    warnings.warn(msg)
+    # Repeat some of the Distribution initialization code with the newly
+    # provided attrs
+    if attrs:
+        # Skips 'options' and 'licence' support which are rarely used; may
+        # add back in later if demanded
+        for key, val in attrs.items():
+            if hasattr(dist.metadata, 'set_' + key):
+                getattr(dist.metadata, 'set_' + key)(val)
+            elif hasattr(dist.metadata, key):
+                setattr(dist.metadata, key, val)
+            elif hasattr(dist, key):
+                setattr(dist, key, val)
+            else:
+                msg = 'Unknown distribution option: %s' % repr(key)
+                warnings.warn(msg)
 
-        # Re-finalize the underlying Distribution
-        try:
-            super(dist.__class__, dist).finalize_options()
-        except TypeError:
-            # If dist is not declared as a new-style class (with object as
-            # a subclass) then super() will not work on it. This is the case
-            # for Python 2. In that case, fall back to doing this the ugly way
-            dist.__class__.__bases__[-1].finalize_options(dist)
+    # Re-finalize the underlying Distribution
+    try:
+        super(dist.__class__, dist).finalize_options()
+    except TypeError:
+        # If dist is not declared as a new-style class (with object as
+        # a subclass) then super() will not work on it. This is the case
+        # for Python 2. In that case, fall back to doing this the ugly way
+        dist.__class__.__bases__[-1].finalize_options(dist)
 
-        # This bit comes out of distribute/setuptools
-        if isinstance(dist.metadata.version, integer_types + (float,)):
-            # Some people apparently take "version number" too literally :)
-            dist.metadata.version = str(dist.metadata.version)
+    # This bit comes out of distribute/setuptools
+    if isinstance(dist.metadata.version, integer_types + (float,)):
+        # Some people apparently take "version number" too literally :)
+        dist.metadata.version = str(dist.metadata.version)
