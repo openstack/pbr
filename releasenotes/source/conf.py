@@ -14,7 +14,6 @@
 
 # pbr Release Notes documentation build configuration file
 
-import pbr.version
 
 # -- General configuration ------------------------------------------------
 
@@ -29,16 +28,11 @@ extensions = [
 # The master toctree document.
 master_doc = 'index'
 
-version_info = pbr.version.VersionInfo('pbr')
-
-# The version info for the project you're documenting, acts as replacement for
-# |version| and |release|, also used in various other places throughout the
-# built documents.
-#
+# Release notes are version independent
 # The short X.Y version.
-version = version_info.canonical_version_string()
+version = ''
 # The full version, including alpha/beta/rc tags.
-release = version_info.version_string_with_vcs()
+release = ''
 
 
 # -- Options for HTML output ----------------------------------------------
