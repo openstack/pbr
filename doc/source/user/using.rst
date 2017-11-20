@@ -52,6 +52,10 @@ itself):
     summary = OpenStack's setup automation in a reusable form
     description-file = README
     home-page = https://launchpad.net/pbr
+    project_urls =
+        Bug Tracker = https://bugs.launchpad.net/pbr/
+        Documentation = https://docs.openstack.org/pbr/
+        Source Code = https://git.openstack.org/cgit/openstack-dev/pbr/
     license = Apache-2
     classifier =
         Development Status :: 4 - Beta

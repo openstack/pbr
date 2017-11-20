@@ -101,6 +101,7 @@ D1_D2_SETUP_ARGS = {
     "maintainer": ("metadata",),
     "maintainer_email": ("metadata",),
     "url": ("metadata", "home_page"),
+    "project_urls": ("metadata",),
     "description": ("metadata", "summary"),
     "keywords": ("metadata",),
     "long_description": ("metadata", "description"),
@@ -147,6 +148,9 @@ MULTI_FIELDS = ("classifiers",
                 "setup_requires",
                 "tests_require",
                 "cmdclass")
+
+# setup() arguments that can have mapping values in setup.cfg
+MAP_FIELDS = ("project_urls",)
 
 # setup() arguments that contain boolean values
 BOOL_FIELDS = ("use_2to3", "zip_safe", "include_package_data")
@@ -321,6 +325,12 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
             in_cfg_value = split_csv(in_cfg_value)
         if arg in MULTI_FIELDS:
             in_cfg_value = split_multiline(in_cfg_value)
+        elif arg in MAP_FIELDS:
+            in_cfg_map = {}
+            for i in split_multiline(in_cfg_value):
+                k, v = i.split('=')
+                in_cfg_map[k.strip()] = v.strip()
+            in_cfg_value = in_cfg_map
         elif arg in BOOL_FIELDS:
             # Provide some flexibility here...
             if in_cfg_value.lower() in ('true', 't', '1', 'yes', 'y'):
