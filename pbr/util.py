@@ -104,6 +104,7 @@ D1_D2_SETUP_ARGS = {
     "description": ("metadata", "summary"),
     "keywords": ("metadata",),
     "long_description": ("metadata", "description"),
+    "long_description_content_type": ("metadata", "description_content_type"),
     "download_url": ("metadata",),
     "classifiers": ("metadata", "classifier"),
     "platforms": ("metadata", "platform"),  # **

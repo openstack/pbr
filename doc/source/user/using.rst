@@ -50,7 +50,8 @@ itself):
     author = OpenStack Foundation
     author-email = openstack-dev@lists.openstack.org
     summary = OpenStack's setup automation in a reusable form
-    description-file = README
+    description-file = README.rst
+    description-content-type = text/x-rst; charset=UTF-8
     home-page = https://launchpad.net/pbr
     license = Apache-2
     classifier =
