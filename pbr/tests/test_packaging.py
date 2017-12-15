@@ -488,9 +488,47 @@ class TestPresenceOfGit(base.BaseTestCase):
             self.assertEqual(False, git._git_is_installed())
 
 
-class TestIndexInRequirements(base.BaseTestCase):
+class ParseRequirementsTest(base.BaseTestCase):
 
-    def test_index_in_requirement(self):
+    def test_empty_requirements(self):
+        actual = packaging.parse_requirements([])
+        self.assertEqual([], actual)
+
+    def test_default_requirements(self):
+        """Ensure default files used if no files provided."""
+        tempdir = tempfile.mkdtemp()
+        requirements = os.path.join(tempdir, 'requirements.txt')
+        with open(requirements, 'w') as f:
+            f.write('pbr')
+        # the defaults are relative to where pbr is called from so we need to
+        # override them. This is OK, however, as we want to validate that
+        # defaults are used - not what those defaults are
+        with mock.patch.object(packaging, 'REQUIREMENTS_FILES', (
+                requirements,)):
+            result = packaging.parse_requirements()
+        self.assertEqual(['pbr'], result)
+
+    def test_override_with_env(self):
+        """Ensure environment variable used if no files provided."""
+        _, tmp_file = tempfile.mkstemp(prefix='openstack', suffix='.setup')
+        with open(tmp_file, 'w') as fh:
+            fh.write("foo\nbar")
+        self.useFixture(
+            fixtures.EnvironmentVariable('PBR_REQUIREMENTS_FILES', tmp_file))
+        self.assertEqual(['foo', 'bar'],
+                         packaging.parse_requirements())
+
+    def test_override_with_env_multiple_files(self):
+        _, tmp_file = tempfile.mkstemp(prefix='openstack', suffix='.setup')
+        with open(tmp_file, 'w') as fh:
+            fh.write("foo\nbar")
+        self.useFixture(
+            fixtures.EnvironmentVariable('PBR_REQUIREMENTS_FILES',
+                                         "no-such-file," + tmp_file))
+        self.assertEqual(['foo', 'bar'],
+                         packaging.parse_requirements())
+
+    def test_index_present(self):
         tempdir = tempfile.mkdtemp()
         requirements = os.path.join(tempdir, 'requirements.txt')
         with open(requirements, 'w') as f:
@@ -500,10 +538,7 @@ class TestIndexInRequirements(base.BaseTestCase):
         result = packaging.parse_requirements([requirements])
         self.assertEqual([], result)
 
-
-class TestNestedRequirements(base.BaseTestCase):
-
-    def test_nested_requirement(self):
+    def test_nested_requirements(self):
         tempdir = tempfile.mkdtemp()
         requirements = os.path.join(tempdir, 'requirements.txt')
         nested = os.path.join(tempdir, 'nested.txt')
@@ -514,44 +549,14 @@ class TestNestedRequirements(base.BaseTestCase):
         result = packaging.parse_requirements([requirements])
         self.assertEqual(['pbr'], result)
 
-
-class ParseRequirementsTest(base.BaseTestCase):
-
-    def setUp(self):
-        super(ParseRequirementsTest, self).setUp()
-        (fd, self.tmp_file) = tempfile.mkstemp(prefix='openstack',
-                                               suffix='.setup')
-
-    def test_parse_requirements_override_with_env(self):
-        with open(self.tmp_file, 'w') as fh:
-            fh.write("foo\nbar")
-        self.useFixture(
-            fixtures.EnvironmentVariable('PBR_REQUIREMENTS_FILES',
-                                         self.tmp_file))
-        self.assertEqual(['foo', 'bar'],
-                         packaging.parse_requirements())
-
-    def test_parse_requirements_override_with_env_multiple_files(self):
-        with open(self.tmp_file, 'w') as fh:
-            fh.write("foo\nbar")
-        self.useFixture(
-            fixtures.EnvironmentVariable('PBR_REQUIREMENTS_FILES',
-                                         "no-such-file," + self.tmp_file))
-        self.assertEqual(['foo', 'bar'],
-                         packaging.parse_requirements())
-
-    def test_get_requirement_from_file_empty(self):
-        actual = packaging.get_reqs_from_files([])
-        self.assertEqual([], actual)
-
-    def test_parse_requirements_python_version(self):
+    def test_python_version(self):
         with open("requirements-py%d.txt" % sys.version_info[0],
                   "w") as fh:
             fh.write("# this is a comment\nfoobar\n# and another one\nfoobaz")
         self.assertEqual(['foobar', 'foobaz'],
                          packaging.parse_requirements())
 
-    def test_parse_requirements_right_python_version(self):
+    def test_python_version_multiple_options(self):
         with open("requirements-py1.txt", "w") as fh:
             fh.write("thisisatrap")
         with open("requirements-py%d.txt" % sys.version_info[0],
@@ -609,8 +614,8 @@ class ParseDependencyLinksTest(base.BaseTestCase):
 
     def setUp(self):
         super(ParseDependencyLinksTest, self).setUp()
-        (fd, self.tmp_file) = tempfile.mkstemp(prefix="openstack",
-                                               suffix=".setup")
+        _, self.tmp_file = tempfile.mkstemp(prefix="openstack",
+                                            suffix=".setup")
 
     def test_parse_dependency_normal(self):
         with open(self.tmp_file, "w") as fh:
