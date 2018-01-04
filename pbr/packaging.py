@@ -27,6 +27,7 @@ import email.errors
 import os
 import re
 import sys
+import warnings
 
 import pkg_resources
 import setuptools
@@ -259,8 +260,14 @@ try:
         """Fallback test runner if testr is a no-go."""
 
         command_name = 'test'
+        description = 'DEPRECATED: Run unit tests using nose'
 
         def run(self):
+            warnings.warn('nose integration in pbr is deprecated. Please use '
+                          'the native nose setuptools configuration or call '
+                          'nose directly',
+                          DeprecationWarning)
+
             # Can't use super - base class old-style class
             commands.nosetests.run(self)
 
