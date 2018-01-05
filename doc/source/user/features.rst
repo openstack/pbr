@@ -17,6 +17,12 @@ If the currently checked out revision is not tagged, then we take the
 last tagged version number and increment it to get a minimum target
 version.
 
+.. note::
+
+   ``pbr`` support bare version tag (ex: ``0.1.0``) and version prefixed with
+   ``v`` or ``V`` (ex: ``v0.1.0``)
+
+
 We then walk git history back to the last release. Within each commit we look
 for a Sem-Ver: pseudo header, and if found parse it looking for keywords.
 Unknown symbols are not an error (so that folk can't wedge pbr or break their
