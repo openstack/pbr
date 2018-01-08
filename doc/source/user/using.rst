@@ -53,6 +53,10 @@ itself):
     description-file = README.rst
     description-content-type = text/x-rst; charset=UTF-8
     home-page = https://launchpad.net/pbr
+    project_urls =
+        Bug Tracker = https://bugs.launchpad.net/pbr/
+        Documentation = https://docs.openstack.org/pbr/
+        Source Code = https://git.openstack.org/cgit/openstack-dev/pbr/
     license = Apache-2
     classifier =
         Development Status :: 4 - Beta
