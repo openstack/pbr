@@ -195,18 +195,18 @@ class LocalBuildDoc(setup_command.BuildDoc):
 
         # TODO(stephenfin): Remove support for Sphinx < 1.6 in 4.0
         if not is_multibuilder_sphinx:
-            log.warning('[pbr] Support for Sphinx < 1.6 will be dropped in '
-                        'pbr 4.0. Upgrade to Sphinx 1.6+')
+            log.warn('[pbr] Support for Sphinx < 1.6 will be dropped in '
+                     'pbr 4.0. Upgrade to Sphinx 1.6+')
 
         # TODO(stephenfin): Remove this at the next MAJOR version bump
         if self.builders != ['html']:
-            log.warning("[pbr] Sphinx 1.6 added native support for "
-                        "specifying multiple builders in the "
-                        "'[sphinx_build] builder' configuration option, "
-                        "found in 'setup.cfg'. As a result, the "
-                        "'[sphinx_build] builders' option has been "
-                        "deprecated and will be removed in pbr 4.0. Migrate "
-                        "to the 'builder' configuration option.")
+            log.warn("[pbr] Sphinx 1.6 added native support for "
+                     "specifying multiple builders in the "
+                     "'[sphinx_build] builder' configuration option, "
+                     "found in 'setup.cfg'. As a result, the "
+                     "'[sphinx_build] builders' option has been "
+                     "deprecated and will be removed in pbr 4.0. Migrate "
+                     "to the 'builder' configuration option.")
             if is_multibuilder_sphinx:
                 self.builder = self.builders
 
