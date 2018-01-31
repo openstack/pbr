@@ -26,7 +26,18 @@ except ImportError:
 
 try:
     import sphinx
-    from sphinx import apidoc
+    # NOTE(dhellmann): Newer versions of Sphinx have moved the apidoc
+    # module into sphinx.ext and the API is slightly different (the
+    # function expects sys.argv[1:] instead of sys.argv[:]. So, figure
+    # out where we can import it from and set a flag so we can invoke
+    # it properly. See this change in sphinx for details:
+    # https://github.com/sphinx-doc/sphinx/commit/87630c8ae8bff8c0e23187676e6343d8903003a6
+    try:
+        from sphinx.ext import apidoc
+        apidoc_use_padding = False
+    except ImportError:
+        from sphinx import apidoc
+        apidoc_use_padding = True
     from sphinx import application
     from sphinx import setup_command
 except Exception as e:
@@ -119,7 +130,9 @@ class LocalBuildDoc(setup_command.BuildDoc):
 
     def _sphinx_tree(self):
             source_dir = self._get_source_dir()
-            cmd = ['apidoc', '.', '-H', 'Modules', '-o', source_dir]
+            cmd = ['-H', 'Modules', '-o', source_dir, '.']
+            if apidoc_use_padding:
+                cmd.insert(0, 'apidoc')
             apidoc.main(cmd + self.autodoc_tree_excludes)
 
     def _sphinx_run(self):
