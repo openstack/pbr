@@ -263,6 +263,7 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
         option_dict = {}
     should_skip = options.get_boolean_option(option_dict, 'skip_changelog',
                                              'SKIP_WRITE_GIT_CHANGELOG')
+    changelog_file_name = option_dict.get(changelog_file_name, 'ChangeLog')
     if should_skip:
         return
     if not changelog:
@@ -271,7 +272,7 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
             changelog = _iter_changelog(changelog)
     if not changelog:
         return
-    new_changelog = os.path.join(dest_dir, 'ChangeLog')
+    new_changelog = os.path.join(dest_dir, changelog_file_name)
     # If there's already a ChangeLog and it's not writable, just use it
     if (os.path.exists(new_changelog)
             and not os.access(new_changelog, os.W_OK)):
