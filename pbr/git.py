@@ -286,6 +286,19 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
     log.info('[pbr] ChangeLog complete (%0.1fs)' % (stop - start))
 
 
+def _get_author_filter(option_dict=dict()):
+    if os.getenv('IGNORE_AUTHORS_RE') is not None:
+        ignore_authors_re = str(os.getenv('IGNORE_AUTHORS_RE')).strip()
+    elif 'ignore_authors_re' in option_dict:
+        ignore_authors_re = option_dict.get('ignore_authors_re')[1].strip()
+    else:
+        ignore_authors_re = ''
+    if ignore_authors_re != '':
+        ignore_authors_re = re.compile(ignore_authors_re, re.IGNORECASE)
+        return lambda author: (not ignore_authors_re.search(author))
+    return (lambda author: True)
+
+
 def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
     """Create AUTHORS file using git commits."""
     should_skip = options.get_boolean_option(option_dict, 'skip_authors',
@@ -300,7 +313,7 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
             and not os.access(new_authors, os.W_OK)):
         return
     log.info('[pbr] Generating AUTHORS')
-    ignore_emails = '(jenkins@review|infra@lists|jenkins@openstack)'
+    filter_author = _get_author_filter(option_dict)
     if git_dir is None:
         git_dir = _get_git_directory()
     if git_dir:
@@ -309,7 +322,6 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
         # don't include jenkins email address in AUTHORS file
         git_log_cmd = ['log', '--format=%aN <%aE>']
         authors += _run_git_command(git_log_cmd, git_dir).split('\n')
-        authors = [a for a in authors if not re.search(ignore_emails, a)]
 
         # get all co-authors from commit messages
         co_authors_out = _run_git_command('log', git_dir)
@@ -319,7 +331,7 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
                       for signed in co_authors if signed]
 
         authors += co_authors
-        authors = sorted(set(authors))
+        authors = sorted(a for a in set(authors) if filter_author(a))
 
         with open(new_authors, 'wb') as new_authors_fh:
             if os.path.exists(old_authors):
