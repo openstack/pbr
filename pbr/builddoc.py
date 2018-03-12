@@ -242,6 +242,8 @@ class LocalBuildDoc(setup_command.BuildDoc):
         self.autodoc_tree_excludes = ['setup.py']
 
     def finalize_options(self):
+        from pbr import util
+
         # Not a new style class, super keyword does not work.
         setup_command.BuildDoc.finalize_options(self)
 
@@ -262,8 +264,8 @@ class LocalBuildDoc(setup_command.BuildDoc):
         opt = 'autodoc_tree_excludes'
         option_dict = self.distribution.get_option_dict('pbr')
         if opt in option_dict:
-            self.autodoc_tree_excludes = option_dict[opt][1]
-            self.ensure_string_list(opt)
+            self.autodoc_tree_excludes = util.split_multiline(
+                option_dict[opt][1])
 
         # handle Sphinx < 1.5.0
         if not hasattr(self, 'warning_is_error'):
