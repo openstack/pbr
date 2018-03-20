@@ -622,10 +622,14 @@ def _get_increment_kwargs(git_dir, tag):
         version_spec = tag + "..HEAD"
     else:
         version_spec = "HEAD"
-    changelog = git._run_git_command(['log', version_spec], git_dir)
-    header_len = len('    sem-ver:')
+    # Get the raw body of the commit messages so that we don't have to
+    # parse out any formatting whitespace and to avoid user settings on
+    # git log output affecting out ability to have working sem ver headers.
+    changelog = git._run_git_command(['log', '--pretty=%B', version_spec],
+                                     git_dir)
+    header_len = len('sem-ver:')
     commands = [line[header_len:].strip() for line in changelog.split('\n')
-                if line.lower().startswith('    sem-ver:')]
+                if line.lower().startswith('sem-ver:')]
     symbols = set()
     for command in commands:
         symbols.update([symbol.strip() for symbol in command.split(',')])
