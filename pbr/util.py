@@ -214,7 +214,11 @@ def cfg_to_args(path='setup.cfg', script_args=()):
     if not os.path.exists(path):
         raise errors.DistutilsFileError("file '%s' does not exist" %
                                         os.path.abspath(path))
-    parser.read(path)
+    try:
+        parser.read(path, encoding='utf-8')
+    except TypeError:
+        # Python 2 doesn't accept the encoding kwarg
+        parser.read(path)
     config = {}
     for section in parser.sections():
         config[section] = dict()

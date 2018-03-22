@@ -119,6 +119,11 @@ such as the ``extract_mesages`` section provided by Babel__.
            # A comment on a dedicated line
            value3
 
+.. note::
+
+   On Python 3 ``setup.cfg`` is explicitly read as UTF-8.  On Python 2 the
+   encoding is dependent on the terminal encoding.
+
 __ http://setuptools.readthedocs.io/en/latest/setuptools.html#configuring-setup-using-setup-cfg-files
 __ http://babel.pocoo.org/en/latest/setup.html
 
