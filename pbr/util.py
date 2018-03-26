@@ -580,7 +580,7 @@ def split_multiline(value):
 
     value = [element for element in
              (line.strip() for line in value.split('\n'))
-             if element]
+             if element and not element.startswith('#')]
     return value
 
 
