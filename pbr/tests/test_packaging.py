@@ -884,7 +884,7 @@ class TestRequirementParsing(base.BaseTestCase):
         expected_requirements = {
             None: ['bar', 'requests-aws>=0.1.4'],
             ":(python_version=='2.6')": ['quux<1.0'],
-            ":(python_version=='2.7')": ['Routes>=1.12.3,!=2.0,!=2.1',
+            ":(python_version=='2.7')": ['Routes!=2.0,!=2.1,>=1.12.3',
                                          'requests-kerberos>=0.6'],
             'test': ['foo'],
             "test:(python_version=='2.7')": ['baz>3.2', 'bar>3.3']
@@ -903,7 +903,20 @@ class TestRequirementParsing(base.BaseTestCase):
             generated_requirements = dict(
                 pkg_resources.split_sections(requires))
 
-        self.assertEqual(expected_requirements, generated_requirements)
+        # NOTE(dhellmann): We have to spell out the comparison because
+        # the rendering for version specifiers in a range is not
+        # consistent across versions of setuptools.
+
+        for section, expected in expected_requirements.items():
+            exp_parsed = [
+                pkg_resources.Requirement.parse(s)
+                for s in expected
+            ]
+            gen_parsed = [
+                pkg_resources.Requirement.parse(s)
+                for s in generated_requirements[section]
+            ]
+            self.assertEqual(exp_parsed, gen_parsed)
 
 
 def get_soabi():
