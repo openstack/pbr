@@ -15,8 +15,13 @@ Changes vs SemVer 2.0
    feasible.
 
 #. All versions have been made PEP-440 compatible, because of our deep
-   roots in Python. Pre-release versions are now separated by . not -, and
-   use a/b/c rather than alpha/beta etc.
+   roots in Python:
+
+   - Pre-release versions are now separated by . not -, and use a/b/c
+     rather than alpha/beta etc.
+   - Alpha version are prefixed by a 0 such as: ``2.0.0.0a1`` instead of
+     ``2.0.0.a1`` for version '2.0.0 alpha 1'. Please note dev version tag
+     does not have a leading 0, as is ``2.0.0.0a2.dev1``.
 
 Summary
 -------
@@ -120,7 +125,7 @@ document are to be interpreted as described in `RFC
     version. A pre-release version indicates that
     the version is unstable and might not satisfy the intended
     compatibility requirements as denoted by its associated normal
-    version. Examples: 1.0.0.a1, 1.0.0.b99, 1.0.0.c1000.
+    version. Examples: 1.0.0.0a1, 1.0.0.0b99, 1.0.0.0c1000.
 
 #.  A development version MAY be denoted by appending a dot separated
     identifier immediately following the patch version.
@@ -134,7 +139,7 @@ document are to be interpreted as described in `RFC
     externally facing communication of not-yet-released ideas. Dev versions
     are not public artifacts and should never be placed in public
     repositories: they are intended as developer-local resources. Examples:
-    1.0.0.dev1, 1.0.0.a1.dev1
+    1.0.0.dev1, 1.0.0.0a1.dev1
 
 #.  git version metadata MAY be denoted by appending a dot separated
     identifier immediately following a development or pre-release version.
@@ -142,7 +147,7 @@ document are to be interpreted as described in `RFC
     character git short-sha. The sha MUST NOT be empty. git version
     metadata MUST be ignored when determining version precedence. Thus
     two versions that differ only in the git version, have the same
-    precedence. Example: 1.0.0.a1.g95a9beb.
+    precedence. Example: 1.0.0.0a1.g95a9beb.
 
 #.  Build metadata MAY be denoted by appending a plus sign and a series
     of dot separated identifiers immediately following the patch or
@@ -150,8 +155,8 @@ document are to be interpreted as described in `RFC
     alphanumerics [0-9A-Za-z]. Identifiers MUST NOT be empty. Build
     metadata MUST be ignored when determining version precedence. Thus
     two versions that differ only in the build metadata, have the same
-    precedence. Examples: 1.0.0.a1+001, 1.0.0+20130313144700,
-    1.0.0.b1+exp.sha.5114f85.
+    precedence. Examples: 1.0.0.0a1+001, 1.0.0+20130313144700,
+    1.0.0.0b1+exp.sha.5114f85.
 
 #.  Precedence refers to how versions are compared to each other when
     ordered. Precedence MUST be calculated by separating the version
@@ -162,16 +167,16 @@ document are to be interpreted as described in `RFC
     versions are always compared numerically. Example: 1.0.0 < 2.0.0 <
     2.1.0 < 2.1.1. When major, minor, and patch are equal, a pre-release
     version has lower precedence than a normal version. Example:
-    1.0.0.a1 < 1.0.0. When major, minor, patch and pre-release are equal, a
+    1.0.0.0a1 < 1.0.0. When major, minor, patch and pre-release are equal, a
     development version has a lower precedence than a normal version and of a
     pre-release version. Example: 1.0.0.dev1 < 1.0.0 and 1.0.0.dev9 <
-    1.0.0.a1 and 1.0.0.a1 < 1.0.0.a2.dev4. Precedence for two pre-release
+    1.0.0.0a1 and 1.0.0.0a1 < 1.0.0.0a2.dev4. Precedence for two pre-release
     versions with the same major, minor, and patch version MUST be determined
     by comparing the identifier to the right of the patch version as follows:
     if the alpha portion matches, the numeric portion is compared in
     numerical sort order. If the alpha portion does not match, the sort order
-    is dev < a < b < c. Example: 1.0.0.dev8 < 1.0.0.dev9 < 1.0.0.a1.dev3 <
-    1.0.0.a1 < 1.0.0.b2 < 1.0.0.c1 < 1.0.0.  Precedence for dev versions if
+    is dev < a < b < c. Example: 1.0.0.dev8 < 1.0.0.dev9 < 1.0.0.0a1.dev3 <
+    1.0.0.0a1 < 1.0.0.0b2 < 1.0.0.0c1 < 1.0.0.  Precedence for dev versions if
     all other components are equal is done by comparing their numeric
     component. If all other components are not equal, predence is determined
     by comparing the other components.
