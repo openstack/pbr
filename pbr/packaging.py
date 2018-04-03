@@ -81,14 +81,16 @@ def _any_existing(file_list):
 def get_reqs_from_files(requirements_files):
     existing = _any_existing(requirements_files)
 
+    # TODO(stephenfin): Remove this in pbr 6.0+
     deprecated = [f for f in existing if f in PY_REQUIREMENTS_FILES]
     if deprecated:
         warnings.warn('Support for \'-pyN\'-suffixed requirements files is '
-                      'deprecated in pbr 4.0 and will be removed in 5.0. '
+                      'removed in pbr 5.0 and these files are now ignored. '
                       'Use environment markers instead. Conflicting files: '
                       '%r' % deprecated,
                       DeprecationWarning)
 
+    existing = [f for f in existing if f not in PY_REQUIREMENTS_FILES]
     for requirements_file in existing:
         with open(requirements_file, 'r') as fil:
             return fil.read().split('\n')
