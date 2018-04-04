@@ -256,6 +256,8 @@ __ https://packaging.python.org/tutorials/distributing-packages/#manifest-in
 Setup Commands
 --------------
 
+.. _build_sphinx:
+
 ``build_sphinx``
 ~~~~~~~~~~~~~~~~
 
@@ -264,6 +266,15 @@ Setup Commands
     *pbr* will override the Sphinx ``build_sphinx`` command to use
     *pbr*-provided package metadata and automatically generate API
     documentation.
+
+.. deprecated:: 4.2
+
+   This feature has been superseded by the `sphinxcontrib-apidoc`__ (for
+   generation of API documentation) and :ref:`pbr.sphinxext` (for configuration
+   of versioning via package metadata) extensions. It will be removed in a
+   future release.
+
+   __ https://pypi.org/project/sphinxcontrib-apidoc/
 
 Sphinx can produce auto documentation indexes based on signatures and
 docstrings of your project but you have to give it index files to tell it to
@@ -311,6 +322,8 @@ __ https://testrepository.readthedocs.io/en/latest/
 __ https://nose.readthedocs.io/en/latest/
 __ https://setuptools.readthedocs.io/en/latest/setuptools.html#test-build-package-and-run-a-unittest-suite
 
+.. _pbr.sphinxext:
+
 Sphinx Extension
 ----------------
 
@@ -324,5 +337,13 @@ Sphinx Extension
 *pbr* provides a Sphinx extension which can be used to configure version
 numbers for documentation. The package does not need to be installed for this
 to function.
+
+.. note::
+
+    The ``openstackdocstheme`` Sphinx theme provides similar functionality.
+    This should be preferred for official OpenStack projects. Refer to the
+    `documentation`__ for more information.
+
+    __ https://docs.openstack.org/openstackdocstheme/
 
 For more information on the extension, refer to :doc:`/user/using`.

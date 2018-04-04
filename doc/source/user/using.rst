@@ -236,6 +236,11 @@ The ``pbr`` section controls *pbr*-specific options and behaviours.
   are included, but this can be overridden using the ``autodoc_tree_excludes``
   option.
 
+  .. deprecated:: 4.2
+
+      This feature has been replaced by the `sphinxcontrib-apidoc`_ extension.
+      Refer to the :ref:`build_sphinx` overview for more information.
+
 ``autodoc_tree_excludes``
   A list of modules to exclude when building documentation using
   ``sphinx-apidoc``. Defaults to ``[setup.py]``. Refer to the
@@ -243,20 +248,40 @@ The ``pbr`` section controls *pbr*-specific options and behaviours.
 
   __ http://sphinx-doc.org/man/sphinx-apidoc.html
 
+  .. deprecated:: 4.2
+
+      This feature has been replaced by the `sphinxcontrib-apidoc`_ extension.
+      Refer to the :ref:`build_sphinx` overview for more information.
+
 ``autodoc_index_modules``
   A boolean option controlling whether *pbr* should itself generates
   documentation for Python modules of the project. By default, all found Python
   modules are included; some of them can be excluded by listing them in
   ``autodoc_exclude_modules``.
 
+  .. deprecated:: 4.2
+
+      This feature has been replaced by the `sphinxcontrib-apidoc`_ extension.
+      Refer to the :ref:`build_sphinx` overview for more information.
+
 ``autodoc_exclude_modules``
   A list of modules to exclude when building module documentation using *pbr*.
   *fnmatch* style pattern (e.g. ``myapp.tests.*``) can be used.
+
+  .. deprecated:: 4.2
+
+      This feature has been replaced by the `sphinxcontrib-apidoc`_ extension.
+      Refer to the :ref:`build_sphinx` overview for more information.
 
 ``api_doc_dir``
   A subdirectory inside the ``build_sphinx.source_dir`` where auto-generated
   API documentation should be written, if ``autodoc_index_modules`` is set to
   True. Defaults to ``"api"``.
+
+  .. deprecated:: 4.2
+
+      This feature has been replaced by the `sphinxcontrib-apidoc`_ extension.
+      Refer to the :ref:`build_sphinx` overview for more information.
 
 .. note::
 
@@ -269,6 +294,12 @@ The ``pbr`` section controls *pbr*-specific options and behaviours.
    information on configuring Sphinx.
 
    __ http://sphinx-doc.org/config.html
+
+.. versionchanged:: 4.2
+
+   The ``autodoc_tree_index_modules``, ``autodoc_tree_excludes``,
+   ``autodoc_index_modules``, ``autodoc_exclude_modules`` and ``api_doc_dir``
+   settings are all deprecated.
 
 .. versionchanged:: 2.0
 
@@ -292,6 +323,13 @@ The ``pbr`` section controls *pbr*-specific options and behaviours.
    The ``build_sphinx`` plugin used to default to building both HTML and man
    page output. This is no longer the case, and you should explicitly set
    ``builders`` to ``html man`` if you wish to retain this behavior.
+
+.. deprecated:: 4.2
+
+   This feature has been superseded by the `sphinxcontrib-apidoc`_ (for
+   generation of API documentation) and :ref:`pbr.sphinxext` (for configuration
+   of versioning via package metadata) extensions. It will be removed in a
+   future release.
 
 The ``build_sphinx`` section is a version of the ``build_sphinx`` *setuptools*
 plugin provided with Sphinx. This plugin extends the original plugin to add the
@@ -450,3 +488,4 @@ You should also unset/remove the ``version`` and ``release`` attributes from
 this file.
 
 .. _setuptools: http://www.sphinx-doc.org/en/stable/setuptools.html
+.. _sphinxcontrib-apidoc: https://pypi.org/project/sphinxcontrib-apidoc/
