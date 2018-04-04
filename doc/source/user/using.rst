@@ -209,35 +209,51 @@ the ``Fancy`` class in ``pbr.cfg.driver``.
 
 The ``pbr`` section controls *pbr*-specific options and behaviours.
 
-``autodoc_tree_index_modules``
+``skip_git_sdist``
+  If enabled, *pbr* will not generate a manifest file from *git* commits. If
+  this is enabled, you may need to define your own `manifest template`__.
 
+  This can also be configured using the ``SKIP_GIT_SDIST`` environment
+  variable, as described :ref:`here <packaging-tarballs>`.
+
+  __ https://packaging.python.org/tutorials/distributing-packages/#manifest-in
+
+``skip_changelog``
+  If enabled, *pbr* will not generated a ``ChangeLog`` file from *git* commits.
+
+  This can also be configured using the ``SKIP_WRITE_GIT_CHANGELOG``
+  environment variable, as described :ref:`here <packaging-authors-changelog>`
+
+``skip_authors``
+  If enabled, *pbr* will not generate an ``AUTHORS`` file from *git* commits.
+
+  This can also be configured using the ``SKIP_GENERATE_AUTHORS`` environment
+  variable, as described :ref:`here <packaging-authors-changelog>`
+
+``autodoc_tree_index_modules``
   A boolean option controlling whether *pbr* should generate an index of
   modules using ``sphinx-apidoc``. By default, all files except ``setup.py``
   are included, but this can be overridden using the ``autodoc_tree_excludes``
   option.
 
 ``autodoc_tree_excludes``
-
   A list of modules to exclude when building documentation using
   ``sphinx-apidoc``. Defaults to ``[setup.py]``. Refer to the
   `sphinx-apidoc man page`__ for more information.
 
-__ http://sphinx-doc.org/man/sphinx-apidoc.html
+  __ http://sphinx-doc.org/man/sphinx-apidoc.html
 
 ``autodoc_index_modules``
-
   A boolean option controlling whether *pbr* should itself generates
   documentation for Python modules of the project. By default, all found Python
   modules are included; some of them can be excluded by listing them in
   ``autodoc_exclude_modules``.
 
 ``autodoc_exclude_modules``
-
   A list of modules to exclude when building module documentation using *pbr*.
   *fnmatch* style pattern (e.g. ``myapp.tests.*``) can be used.
 
 ``api_doc_dir``
-
   A subdirectory inside the ``build_sphinx.source_dir`` where auto-generated
   API documentation should be written, if ``autodoc_index_modules`` is set to
   True. Defaults to ``"api"``.
@@ -252,7 +268,7 @@ __ http://sphinx-doc.org/man/sphinx-apidoc.html
    set. See the `Sphinx build configuration file`__ documentation for more
    information on configuring Sphinx.
 
-__ http://sphinx-doc.org/config.html
+   __ http://sphinx-doc.org/config.html
 
 .. versionchanged:: 2.0
 

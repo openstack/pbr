@@ -59,6 +59,8 @@ requirements.
    don't want to debug or support the interactions that can occur when using
    it.
 
+.. _packaging-tarballs:
+
 Tarballs
 --------
 
@@ -77,6 +79,8 @@ source tarball to be skipped. Beware though, that because *pbr* packages
 automatically find all of the files, most of them do not have a complete
 ``MANIFEST.in`` file, so its possible that a tarball produced in that way will
 be missing files.
+
+.. _packaging-authors-changelog:
 
 AUTHORS and ChangeLog
 ---------------------
