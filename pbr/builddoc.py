@@ -228,7 +228,7 @@ class LocalBuildDoc(setup_command.BuildDoc):
             return setup_command.BuildDoc.run(self)
 
         # Sphinx < 1.6
-        for builder in self.builder:
+        for builder in self.builders:
             self.builder = builder
             self.finalize_options()
             self._sphinx_run()
