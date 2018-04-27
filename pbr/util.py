@@ -62,6 +62,7 @@ except ImportError:
 import logging  # noqa
 
 from collections import defaultdict
+import io
 import os
 import re
 import shlex
@@ -320,7 +321,7 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
                     in_cfg_value = split_multiline(in_cfg_value)
                     value = ''
                     for filename in in_cfg_value:
-                        description_file = open(filename)
+                        description_file = io.open(filename, encoding='utf-8')
                         try:
                             value += description_file.read().strip() + '\n\n'
                         finally:
