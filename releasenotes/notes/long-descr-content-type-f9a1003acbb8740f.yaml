@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    The ``description-content-type`` was not being set correctly.  It
+    will now be correctly populated when using ``setuptools`` 39.2.0
+    and beyond.

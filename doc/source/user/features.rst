@@ -181,6 +181,10 @@ probably a good long_description. So we'll just inject the contents of your
 You can also specify the exact file you want to use using the
 ``description-file`` parameter.
 
+You can set the ``description-content-type`` to a MIME type that may
+help rendering of the description; for example ``text/markdown`` or
+``text/x-rst; charset=UTF-8``.
+
 Requirements
 ~~~~~~~~~~~~
 

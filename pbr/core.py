@@ -103,6 +103,16 @@ def pbr(dist, attr, value):
         raise errors.DistutilsSetupError(
             'Error parsing %s: %s: %s' % (path, e.__class__.__name__, e))
 
+
+    # There are some metadata fields that are only supported by
+    # setuptools and not distutils, and hence are not in
+    # dist.metadata.  We are OK to write these in.  For gory details
+    # see
+    #  https://github.com/pypa/setuptools/pull/1343
+    _DISTUTILS_UNSUPPORTED_METADATA = (
+        'long_description_content_type', 'project_urls', 'provides_extras'
+    )
+
     # Repeat some of the Distribution initialization code with the newly
     # provided attrs
     if attrs:
@@ -115,6 +125,8 @@ def pbr(dist, attr, value):
                 setattr(dist.metadata, key, val)
             elif hasattr(dist, key):
                 setattr(dist, key, val)
+            elif key in _DISTUTILS_UNSUPPORTED_METADATA:
+                setattr(dist.metadata, key, val)
             else:
                 msg = 'Unknown distribution option: %s' % repr(key)
                 warnings.warn(msg)
