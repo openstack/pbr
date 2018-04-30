@@ -14,7 +14,7 @@ function mkvenv {
 
     rm -rf $venv
     virtualenv $venv
-    $venv/bin/pip install $PIPFLAGS -U $PIPVERSION wheel
+    $venv/bin/pip install $PIPFLAGS -U $PIPVERSION wheel requests
 
     # If a change to PBR is being tested, preinstall the wheel for it
     if [ -n "$PBR_CHANGE" ] ; then
@@ -106,11 +106,7 @@ EOF
 cat <<EOF > setup.py
 import setuptools
 
-try:
-    from requests import Timeout
-except ImportError:
-    from pip._vendor.requests import Timeout
-
+from requests import Timeout
 from socket import error as SocketError
 
 # Some environments have network issues that drop connections to pypi
