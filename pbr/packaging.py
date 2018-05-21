@@ -217,8 +217,14 @@ class TestrTest(testr_command.Testr):
     """Make setup.py test do the right thing."""
 
     command_name = 'test'
+    description = 'DEPRECATED: Run unit tests using testr'
 
     def run(self):
+        warnings.warn('testr integration is deprecated in pbr 4.2 and will '
+                      'be removed in a future release. Please call your test '
+                      'runner directly',
+                      DeprecationWarning)
+
         # Can't use super - base class old-style class
         testr_command.Testr.run(self)
 
