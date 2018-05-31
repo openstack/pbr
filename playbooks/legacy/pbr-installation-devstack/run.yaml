@@ -1,0 +1,137 @@
+- hosts: all
+  name: Autoconverted job legacy-pbr-installation-dsvm from old job gate-pbr-installation-dsvm-ubuntu-xenial
+  tasks:
+
+    - name: Ensure legacy workspace directory
+      file:
+        path: '{{ ansible_user_dir }}/workspace'
+        state: directory
+
+    - shell:
+        cmd: |
+          set -e
+          set -x
+          cat > clonemap.yaml << EOF
+          clonemap:
+            - name: openstack-infra/devstack-gate
+              dest: devstack-gate
+          EOF
+          /usr/zuul-env/bin/zuul-cloner -m clonemap.yaml --cache-dir /opt/git \
+              git://git.openstack.org \
+              openstack-infra/devstack-gate
+        executable: /bin/bash
+        chdir: '{{ ansible_user_dir }}/workspace'
+      environment: '{{ zuul | zuul_legacy_vars }}'
+
+    - shell:
+        cmd: |
+          set -e
+          set -x
+          # Define the entire projects list here so that what we
+          # test requirements against is independent of what d-g
+          # thinks is relevant.
+          export PROJECTS="openstack-infra/devstack-gate $PROJECTS"
+          export PROJECTS="openstack-dev/devstack $PROJECTS"
+          export PROJECTS="openstack-dev/grenade $PROJECTS"
+          export PROJECTS="openstack-dev/pbr $PROJECTS"
+          export PROJECTS="openstack-infra/tripleo-ci $PROJECTS"
+          export PROJECTS="openstack/aodh $PROJECTS"
+          export PROJECTS="openstack/automaton $PROJECTS"
+          export PROJECTS="openstack/ceilometer $PROJECTS"
+          export PROJECTS="openstack/ceilometermiddleware $PROJECTS"
+          export PROJECTS="openstack/cinder $PROJECTS"
+          export PROJECTS="openstack/cliff $PROJECTS"
+          export PROJECTS="openstack/debtcollector $PROJECTS"
+          export PROJECTS="openstack/dib-utils $PROJECTS"
+          export PROJECTS="openstack/diskimage-builder $PROJECTS"
+          export PROJECTS="openstack/django_openstack_auth $PROJECTS"
+          export PROJECTS="openstack/futurist $PROJECTS"
+          export PROJECTS="openstack/glance $PROJECTS"
+          export PROJECTS="openstack/glance_store $PROJECTS"
+          export PROJECTS="openstack/heat $PROJECTS"
+          export PROJECTS="openstack/heat-cfntools $PROJECTS"
+          export PROJECTS="openstack/heat-templates $PROJECTS"
+          export PROJECTS="openstack/horizon $PROJECTS"
+          export PROJECTS="openstack/ironic $PROJECTS"
+          export PROJECTS="openstack/ironic-lib $PROJECTS"
+          export PROJECTS="openstack/ironic-python-agent $PROJECTS"
+          export PROJECTS="openstack/keystone $PROJECTS"
+          export PROJECTS="openstack/keystoneauth $PROJECTS"
+          export PROJECTS="openstack/keystonemiddleware $PROJECTS"
+          export PROJECTS="openstack/manila $PROJECTS"
+          export PROJECTS="openstack/manila-ui $PROJECTS"
+          export PROJECTS="openstack/zaqar $PROJECTS"
+          export PROJECTS="openstack/neutron $PROJECTS"
+          export PROJECTS="openstack/neutron-fwaas $PROJECTS"
+          export PROJECTS="openstack/neutron-lbaas $PROJECTS"
+          export PROJECTS="openstack/octavia $PROJECTS"
+          export PROJECTS="openstack/neutron-vpnaas $PROJECTS"
+          export PROJECTS="openstack/nova $PROJECTS"
+          export PROJECTS="openstack/os-apply-config $PROJECTS"
+          export PROJECTS="openstack/os-brick $PROJECTS"
+          export PROJECTS="openstack/os-client-config $PROJECTS"
+          export PROJECTS="openstack/os-collect-config $PROJECTS"
+          export PROJECTS="openstack/os-net-config $PROJECTS"
+          export PROJECTS="openstack/os-refresh-config $PROJECTS"
+          export PROJECTS="openstack/osc-lib $PROJECTS"
+          export PROJECTS="openstack/oslo.cache $PROJECTS"
+          export PROJECTS="openstack/oslo.concurrency $PROJECTS"
+          export PROJECTS="openstack/oslo.config $PROJECTS"
+          export PROJECTS="openstack/oslo.context $PROJECTS"
+          export PROJECTS="openstack/oslo.db $PROJECTS"
+          export PROJECTS="openstack/oslo.i18n $PROJECTS"
+          export PROJECTS="openstack/oslo.log $PROJECTS"
+          export PROJECTS="openstack/oslo.messaging $PROJECTS"
+          export PROJECTS="openstack/oslo.middleware $PROJECTS"
+          export PROJECTS="openstack/oslo.policy $PROJECTS"
+          export PROJECTS="openstack/oslo.reports $PROJECTS"
+          export PROJECTS="openstack/oslo.rootwrap $PROJECTS"
+          export PROJECTS="openstack/oslo.utils $PROJECTS"
+          export PROJECTS="openstack/oslo.serialization $PROJECTS"
+          export PROJECTS="openstack/oslo.service $PROJECTS"
+          export PROJECTS="openstack/oslo.versionedobjects $PROJECTS"
+          export PROJECTS="openstack/oslo.vmware $PROJECTS"
+          export PROJECTS="openstack/pycadf $PROJECTS"
+          export PROJECTS="openstack/python-cinderclient $PROJECTS"
+          export PROJECTS="openstack/python-glanceclient $PROJECTS"
+          export PROJECTS="openstack/python-heatclient $PROJECTS"
+          export PROJECTS="openstack/python-ironicclient $PROJECTS"
+          export PROJECTS="openstack/python-keystoneclient $PROJECTS"
+          export PROJECTS="openstack/python-manilaclient $PROJECTS"
+          export PROJECTS="openstack/python-zaqarclient $PROJECTS"
+          export PROJECTS="openstack/python-neutronclient $PROJECTS"
+          export PROJECTS="openstack/python-novaclient $PROJECTS"
+          export PROJECTS="openstack/python-openstackclient $PROJECTS"
+          export PROJECTS="openstack/python-saharaclient $PROJECTS"
+          export PROJECTS="openstack/python-swiftclient $PROJECTS"
+          export PROJECTS="openstack/python-troveclient $PROJECTS"
+          export PROJECTS="openstack/requirements $PROJECTS"
+          export PROJECTS="openstack/sahara $PROJECTS"
+          export PROJECTS="openstack/sahara-dashboard $PROJECTS"
+          export PROJECTS="openstack/stevedore $PROJECTS"
+          export PROJECTS="openstack/swift $PROJECTS"
+          export PROJECTS="openstack/taskflow $PROJECTS"
+          export PROJECTS="openstack/tempest $PROJECTS"
+          export PROJECTS="openstack/tooz $PROJECTS"
+          export PROJECTS="openstack/tripleo-heat-templates $PROJECTS"
+          export PROJECTS="openstack/tripleo-image-elements $PROJECTS"
+          export PROJECTS="openstack/trove $PROJECTS"
+          export PROJECTS="openstack/trove-dashboard $PROJECTS"
+          export PYTHONUNBUFFERED=true
+          export DEVSTACK_GATE_TEMPEST=0
+          export DEVSTACK_GATE_EXERCISES=0
+          export DEVSTACK_GATE_REQS_INTEGRATION=1
+          export PIP_PROCESS_DEPENDENCY_LINKS=1
+          if [ "" = "-upstream" ]; then
+              export PBR_PIP_VERSION=git+https://github.com/pypa/pip.git#egg=pip
+          fi
+          function gate_hook {
+              set -x
+              bash -xe $BASE/new/pbr/tools/integration.sh $(cat $BASE/new/requirements/projects.txt)
+          }
+          export -f gate_hook
+          cp devstack-gate/devstack-vm-gate-wrap.sh ./safe-devstack-vm-gate-wrap.sh
+          ./safe-devstack-vm-gate-wrap.sh
+        executable: /bin/bash
+        chdir: '{{ ansible_user_dir }}/workspace'
+      environment: '{{ zuul | zuul_legacy_vars }}'
