@@ -114,6 +114,7 @@ D1_D2_SETUP_ARGS = {
     # broken distutils requires
     "install_requires": ("metadata", "requires_dist"),
     "setup_requires": ("metadata", "setup_requires_dist"),
+    "python_requires": ("metadata",),
     "provides": ("metadata", "provides_dist"),  # **
     "obsoletes": ("metadata", "obsoletes_dist"),  # **
     "package_dir": ("files", 'packages_root'),
