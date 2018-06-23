@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    Add an option to print only the version of a package
+
+    Example:
+
+    .. code-block:: bash
+
+        $ pbr info -s pkgname
+        1.2.3
