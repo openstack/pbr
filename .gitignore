@@ -24,7 +24,7 @@ develop-eggs
 .installed.cfg
 
 # Other
-.testrepository
+.stestr/
 .tox
 .venv
 .*.swp
