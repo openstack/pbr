@@ -430,4 +430,23 @@ The argument ``--coverage`` will set ``PYTHON`` to ``coverage run`` to produce
 a coverage report.  ``--coverage-package-name`` can be used to modify or narrow
 the packages traced.
 
+
+Sphinx ``conf.py``
+------------------
+
+As described in :doc:`/user/features`, *pbr* provides a Sphinx extension to
+automatically configure the version numbers for your documentation using *pbr*
+metadata.
+
+To enable this extension, you must add it to the list of extensions in
+your ``conf.py`` file::
+
+    extensions = [
+        'pbr.sphinxext',
+        # ... other extensions
+    ]
+
+You should also unset/remove the ``version`` and ``release`` attributes from
+this file.
+
 .. _setuptools: http://www.sphinx-doc.org/en/stable/setuptools.html

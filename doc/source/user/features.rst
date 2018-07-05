@@ -310,3 +310,19 @@ or `nose`__ (deprecated).
 __ https://testrepository.readthedocs.io/en/latest/
 __ https://nose.readthedocs.io/en/latest/
 __ https://setuptools.readthedocs.io/en/latest/setuptools.html#test-build-package-and-run-a-unittest-suite
+
+Sphinx Extension
+----------------
+
+.. admonition:: Summary
+
+    *pbr* provides a Sphinx extension to allow you to use *pbr* version
+    metadata in your Sphinx documentation.
+
+.. versionadded:: 4.2
+
+*pbr* provides a Sphinx extension which can be used to configure version
+numbers for documentation. The package does not need to be installed for this
+to function.
+
+For more information on the extension, refer to :doc:`/user/using`.
