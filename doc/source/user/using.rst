@@ -230,6 +230,13 @@ The ``pbr`` section controls *pbr*-specific options and behaviours.
   This can also be configured using the ``SKIP_GENERATE_AUTHORS`` environment
   variable, as described :ref:`here <packaging-authors-changelog>`
 
+``skip_reno``
+  If enabled, *pbr* will not generate a ``RELEASENOTES.txt`` file if `reno`_ is
+  present and configured.
+
+  This can also be configured using the ``SKIP_GENERATE_RENO`` environment
+  variable, as described :ref:`here <packaging-releasenotes>`.
+
 ``autodoc_tree_index_modules``
   A boolean option controlling whether *pbr* should generate an index of
   modules using ``sphinx-apidoc``. By default, all files except ``setup.py``
@@ -489,3 +496,4 @@ this file.
 
 .. _setuptools: http://www.sphinx-doc.org/en/stable/setuptools.html
 .. _sphinxcontrib-apidoc: https://pypi.org/project/sphinxcontrib-apidoc/
+.. _reno: https://docs.openstack.org/reno/latest/

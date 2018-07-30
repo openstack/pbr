@@ -577,6 +577,13 @@ class LocalSDist(sdist.sdist):
         if hasattr(self, '_has_reno'):
             return self._has_reno
 
+        option_dict = self.distribution.get_option_dict('pbr')
+        should_skip = options.get_boolean_option(option_dict, 'skip_reno',
+                                                 'SKIP_GENERATE_RENO')
+        if should_skip:
+            self._has_reno = False
+            return False
+
         try:
             # versions of reno witout this module will not have the required
             # feature, hence the import
