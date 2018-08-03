@@ -13,7 +13,7 @@
       - openstack-python35-jobs
       - lib-forward-testing
       - openstack-pypy-jobs-nonvoting
-      - publish-openstack-sphinx-docs
+      - publish-openstack-docs-pti
       - periodic-stable-jobs
     post:
       jobs:
