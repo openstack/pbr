@@ -2,6 +2,19 @@
     check:
       jobs:
         - openstack-tox-lower-constraints
+        - legacy-pbr-installation-dsvm
+        - legacy-pbr-installation-dsvm-upstream
     gate:
       jobs:
         - openstack-tox-lower-constraints
+        - legacy-pbr-installation-dsvm
+    templates:
+      - openstack-python-jobs
+      - openstack-python35-jobs
+      - lib-forward-testing
+      - openstack-pypy-jobs-nonvoting
+      - publish-openstack-sphinx-docs
+      - periodic-stable-jobs
+    post:
+      jobs:
+        - openstack-tox-cover
