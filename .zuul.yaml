@@ -15,6 +15,7 @@
       - openstack-pypy-jobs-nonvoting
       - publish-openstack-docs-pti
       - periodic-stable-jobs
+      - openstack-python36-jobs
     post:
       jobs:
         - openstack-tox-cover
