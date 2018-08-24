@@ -137,13 +137,15 @@ def parse_requirements(requirements_files=None, strip_markers=False):
         # such as:
         # -e git://github.com/openstack/nova/master#egg=nova
         # -e git://github.com/openstack/nova/master#egg=nova-1.2.3
+        # -e git+https://foo.com/zipball#egg=bar&subdirectory=baz
         if re.match(r'\s*-e\s+', line):
-            line = re.sub(r'\s*-e\s+.*#egg=(.*)$', egg_fragment, line)
+            line = re.sub(r'\s*-e\s+.*#egg=([^&]+).*$', egg_fragment, line)
         # such as:
         # http://github.com/openstack/nova/zipball/master#egg=nova
         # http://github.com/openstack/nova/zipball/master#egg=nova-1.2.3
+        # git+https://foo.com/zipball#egg=bar&subdirectory=baz
         elif re.match(r'\s*(https?|git(\+(https|ssh))?):', line):
-            line = re.sub(r'\s*(https?|git(\+(https|ssh))?):.*#egg=(.*)$',
+            line = re.sub(r'\s*(https?|git(\+(https|ssh))?):.*#egg=([^&]+).*$',
                           egg_fragment, line)
         # -f lines are for index locations, and don't get used here
         elif re.match(r'\s*-f\s+', line):
