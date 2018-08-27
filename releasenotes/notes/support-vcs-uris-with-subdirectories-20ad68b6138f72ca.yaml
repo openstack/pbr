@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    Subdirectories can now be included when specfifying a requirement in
+    ``requirements.txt`` or ``test-requirements.txt`` using VCS URIs. For
+    example:
+
+        -e git+https://foo.com/zipball#egg=bar&subdirectory=baz
+
+    For more information, refer to the `pip documentation
+    <https://pip.pypa.io/en/latest/reference/pip_install/#vcs-support>`__.
