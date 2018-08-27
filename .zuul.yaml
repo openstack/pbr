@@ -1,22 +1,128 @@
+- job:
+    name: pbr-installation-devstack-base
+    parent: legacy-dsvm-base
+    timeout: 7800
+    required-projects:
+      - openstack-dev/devstack
+      - openstack-dev/grenade
+      - openstack-dev/pbr
+      - openstack-infra/devstack-gate
+      - openstack-infra/tripleo-ci
+      - openstack/aodh
+      - openstack/automaton
+      - openstack/ceilometer
+      - openstack/ceilometermiddleware
+      - openstack/cinder
+      - openstack/cliff
+      - openstack/debtcollector
+      - openstack/dib-utils
+      - openstack/diskimage-builder
+      - openstack/django_openstack_auth
+      - openstack/futurist
+      - openstack/glance
+      - openstack/glance_store
+      - openstack/heat
+      - openstack/heat-cfntools
+      - openstack/heat-templates
+      - openstack/horizon
+      - openstack/ironic
+      - openstack/ironic-lib
+      - openstack/ironic-python-agent
+      - openstack/keystone
+      - openstack/keystoneauth
+      - openstack/keystonemiddleware
+      - openstack/manila
+      - openstack/manila-ui
+      - openstack/neutron
+      - openstack/neutron-fwaas
+      - openstack/neutron-lbaas
+      - openstack/neutron-vpnaas
+      - openstack/nova
+      - openstack/octavia
+      - openstack/os-apply-config
+      - openstack/os-brick
+      - openstack/os-client-config
+      - openstack/os-collect-config
+      - openstack/os-net-config
+      - openstack/os-refresh-config
+      - openstack/osc-lib
+      - openstack/oslo.cache
+      - openstack/oslo.concurrency
+      - openstack/oslo.config
+      - openstack/oslo.context
+      - openstack/oslo.db
+      - openstack/oslo.i18n
+      - openstack/oslo.log
+      - openstack/oslo.messaging
+      - openstack/oslo.middleware
+      - openstack/oslo.policy
+      - openstack/oslo.reports
+      - openstack/oslo.rootwrap
+      - openstack/oslo.serialization
+      - openstack/oslo.service
+      - openstack/oslo.utils
+      - openstack/oslo.versionedobjects
+      - openstack/oslo.vmware
+      - openstack/pycadf
+      - openstack/python-cinderclient
+      - openstack/python-glanceclient
+      - openstack/python-heatclient
+      - openstack/python-ironicclient
+      - openstack/python-keystoneclient
+      - openstack/python-manilaclient
+      - openstack/python-neutronclient
+      - openstack/python-novaclient
+      - openstack/python-openstackclient
+      - openstack/python-saharaclient
+      - openstack/python-swiftclient
+      - openstack/python-troveclient
+      - openstack/python-zaqarclient
+      - openstack/requirements
+      - openstack/sahara
+      - openstack/sahara-dashboard
+      - openstack/stevedore
+      - openstack/swift
+      - openstack/taskflow
+      - openstack/tempest
+      - openstack/tooz
+      - openstack/tripleo-heat-templates
+      - openstack/tripleo-image-elements
+      - openstack/trove
+      - openstack/trove-dashboard
+      - openstack/zaqar
+
+- job:
+    name: pbr-installation-devstack
+    parent: pbr-installation-devstack-base
+    run: playbooks/legacy/pbr-installation-devstack/run.yaml
+    post-run: playbooks/legacy/pbr-installation-devstack/post.yaml
+
+- job:
+    name: pbr-installation-upstream-devstack
+    parent: pbr-installation-devstack-base
+    run: playbooks/legacy/pbr-installation-upstream-devstack/run.yaml
+    post-run: playbooks/legacy/pbr-installation-upstream-devstack/post.yaml
+
 - project:
-    check:
-      jobs:
-        - openstack-tox-lower-constraints
-        - legacy-pbr-installation-dsvm
-        - legacy-pbr-installation-dsvm-upstream
-    gate:
-      jobs:
-        - openstack-tox-lower-constraints
-        - legacy-pbr-installation-dsvm
     templates:
       - openstack-python-jobs
       - openstack-python35-jobs
+      - openstack-python36-jobs
       - lib-forward-testing
       - lib-forward-testing-python3
       - openstack-pypy-jobs-nonvoting
       - publish-openstack-docs-pti
       - periodic-stable-jobs
-      - openstack-python36-jobs
+    check:
+      jobs:
+        - openstack-tox-lower-constraints
+        - pbr-installation-devstack
+        - pbr-installation-upstream-devstack
+    gate:
+      jobs:
+        - openstack-tox-lower-constraints
+        - pbr-installation-devstack
+        - pbr-installation-upstream-devstack
     post:
       jobs:
         - openstack-tox-cover
