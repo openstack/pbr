@@ -160,3 +160,15 @@ class TestKeywordsParsingScenarios(base.BaseTestCase):
         kwargs = util.setup_cfg_to_setup_kwargs(config)
 
         self.assertEqual(self.expected_keywords, kwargs['keywords'])
+
+
+class TestProvidesExtras(base.BaseTestCase):
+    def test_provides_extras(self):
+        ini = """
+        [metadata]
+        provides_extras = foo
+                          bar
+        """
+        config = config_from_ini(ini)
+        kwargs = util.setup_cfg_to_setup_kwargs(config)
+        self.assertEqual(['foo', 'bar'], kwargs['provides_extras'])

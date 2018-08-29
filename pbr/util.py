@@ -113,6 +113,7 @@ D1_D2_SETUP_ARGS = {
     "setup_requires": ("metadata", "setup_requires_dist"),
     "python_requires": ("metadata",),
     "provides": ("metadata", "provides_dist"),  # **
+    "provides_extras": ("metadata",),
     "obsoletes": ("metadata", "obsoletes_dist"),  # **
     "package_dir": ("files", 'packages_root'),
     "packages": ("files",),
@@ -147,7 +148,8 @@ MULTI_FIELDS = ("classifiers",
                 "setup_requires",
                 "tests_require",
                 "keywords",
-                "cmdclass")
+                "cmdclass",
+                "provides_extras")
 
 # setup() arguments that can have mapping values in setup.cfg
 MAP_FIELDS = ("project_urls",)
