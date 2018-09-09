@@ -5,10 +5,6 @@ Introduction
     :target: https://pypi.python.org/pypi/pbr/
     :alt: Latest Version
 
-.. image:: https://img.shields.io/pypi/dm/pbr.svg
-    :target: https://pypi.python.org/pypi/pbr/
-    :alt: Downloads
-
 PBR is a library that injects some useful and sensible default behaviors
 into your setuptools run. It started off life as the chunks of code that
 were copied between all of the `OpenStack`_ projects. Around the time that
@@ -38,5 +34,5 @@ them as quickly as possible.
 
 .. _d2to1: https://pypi.python.org/pypi/d2to1
 .. _distutils2: https://pypi.python.org/pypi/Distutils2
-.. _PEP 426: http://legacy.python.org/dev/peps/pep-0426/
+.. _PEP 426: https://legacy.python.org/dev/peps/pep-0426/
 .. _OpenStack: https://www.openstack.org/
