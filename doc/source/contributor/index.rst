@@ -27,7 +27,7 @@ are listed in ``requirements.txt`` and the requirements for testing are in
 
   pip install -r requirements.txt -r test-requirements.txt
 
-In you go this route, you can interact with the testr command directly.
+If you go this route, you can interact with the testr command directly.
 Running ``testr run`` will run the entire test suite. ``testr run --parallel``
 will run it in parallel (this is the default incantation tox uses). More
 information about testr can be found at: http://wiki.openstack.org/testr
