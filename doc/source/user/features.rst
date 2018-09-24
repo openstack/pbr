@@ -62,7 +62,7 @@ From this, we note a couple of the main features of *pbr*:
 - Extensive use of ``setup.cfg`` for configuration
 - Automatic package metadata generation (``version``)
 - Automatic metadata file generation (``AUTHOR``, ``ChangeLog``,
-  ``MANIFEST.in``)
+  ``MANIFEST.in``, ``RELEASENOTES.txt``)
 
 In addition, there are other things that you don't see here but which *pbr*
 will do for you:
@@ -252,6 +252,21 @@ test files.
    Refer to the `Python packaging tutorial`__ for more information.
 
 __ https://packaging.python.org/tutorials/distributing-packages/#manifest-in
+
+Release Notes
+~~~~~~~~~~~~~
+
+.. admonition:: Summary
+
+    *pbr* will automatically use *reno* \'s ``build_reno`` setuptools command
+    to generate a release notes file, if reno is available and configured.
+
+If using *reno*, you may wish to include a copy of the release notes in your
+packages. *reno* provides a ``build_reno`` `setuptools command`__ and, if reno
+is present and configured, *pbr* will automatically call this to generate a
+release notes file for inclusion in your package.
+
+__ https://docs.openstack.org/reno/latest/user/setuptools.html
 
 Setup Commands
 --------------
