@@ -312,8 +312,6 @@ if __name__ == "__main__":
     import sys
     import wsgiref.simple_server as wss
 
-    my_ip = socket.gethostbyname(socket.gethostname())
-
     parser = argparse.ArgumentParser(
         description=%(import_target)s.__doc__,
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
