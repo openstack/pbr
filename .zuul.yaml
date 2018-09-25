@@ -110,7 +110,6 @@
       - openstack-python36-jobs
       - lib-forward-testing
       - lib-forward-testing-python3
-      - openstack-pypy-jobs-nonvoting
       - publish-openstack-docs-pti
       - periodic-stable-jobs
     check:
