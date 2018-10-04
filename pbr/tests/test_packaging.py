@@ -56,7 +56,7 @@ import testscenarios
 import testtools
 from testtools import matchers
 import virtualenv
-import wheel.install
+from wheel import wheelfile
 
 from pbr import git
 from pbr import packaging
@@ -372,13 +372,13 @@ class TestPackagingWheels(base.BaseTestCase):
         relative_wheel_filename = os.listdir(dist_dir)[0]
         absolute_wheel_filename = os.path.join(
             dist_dir, relative_wheel_filename)
-        wheel_file = wheel.install.WheelFile(absolute_wheel_filename)
+        wheel_file = wheelfile.WheelFile(absolute_wheel_filename)
         wheel_name = wheel_file.parsed_filename.group('namever')
         # Create a directory path to unpack the wheel to
         self.extracted_wheel_dir = os.path.join(dist_dir, wheel_name)
         # Extract the wheel contents to the directory we just created
-        wheel_file.zipfile.extractall(self.extracted_wheel_dir)
-        wheel_file.zipfile.close()
+        wheel_file.extractall(self.extracted_wheel_dir)
+        wheel_file.close()
 
     def test_data_directory_has_wsgi_scripts(self):
         # Build the path to the scripts directory
