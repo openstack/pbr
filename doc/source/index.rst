@@ -21,6 +21,7 @@ using an install tool such as *pip*.
 * **ChangeLog**: Generate ChangeLog from git log
 * **Manifest**: Generate a sensible manifest from git files and some standard
   files
+* **Release Notes**: Generate a release notes file using reno
 * **Requirements**: Store your dependencies in a pip requirements file
 * **long_description**: Use your README file as a long_description
 * **Smart find_packages**: Smartly find packages under your root package
