@@ -204,13 +204,15 @@ for your project and will then parse these files, split them up appropriately,
 and inject them into the ``install_requires``, ``tests_require`` and/or
 ``dependency_links`` arguments to ``setup``. Voila!
 
-You can also have a requirement file for each specific major version of Python.
-If you want to have a different package list for Python 3 then just drop a
-``requirements-py3.txt`` and it will be used instead.
-
 Finally, it is possible to specify groups of optional dependencies, or
 :ref:`"extra" requirements <extra-requirements>`, in your ``setup.cfg`` rather
 than ``setup.py``.
+
+.. versionchanged:: 5.0
+
+   Previously you could specify requirements for a given major version of
+   Python using requirments files with a ``-pyN`` suffix. This was deprecated
+   in 4.0 and removed in 5.0 in favour of environment markers.
 
 Automatic File Generation
 -------------------------

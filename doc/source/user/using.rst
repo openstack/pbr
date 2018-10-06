@@ -382,20 +382,18 @@ Requirements
 
 Requirements files are used in place of the ``install_requires`` and
 ``extras_require`` attributes. Requirement files should be given one of the
-below names. This order is also the order that the requirements are tried in
-(where ``N`` is the Python major version number used to install the package):
+below names. This order is also the order that the requirements are tried in:
 
-* ``requirements-pyN.txt``
-* ``tools/pip-requires-py3``
 * ``requirements.txt``
 * ``tools/pip-requires``
 
 Only the first file found is used to install the list of packages it contains.
 
-.. note::
+.. versionchanged:: 5.0
 
-   The ``requirements-pyN.txt`` file is deprecated - ``requirements.txt``
-   should be universal. You can use `Environment markers`_ for this purpose.
+   Previously you could specify requirements for a given major version of
+   Python using requirements files with a ``-pyN`` suffix. This was deprecated
+   in 4.0 and removed in 5.0 in favour of environment markers.
 
 .. _extra-requirements:
 

@@ -43,7 +43,6 @@ import email.errors
 import imp
 import os
 import re
-import sys
 import sysconfig
 import tempfile
 import textwrap
@@ -548,28 +547,6 @@ class ParseRequirementsTest(base.BaseTestCase):
             f.write('pbr')
         result = packaging.parse_requirements([requirements])
         self.assertEqual(['pbr'], result)
-
-    @mock.patch('warnings.warn')
-    def test_python_version(self, mock_warn):
-        with open("requirements-py%d.txt" % sys.version_info[0],
-                  "w") as fh:
-            fh.write("# this is a comment\nfoobar\n# and another one\nfoobaz")
-        self.assertEqual(['foobar', 'foobaz'],
-                         packaging.parse_requirements())
-        mock_warn.assert_called_once_with(mock.ANY, DeprecationWarning)
-
-    @mock.patch('warnings.warn')
-    def test_python_version_multiple_options(self, mock_warn):
-        with open("requirements-py1.txt", "w") as fh:
-            fh.write("thisisatrap")
-        with open("requirements-py%d.txt" % sys.version_info[0],
-                  "w") as fh:
-            fh.write("# this is a comment\nfoobar\n# and another one\nfoobaz")
-        self.assertEqual(['foobar', 'foobaz'],
-                         packaging.parse_requirements())
-        # even though we have multiple offending files, this should only be
-        # called once
-        mock_warn.assert_called_once_with(mock.ANY, DeprecationWarning)
 
 
 class ParseRequirementsTestScenarios(base.BaseTestCase):
