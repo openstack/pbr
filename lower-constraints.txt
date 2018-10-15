@@ -26,7 +26,7 @@ six==1.10.0
 snowballstemmer==1.2.1
 Sphinx==1.6.5
 sphinxcontrib-websupport==1.0.1
-stestr==2.0.0
+stestr==2.1.0
 testrepository==0.0.18
 testresources==2.0.0
 testscenarios==0.4
