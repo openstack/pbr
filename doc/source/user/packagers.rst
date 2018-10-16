@@ -103,3 +103,20 @@ skipped. Similarly setting ``SKIP_WRITE_GIT_CHANGELOG``
 
 will cause logic around generating ``ChangeLog`` file using *git*
 information to be skipped.
+
+.. _packaging-releasenotes:
+
+Release Notes
+-------------
+
+*pbr* generates a release notes file, typically called ``RELEASENOTES.rst``,
+if `reno`_ is present and configured. You may wish to disable this
+functionality. If that is the case setting ``SKIP_GENERATE_RENO``
+
+::
+
+   export SKIP_GENERATE_RENO
+
+will disable this feature.
+
+.. _reno: https://docs.openstack.org/reno/latest/
