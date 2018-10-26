@@ -459,7 +459,7 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
                             "Marker evaluation failed, see the following "
                             "error.  For more information see: "
                             "http://docs.openstack.org/"
-                            "developer/pbr/compatibility.html#evaluate-marker"
+                            "pbr/latest/user/using.html#environment-markers"
                         )
                         raise
             else:
