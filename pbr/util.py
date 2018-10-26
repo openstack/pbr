@@ -56,24 +56,21 @@ to be an installation dependency for our packages yet--it is still too unstable
 # irritating Python bug that can crop up when using ./setup.py test.
 # See: http://www.eby-sarna.com/pipermail/peak/2010-May/003355.html
 try:
-    import multiprocessing  # flake8: noqa
+    import multiprocessing  # noqa
 except ImportError:
     pass
-import logging  # flake8: noqa
+import logging  # noqa
 
+from collections import defaultdict
 import os
 import re
 import sys
 import traceback
 
-from collections import defaultdict
-
 import distutils.ccompiler
-import pkg_resources
-
-from distutils import log
 from distutils import errors
-from setuptools.command.egg_info import manifest_maker
+from distutils import log
+import pkg_resources
 from setuptools import dist as st_dist
 from setuptools import extension
 
@@ -244,11 +241,11 @@ def cfg_to_args(path='setup.cfg', script_args=()):
                 if hook != 'pbr.hooks.setup_hook']
             for hook in setup_hooks:
                 hook_fn = resolve_name(hook)
-                try :
+                try:
                     hook_fn(config)
                 except SystemExit:
                     log.error('setup hook %s terminated the installation')
-                except:
+                except Exception:
                     e = sys.exc_info()[1]
                     log.error('setup hook %s raised exception: %s\n' %
                               (hook, e))
@@ -288,7 +285,9 @@ def cfg_to_args(path='setup.cfg', script_args=()):
 
 
 def setup_cfg_to_setup_kwargs(config, script_args=()):
-    """Processes the setup.cfg options and converts them to arguments accepted
+    """Convert config options to kwargs.
+
+    Processes the setup.cfg options and converts them to arguments accepted
     by setuptools' setup() function.
     """
 
@@ -354,12 +353,13 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
                 # Split install_requires into package,env_marker tuples
                 # These will be re-assembled later
                 install_requires = []
-                requirement_pattern = '(?P<package>[^;]*);?(?P<env_marker>[^#]*?)(?:\s*#.*)?$'
+                requirement_pattern = (
+                    r'(?P<package>[^;]*);?(?P<env_marker>[^#]*?)(?:\s*#.*)?$')
                 for requirement in in_cfg_value:
                     m = re.match(requirement_pattern, requirement)
                     requirement_package = m.group('package').strip()
                     env_marker = m.group('env_marker').strip()
-                    install_requires.append((requirement_package,env_marker))
+                    install_requires.append((requirement_package, env_marker))
                 all_requirements[''] = install_requires
             elif arg == 'package_dir':
                 in_cfg_value = {'': in_cfg_value}
@@ -414,7 +414,8 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
     # -> {'fred': ['bar'], 'fred:marker':['foo']}
 
     if 'extras' in config:
-        requirement_pattern = '(?P<package>[^:]*):?(?P<env_marker>[^#]*?)(?:\s*#.*)?$'
+        requirement_pattern = (
+            r'(?P<package>[^:]*):?(?P<env_marker>[^#]*?)(?:\s*#.*)?$')
         extras = config['extras']
         # Add contents of test-requirements, if any, into an extra named
         # 'test' if one does not already exist.
@@ -430,7 +431,7 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
                 m = re.match(requirement_pattern, requirement)
                 extras_value = m.group('package').strip()
                 env_marker = m.group('env_marker')
-                extra_requirements.append((extras_value,env_marker))
+                extra_requirements.append((extras_value, env_marker))
             all_requirements[extra] = extra_requirements
 
     # Transform the full list of requirements into:
@@ -473,9 +474,10 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
 
 
 def register_custom_compilers(config):
-    """Handle custom compilers; this has no real equivalent in distutils, where
-    additional compilers could only be added programmatically, so we have to
-    hack it in somehow.
+    """Handle custom compilers.
+
+    This has no real equivalent in distutils, where additional compilers could
+    only be added programmatically, so we have to hack it in somehow.
     """
 
     compilers = has_get_option(config, 'global', 'compilers')
@@ -497,7 +499,7 @@ def register_custom_compilers(config):
 
             module_name = compiler.__module__
             # Note; this *will* override built in compilers with the same name
-            # TODO: Maybe display a warning about this?
+            # TODO(embray): Maybe display a warning about this?
             cc = distutils.ccompiler.compiler_class
             cc[name] = (module_name, compiler.__name__, desc)
 
@@ -560,13 +562,14 @@ def get_extension_modules(config):
 
 
 def get_entry_points(config):
-    """Process the [entry_points] section of setup.cfg to handle setuptools
-    entry points.  This is, of course, not a standard feature of
-    distutils2/packaging, but as there is not currently a standard alternative
-    in packaging, we provide support for them.
+    """Process the [entry_points] section of setup.cfg.
+
+    Processes setup.cfg to handle setuptools entry points. This is, of course,
+    not a standard feature of distutils2/packaging, but as there is not
+    currently a standard alternative in packaging, we provide support for them.
     """
 
-    if not 'entry_points' in config:
+    if 'entry_points' not in config:
         return {}
 
     return dict((option, split_multiline(value))
@@ -600,9 +603,7 @@ def split_csv(value):
 
 # The following classes are used to hack Distribution.command_options a bit
 class DefaultGetDict(defaultdict):
-    """Like defaultdict, but the get() method also sets and returns the default
-    value.
-    """
+    """Like defaultdict, but get() also sets and returns the default value."""
 
     def get(self, key, default=None):
         if default is None:

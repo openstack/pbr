@@ -43,12 +43,12 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 
-from distutils import core
-from distutils import errors
 import logging
 import os
 import sys
 import warnings
+
+from distutils import errors
 
 from pbr import util
 
@@ -57,8 +57,8 @@ if sys.version_info[0] == 3:
     string_type = str
     integer_types = (int,)
 else:
-    string_type = basestring  # flake8: noqa
-    integer_types = (int, long)  # flake8: noqa
+    string_type = basestring  # noqa
+    integer_types = (int, long)  # noqa
 
 
 def pbr(dist, attr, value):
@@ -102,7 +102,6 @@ def pbr(dist, attr, value):
         logging.exception('Error parsing')
         raise errors.DistutilsSetupError(
             'Error parsing %s: %s: %s' % (path, e.__class__.__name__, e))
-
 
     # There are some metadata fields that are only supported by
     # setuptools and not distutils, and hence are not in
