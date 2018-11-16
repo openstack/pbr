@@ -223,6 +223,11 @@ def _iter_log_inner(git_dir):
     presentation logic to the output - making it suitable for different
     uses.
 
+    .. caution:: this function risk to return a tag that doesn't exist really
+                 inside the git objects list due to replacement made
+                 to tag name to also list pre-release suffix.
+                 Compliant with the SemVer specification (e.g 1.2.3-rc1)
+
     :return: An iterator of (hash, tags_set, 1st_line) tuples.
     """
     log.info('[pbr] Generating ChangeLog')
@@ -248,7 +253,7 @@ def _iter_log_inner(git_dir):
             for tag_string in refname.split("refs/tags/")[1:]:
                 # git tag does not allow : or " " in tag names, so we split
                 # on ", " which is the separator between elements
-                candidate = tag_string.split(", ")[0]
+                candidate = tag_string.split(", ")[0].replace("-", ".")
                 if _is_valid_version(candidate):
                     tags.add(candidate)
 
