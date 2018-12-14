@@ -333,7 +333,7 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
         elif arg in MAP_FIELDS:
             in_cfg_map = {}
             for i in split_multiline(in_cfg_value):
-                k, v = i.split('=')
+                k, v = i.split('=', 1)
                 in_cfg_map[k.strip()] = v.strip()
             in_cfg_value = in_cfg_map
         elif arg in BOOL_FIELDS:

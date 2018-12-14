@@ -23,6 +23,19 @@ from pbr.tests import base
 from pbr import util
 
 
+def config_from_ini(ini):
+    config = {}
+    if sys.version_info >= (3, 2):
+        parser = configparser.ConfigParser()
+    else:
+        parser = configparser.SafeConfigParser()
+    ini = textwrap.dedent(six.u(ini))
+    parser.readfp(io.StringIO(ini))
+    for section in parser.sections():
+        config[section] = dict(parser.items(section))
+    return config
+
+
 class TestExtrasRequireParsingScenarios(base.BaseTestCase):
 
     scenarios = [
@@ -64,20 +77,8 @@ class TestExtrasRequireParsingScenarios(base.BaseTestCase):
             {}
         })]
 
-    def config_from_ini(self, ini):
-        config = {}
-        if sys.version_info >= (3, 2):
-            parser = configparser.ConfigParser()
-        else:
-            parser = configparser.SafeConfigParser()
-        ini = textwrap.dedent(six.u(ini))
-        parser.readfp(io.StringIO(ini))
-        for section in parser.sections():
-            config[section] = dict(parser.items(section))
-        return config
-
     def test_extras_parsing(self):
-        config = self.config_from_ini(self.config_text)
+        config = config_from_ini(self.config_text)
         kwargs = util.setup_cfg_to_setup_kwargs(config)
 
         self.assertEqual(self.expected_extra_requires,
@@ -89,3 +90,43 @@ class TestInvalidMarkers(base.BaseTestCase):
     def test_invalid_marker_raises_error(self):
         config = {'extras': {'test': "foo :bad_marker>'1.0'"}}
         self.assertRaises(SyntaxError, util.setup_cfg_to_setup_kwargs, config)
+
+
+class TestMapFieldsParsingScenarios(base.BaseTestCase):
+
+    scenarios = [
+        ('simple_project_urls', {
+            'config_text': """
+                [metadata]
+                project_urls =
+                    Bug Tracker = https://bugs.launchpad.net/pbr/
+                    Documentation = https://docs.openstack.org/pbr/
+                    Source Code = https://git.openstack.org/cgit/openstack-dev/pbr/
+                """,  # noqa: E501
+            'expected_project_urls': {
+                'Bug Tracker': 'https://bugs.launchpad.net/pbr/',
+                'Documentation': 'https://docs.openstack.org/pbr/',
+                'Source Code': 'https://git.openstack.org/cgit/openstack-dev/pbr/',  # noqa: E501
+            },
+        }),
+        ('query_parameters', {
+            'config_text': """
+                [metadata]
+                project_urls =
+                    Bug Tracker = https://bugs.launchpad.net/pbr/?query=true
+                    Documentation = https://docs.openstack.org/pbr/?foo=bar
+                    Source Code = https://git.openstack.org/cgit/openstack-dev/pbr/commit/?id=hash
+                """,  # noqa: E501
+            'expected_project_urls': {
+                'Bug Tracker': 'https://bugs.launchpad.net/pbr/?query=true',
+                'Documentation': 'https://docs.openstack.org/pbr/?foo=bar',
+                'Source Code': 'https://git.openstack.org/cgit/openstack-dev/pbr/commit/?id=hash',  # noqa: E501
+            },
+        }),
+    ]
+
+    def test_project_url_parsing(self):
+        config = config_from_ini(self.config_text)
+        kwargs = util.setup_cfg_to_setup_kwargs(config)
+
+        self.assertEqual(self.expected_project_urls, kwargs['project_urls'])
