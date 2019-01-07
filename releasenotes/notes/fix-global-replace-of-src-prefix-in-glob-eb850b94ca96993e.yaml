@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    Fixes a bug where the directory names of items specified in ``data_files``
+    could be renamed if the source prefix glob was contained within the
+    directory name. See `bug 1810804
+    <https://bugs.launchpad.net/pbr/+bug/1810804>`_ for details. For more
+    information on ``data_files``, see the `distutils documentation
+    <https://docs.python.org/2/distutils/setupscript.html#installing-additional-files>`_.

@@ -58,8 +58,12 @@ class FilesConfig(base.BaseConfig):
                 if not target.endswith(os.path.sep):
                     target += os.path.sep
                 for (dirpath, dirnames, fnames) in os.walk(source_prefix):
-                    finished.append(
-                        "%s = " % dirpath.replace(source_prefix, target))
+                    # As source_prefix is always matched, using replace with a
+                    # a limit of one is always going to replace the path prefix
+                    # and not accidentally replace some text in the middle of
+                    # the path
+                    new_prefix = dirpath.replace(source_prefix, target, 1)
+                    finished.append("%s = " % new_prefix)
                     finished.extend(
                         [" %s" % os.path.join(dirpath, f) for f in fnames])
             else:

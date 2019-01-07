@@ -35,15 +35,20 @@ class FilesConfigTest(base.BaseTestCase):
             ])
         self.useFixture(pkg_fixture)
         pkg_etc = os.path.join(pkg_fixture.base, 'etc')
+        pkg_ansible = os.path.join(pkg_fixture.base, 'ansible',
+                                   'kolla-ansible', 'test')
         pkg_sub = os.path.join(pkg_etc, 'sub')
         subpackage = os.path.join(
             pkg_fixture.base, 'fake_package', 'subpackage')
         os.makedirs(pkg_sub)
         os.makedirs(subpackage)
+        os.makedirs(pkg_ansible)
         with open(os.path.join(pkg_etc, "foo"), 'w') as foo_file:
             foo_file.write("Foo Data")
         with open(os.path.join(pkg_sub, "bar"), 'w') as foo_file:
             foo_file.write("Bar Data")
+        with open(os.path.join(pkg_ansible, "baz"), 'w') as baz_file:
+            baz_file.write("Baz Data")
         with open(os.path.join(subpackage, "__init__.py"), 'w') as foo_file:
             foo_file.write("# empty")
 
@@ -75,4 +80,20 @@ class FilesConfigTest(base.BaseTestCase):
         files.FilesConfig(config, 'fake_package').run()
         self.assertIn(
             '\netc/pbr/ = \n etc/foo\netc/pbr/sub = \n etc/sub/bar',
+            config['files']['data_files'])
+
+    def test_data_files_globbing_source_prefix_in_directory_name(self):
+        # We want to test that the string, "docs", is not replaced in a
+        # subdirectory name, "sub-docs"
+        config = dict(
+            files=dict(
+                data_files="\n  share/ansible = ansible/*"
+            )
+        )
+        files.FilesConfig(config, 'fake_package').run()
+        self.assertIn(
+            '\nshare/ansible/ = '
+            '\nshare/ansible/kolla-ansible = '
+            '\nshare/ansible/kolla-ansible/test = '
+            '\n ansible/kolla-ansible/test/baz',
             config['files']['data_files'])
