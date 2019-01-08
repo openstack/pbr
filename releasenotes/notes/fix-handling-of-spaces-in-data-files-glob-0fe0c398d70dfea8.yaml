@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Fixes the handling of spaces in data_files globs. Please see `bug 1810934
+    <https://bugs.launchpad.net/pbr/+bug/1810934>`_ for more details.

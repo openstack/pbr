@@ -64,6 +64,7 @@ import logging  # noqa
 from collections import defaultdict
 import os
 import re
+import shlex
 import sys
 import traceback
 
@@ -372,21 +373,22 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
                 for line in in_cfg_value:
                     if '=' in line:
                         key, value = line.split('=', 1)
-                        key, value = (key.strip(), value.strip())
+                        key_unquoted = shlex.split(key.strip())[0]
+                        key, value = (key_unquoted, value.strip())
                         if key in data_files:
                             # Multiple duplicates of the same package name;
                             # this is for backwards compatibility of the old
                             # format prior to d2to1 0.2.6.
                             prev = data_files[key]
-                            prev.extend(value.split())
+                            prev.extend(shlex.split(value))
                         else:
-                            prev = data_files[key.strip()] = value.split()
+                            prev = data_files[key.strip()] = shlex.split(value)
                     elif firstline:
                         raise errors.DistutilsOptionError(
                             'malformed package_data first line %r (misses '
                             '"=")' % line)
                     else:
-                        prev.extend(line.strip().split())
+                        prev.extend(shlex.split(line.strip()))
                     firstline = False
                 if arg == 'data_files':
                     # the data_files value is a pointlessly different structure

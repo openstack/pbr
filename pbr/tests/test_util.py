@@ -172,3 +172,28 @@ class TestProvidesExtras(base.BaseTestCase):
         config = config_from_ini(ini)
         kwargs = util.setup_cfg_to_setup_kwargs(config)
         self.assertEqual(['foo', 'bar'], kwargs['provides_extras'])
+
+
+class TestDataFilesParsing(base.BaseTestCase):
+
+    scenarios = [
+        ('data_files', {
+            'config_text': """
+            [files]
+            data_files =
+                'i like spaces/' =
+                    'dir with space/file with spc 2'
+                    'dir with space/file with spc 1'
+            """,
+            'data_files': [
+                ('i like spaces/', ['dir with space/file with spc 2',
+                                    'dir with space/file with spc 1'])
+            ]
+        })]
+
+    def test_handling_of_whitespace_in_data_files(self):
+        config = config_from_ini(self.config_text)
+        kwargs = util.setup_cfg_to_setup_kwargs(config)
+
+        self.assertEqual(self.data_files,
+                         list(kwargs['data_files']))
