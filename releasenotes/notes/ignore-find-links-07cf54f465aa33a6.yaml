@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    PBR now ignores ``--find-links`` in requirements files. This option is not
+    a valid ``install_requires`` entry for setuptools and thus breaks
+    PBR-based installs.

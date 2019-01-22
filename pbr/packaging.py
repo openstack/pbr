@@ -118,7 +118,8 @@ def parse_requirements(requirements_files=None, strip_markers=False):
             continue
 
         # Ignore index URL lines
-        if re.match(r'^\s*(-i|--index-url|--extra-index-url).*', line):
+        if re.match(r'^\s*(-i|--index-url|--extra-index-url|--find-links).*',
+                    line):
             continue
 
         # Handle nested requirements files such as:

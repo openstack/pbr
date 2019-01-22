@@ -531,11 +531,13 @@ class ParseRequirementsTest(base.BaseTestCase):
         tempdir = tempfile.mkdtemp()
         requirements = os.path.join(tempdir, 'requirements.txt')
         with open(requirements, 'w') as f:
-            f.write('-i https://myindex.local')
-            f.write('  --index-url https://myindex.local')
-            f.write(' --extra-index-url https://myindex.local')
+            f.write('-i https://myindex.local\n')
+            f.write('  --index-url https://myindex.local\n')
+            f.write(' --extra-index-url https://myindex.local\n')
+            f.write('--find-links https://myindex.local\n')
+            f.write('arequirement>=1.0\n')
         result = packaging.parse_requirements([requirements])
-        self.assertEqual([], result)
+        self.assertEqual(['arequirement>=1.0'], result)
 
     def test_nested_requirements(self):
         tempdir = tempfile.mkdtemp()
