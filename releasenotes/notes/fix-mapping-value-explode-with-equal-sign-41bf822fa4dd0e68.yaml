@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    Fix mapping error on values who contains a literal ``=``. Example when
+    setup.cfg contains content like the following project urls configuration
+    "project_urls = Documentation = http://foo.bar/?badge=latest".
+    https://bugs.launchpad.net/pbr/+bug/1817592
