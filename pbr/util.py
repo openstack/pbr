@@ -146,6 +146,7 @@ MULTI_FIELDS = ("classifiers",
                 "dependency_links",
                 "setup_requires",
                 "tests_require",
+                "keywords",
                 "cmdclass")
 
 # setup() arguments that can have mapping values in setup.cfg
@@ -154,8 +155,7 @@ MAP_FIELDS = ("project_urls",)
 # setup() arguments that contain boolean values
 BOOL_FIELDS = ("use_2to3", "zip_safe", "include_package_data")
 
-
-CSV_FIELDS = ("keywords",)
+CSV_FIELDS = ()
 
 
 def resolve_name(name):

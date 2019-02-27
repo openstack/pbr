@@ -130,3 +130,33 @@ class TestMapFieldsParsingScenarios(base.BaseTestCase):
         kwargs = util.setup_cfg_to_setup_kwargs(config)
 
         self.assertEqual(self.expected_project_urls, kwargs['project_urls'])
+
+
+class TestKeywordsParsingScenarios(base.BaseTestCase):
+
+    scenarios = [
+        ('keywords_list', {
+            'config_text': """
+                [metadata]
+                keywords =
+                    one
+                    two
+                    three
+                """,  # noqa: E501
+            'expected_keywords': ['one', 'two', 'three'],
+            },
+        ),
+        ('inline_keywords', {
+            'config_text': """
+                [metadata]
+                keywords = one, two, three
+                """,  # noqa: E501
+            'expected_keywords': ['one, two, three'],
+        }),
+    ]
+
+    def test_keywords_parsing(self):
+        config = config_from_ini(self.config_text)
+        kwargs = util.setup_cfg_to_setup_kwargs(config)
+
+        self.assertEqual(self.expected_keywords, kwargs['keywords'])
