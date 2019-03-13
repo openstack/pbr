@@ -49,7 +49,7 @@ versions of `setuptools`__. A simple sample can be found in *pbr*'s own
     [metadata]
     name = pbr
     author = OpenStack Foundation
-    author-email = openstack-dev@lists.openstack.org
+    author-email = openstack-discuss@lists.openstack.org
     summary = OpenStack's setup automation in a reusable form
     description-file = README.rst
     description-content-type = text/x-rst; charset=UTF-8
