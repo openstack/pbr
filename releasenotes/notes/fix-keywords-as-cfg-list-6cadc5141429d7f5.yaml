@@ -1,7 +1,7 @@
 ---
 fixes:
   - |
-    Fix error when ``keywords`` argument as a cfg list. Previously `keywords` are
-    considered as ``CSV_FIELDS`` and with these changes `keywords` are
-    now ``MULTI_FIELDS``. Refer to https://bugs.launchpad.net/pbr/+bug/1811475
-    for further reading.
+    Fix error when ``keywords`` argument as a cfg list. Previously ``keywords``
+    were ``CSV_FIELDS`` and with these changes ``keywords`` are now
+    ``MULTI_FIELDS``. Refer to https://bugs.launchpad.net/pbr/+bug/1811475
+    for more information.
