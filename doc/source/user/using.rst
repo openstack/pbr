@@ -102,7 +102,7 @@ In addition, there are some modifications to other sections:
 
 For all other sections, you should refer to either the `setuptools`_
 documentation or the documentation of the package that provides the section,
-such as the ``extract_mesages`` section provided by Babel__.
+such as the ``extract_messages`` section provided by Babel__.
 
 .. note::
 
