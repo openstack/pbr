@@ -3,11 +3,11 @@
     parent: legacy-dsvm-base
     timeout: 7800
     required-projects:
-      - openstack-dev/devstack
-      - openstack-dev/grenade
-      - openstack-dev/pbr
-      - openstack-infra/devstack-gate
-      - openstack-infra/tripleo-ci
+      - openstack/devstack
+      - openstack/grenade
+      - openstack/pbr
+      - openstack/devstack-gate
+      - openstack/tripleo-ci
       - openstack/aodh
       - openstack/automaton
       - openstack/ceilometer

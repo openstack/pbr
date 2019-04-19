@@ -13,12 +13,12 @@
           set -x
           cat > clonemap.yaml << EOF
           clonemap:
-            - name: openstack-infra/devstack-gate
+            - name: openstack/devstack-gate
               dest: devstack-gate
           EOF
           /usr/zuul-env/bin/zuul-cloner -m clonemap.yaml --cache-dir /opt/git \
-              https://git.openstack.org \
-              openstack-infra/devstack-gate
+              https://opendev.org \
+              openstack/devstack-gate
         executable: /bin/bash
         chdir: '{{ ansible_user_dir }}/workspace'
       environment: '{{ zuul | zuul_legacy_vars }}'
@@ -30,11 +30,11 @@
           # Define the entire projects list here so that what we
           # test requirements against is independent of what d-g
           # thinks is relevant.
-          export PROJECTS="openstack-infra/devstack-gate $PROJECTS"
-          export PROJECTS="openstack-dev/devstack $PROJECTS"
-          export PROJECTS="openstack-dev/grenade $PROJECTS"
-          export PROJECTS="openstack-dev/pbr $PROJECTS"
-          export PROJECTS="openstack-infra/tripleo-ci $PROJECTS"
+          export PROJECTS="openstack/devstack-gate $PROJECTS"
+          export PROJECTS="openstack/devstack $PROJECTS"
+          export PROJECTS="openstack/grenade $PROJECTS"
+          export PROJECTS="openstack/pbr $PROJECTS"
+          export PROJECTS="openstack/tripleo-ci $PROJECTS"
           export PROJECTS="openstack/aodh $PROJECTS"
           export PROJECTS="openstack/automaton $PROJECTS"
           export PROJECTS="openstack/ceilometer $PROJECTS"
