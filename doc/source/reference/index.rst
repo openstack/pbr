@@ -3,6 +3,5 @@
 ===================
 
 .. toctree::
-   :glob:
 
-   api/*
+   api/modules

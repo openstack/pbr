@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo']
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinxcontrib.apidoc']
 # make openstackdocstheme optional to not increase the needed dependencies
 try:
     import openstackdocstheme
@@ -71,4 +71,12 @@ latex_documents = [
      '%s.tex' % project,
      '%s Documentation' % project,
      'OpenStack Foundation', 'manual'),
+]
+
+# -- sphinxcontrib.apidoc configuration --------------------------------------
+
+apidoc_module_dir = '../../pbr'
+apidoc_output_dir = 'reference/api'
+apidoc_excluded_paths = [
+    'tests',
 ]

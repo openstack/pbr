@@ -9,4 +9,3 @@
    packagers
    semver
    compatibility
-   history
