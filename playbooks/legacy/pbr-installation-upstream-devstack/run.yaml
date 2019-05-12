@@ -63,7 +63,6 @@
           export PROJECTS="openstack/zaqar $PROJECTS"
           export PROJECTS="openstack/neutron $PROJECTS"
           export PROJECTS="openstack/neutron-fwaas $PROJECTS"
-          export PROJECTS="openstack/neutron-lbaas $PROJECTS"
           export PROJECTS="openstack/octavia $PROJECTS"
           export PROJECTS="openstack/neutron-vpnaas $PROJECTS"
           export PROJECTS="openstack/nova $PROJECTS"
