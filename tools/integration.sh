@@ -30,7 +30,7 @@ REPODIR=${REPODIR:-$BASE/new}
 
 # TODO: Figure out how to get this on to the box properly
 sudo apt-get update
-sudo apt-get install -y --force-yes libvirt-dev libxml2-dev libxslt-dev libmysqlclient-dev libpq-dev libnspr4-dev pkg-config libsqlite3-dev libffi-dev libldap2-dev libsasl2-dev ccache libkrb5-dev liberasurecode-dev libjpeg-dev
+sudo apt-get install -y --force-yes libvirt-dev libxml2-dev libxslt-dev libmysqlclient-dev libpq-dev libnspr4-dev pkg-config libsqlite3-dev libffi-dev libldap2-dev libsasl2-dev ccache libkrb5-dev liberasurecode-dev libjpeg-dev libsystemd-dev libnss3-dev libssl-dev
 
 # FOR numpy / pyyaml
 # The source list has been removed from our apt config so rather than
