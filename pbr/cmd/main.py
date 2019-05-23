@@ -86,7 +86,9 @@ def main():
         version=str(pbr.version.VersionInfo('pbr')))
 
     subparsers = parser.add_subparsers(
-        title='commands', description='valid commands', help='additional help')
+        title='commands', description='valid commands', help='additional help',
+        dest='cmd')
+    subparsers.required = True
 
     cmd_sha = subparsers.add_parser('sha', help='print sha of package')
     cmd_sha.set_defaults(func=get_sha)
