@@ -41,6 +41,13 @@ def unquote_path(path):
     # strip the quotes off individual path components because os.walk cannot
     # handle paths like: "'i like spaces'/'another dir'", so we will pass it
     # "i like spaces/another dir" instead.
+
+    if os.name == 'nt':
+        # shlex cannot handle paths that contain backslashes, treating those
+        # as escape characters.
+        path = path.replace("\\", "/")
+        return "".join(shlex.split(path)).replace("/", "\\")
+
     return "".join(shlex.split(path))
 
 
