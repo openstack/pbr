@@ -77,8 +77,8 @@ class TestWsgiScripts(base.BaseTestCase):
 
     def _test_wsgi(self, cmd_name, output, extra_args=None):
         cmd = os.path.join(self.temp_dir, 'bin', cmd_name)
-        print("Running %s -p 0" % cmd)
-        popen_cmd = [cmd, '-p', '0']
+        print("Running %s -p 0 -b 127.0.0.1" % cmd)
+        popen_cmd = [cmd, '-p', '0', '-b', '127.0.0.1']
         if extra_args:
             popen_cmd.extend(extra_args)
 
