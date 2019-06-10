@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (c) 2015 Hewlett-Packard Development Company, L.P. (HP)
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,6 +14,7 @@
 # under the License.
 
 import io
+import tempfile
 import textwrap
 
 import six
@@ -197,3 +199,21 @@ class TestDataFilesParsing(base.BaseTestCase):
 
         self.assertEqual(self.data_files,
                          list(kwargs['data_files']))
+
+
+class TestUTF8DescriptionFile(base.BaseTestCase):
+    def test_utf8_description_file(self):
+        _, path = tempfile.mkstemp()
+        ini_template = """
+        [metadata]
+        description_file = %s
+        """
+        # Two \n's because pbr strips the file content and adds \n\n
+        # This way we can use it directly as the assert comparison
+        unicode_description = u'UTF8 description: é"…-ʃŋ\'\n\n'
+        ini = ini_template % path
+        with io.open(path, 'w', encoding='utf8') as f:
+            f.write(unicode_description)
+        config = config_from_ini(ini)
+        kwargs = util.setup_cfg_to_setup_kwargs(config)
+        self.assertEqual(unicode_description, kwargs['long_description'])
