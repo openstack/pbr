@@ -670,6 +670,12 @@ class TestVersions(base.BaseTestCase):
         version = packaging._get_version_from_git('1.2.3')
         self.assertEqual('1.2.3', version)
 
+    def test_tagged_version_with_semver_compliant_prerelease(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3-rc2')
+        version = packaging._get_version_from_git()
+        self.assertEqual('1.2.3.0rc2', version)
+
     def test_non_canonical_tagged_version_bump(self):
         self.repo.commit()
         self.repo.tag('1.4')
@@ -725,6 +731,13 @@ class TestVersions(base.BaseTestCase):
         self.repo.commit()
         version = packaging._get_version_from_git('1.2.3')
         self.assertThat(version, matchers.StartsWith('1.2.3.0a2.dev1'))
+
+    def test_untagged_version_after_semver_compliant_prerelease_tag(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3-rc2')
+        self.repo.commit()
+        version = packaging._get_version_from_git()
+        self.assertEqual('1.2.3.0rc3.dev1', version)
 
     def test_preversion_too_low_simple(self):
         # That is, the target version is either already released or not high
