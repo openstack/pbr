@@ -162,6 +162,16 @@ BOOL_FIELDS = ("use_2to3", "zip_safe", "include_package_data")
 CSV_FIELDS = ()
 
 
+def shlex_split(path):
+    if os.name == 'nt':
+        # shlex cannot handle paths that contain backslashes, treating those
+        # as escape characters.
+        path = path.replace("\\", "/")
+        return [x.replace("/", "\\") for x in shlex.split(path)]
+
+    return shlex.split(path)
+
+
 def resolve_name(name):
     """Resolve a name like ``module.object`` to an object and return it.
 
@@ -374,22 +384,22 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
                 for line in in_cfg_value:
                     if '=' in line:
                         key, value = line.split('=', 1)
-                        key_unquoted = shlex.split(key.strip())[0]
+                        key_unquoted = shlex_split(key.strip())[0]
                         key, value = (key_unquoted, value.strip())
                         if key in data_files:
                             # Multiple duplicates of the same package name;
                             # this is for backwards compatibility of the old
                             # format prior to d2to1 0.2.6.
                             prev = data_files[key]
-                            prev.extend(shlex.split(value))
+                            prev.extend(shlex_split(value))
                         else:
-                            prev = data_files[key.strip()] = shlex.split(value)
+                            prev = data_files[key.strip()] = shlex_split(value)
                     elif firstline:
                         raise errors.DistutilsOptionError(
                             'malformed package_data first line %r (misses '
                             '"=")' % line)
                     else:
-                        prev.extend(shlex.split(line.strip()))
+                        prev.extend(shlex_split(line.strip()))
                     firstline = False
                 if arg == 'data_files':
                     # the data_files value is a pointlessly different structure
