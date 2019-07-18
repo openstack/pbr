@@ -22,6 +22,16 @@ from __future__ import unicode_literals
 
 from distutils.command import install as du_install
 from distutils import log
+
+# (hberaud) do not use six here to import urlparse
+# to keep this module free from external dependencies
+# to avoid cross dependencies errors on minimal system
+# free from dependencies.
+try:
+    from urllib.parse import urlparse
+except ImportError:
+    from urlparse import urlparse
+
 import email
 import email.errors
 import os
@@ -98,18 +108,30 @@ def get_reqs_from_files(requirements_files):
     return []
 
 
+def egg_fragment(match):
+    return re.sub(r'(?P<PackageName>[\w.-]+)-'
+                  '(?P<GlobalVersion>'
+                  '(?P<VersionTripple>'
+                  '(?P<Major>0|[1-9][0-9]*)\.'
+                  '(?P<Minor>0|[1-9][0-9]*)\.'
+                  '(?P<Patch>0|[1-9][0-9]*)){1}'
+                  '(?P<Tags>(?:\-'
+                  '(?P<Prerelease>(?:(?=[0]{1}[0-9A-Za-z-]{0})(?:[0]{1})|'
+                  '(?=[1-9]{1}[0-9]*[A-Za-z]{0})(?:[0-9]+)|'
+                  '(?=[0-9]*[A-Za-z-]+[0-9A-Za-z-]*)(?:[0-9A-Za-z-]+)){1}'
+                  '(?:\.(?=[0]{1}[0-9A-Za-z-]{0})(?:[0]{1})|'
+                  '\.(?=[1-9]{1}[0-9]*[A-Za-z]{0})(?:[0-9]+)|'
+                  '\.(?=[0-9]*[A-Za-z-]+[0-9A-Za-z-]*)'
+                  '(?:[0-9A-Za-z-]+))*){1}){0,1}(?:\+'
+                  '(?P<Meta>(?:[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))){0,1}))',
+                  r'\g<PackageName>>=\g<GlobalVersion>',
+                  match.groups()[-1])
+
+
 def parse_requirements(requirements_files=None, strip_markers=False):
 
     if requirements_files is None:
         requirements_files = get_requirements_files()
-
-    def egg_fragment(match):
-        # take a versioned egg fragment and return a
-        # versioned package requirement e.g.
-        # nova-1.2.3 becomes nova>=1.2.3
-        return re.sub(r'([\w.]+)-([\w.-]+)',
-                      r'\1>=\2',
-                      match.groups()[-1])
 
     requirements = []
     for line in get_reqs_from_files(requirements_files):
@@ -141,16 +163,19 @@ def parse_requirements(requirements_files=None, strip_markers=False):
         # -e git://github.com/openstack/nova/master#egg=nova
         # -e git://github.com/openstack/nova/master#egg=nova-1.2.3
         # -e git+https://foo.com/zipball#egg=bar&subdirectory=baz
-        if re.match(r'\s*-e\s+', line):
-            line = re.sub(r'\s*-e\s+.*#egg=([^&]+).*$', egg_fragment, line)
-        # such as:
         # http://github.com/openstack/nova/zipball/master#egg=nova
         # http://github.com/openstack/nova/zipball/master#egg=nova-1.2.3
         # git+https://foo.com/zipball#egg=bar&subdirectory=baz
-        elif re.match(r'\s*(https?|git(\+(https|ssh))?):', line):
-            line = re.sub(r'\s*(https?|git(\+(https|ssh))?):.*#egg=([^&]+).*$',
-                          egg_fragment, line)
+        # git+[ssh]://github.com/openstack/nova/zipball/master#egg=nova-1.2.3
+        # hg+[ssh]://github.com/openstack/nova/zipball/master#egg=nova-1.2.3
+        # svn+[proto]://github.com/openstack/nova/zipball/master#egg=nova-1.2.3
         # -f lines are for index locations, and don't get used here
+        if re.match(r'\s*-e\s+', line):
+            extract = re.match(r'\s*-e\s+(.*)$', line)
+            line = extract.group(1)
+        egg = urlparse(line)
+        if egg.scheme:
+            line = re.sub(r'egg=([^&]+).*$', egg_fragment, egg.fragment)
         elif re.match(r'\s*-f\s+', line):
             line = None
             reason = 'Index Location'
@@ -184,7 +209,7 @@ def parse_dependency_links(requirements_files=None):
         if re.match(r'\s*-[ef]\s+', line):
             dependency_links.append(re.sub(r'\s*-[ef]\s+', '', line))
         # lines that are only urls can go in unmolested
-        elif re.match(r'\s*(https?|git(\+(https|ssh))?):', line):
+        elif re.match(r'^\s*(https?|git(\+(https|ssh))?|svn|hg)\S*:', line):
             dependency_links.append(line)
     return dependency_links
 
