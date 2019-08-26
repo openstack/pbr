@@ -98,7 +98,7 @@ class TestWsgiScripts(base.BaseTestCase):
 
         stdoutdata = p.stdout.readline()  # Available at ...
         print(stdoutdata)
-        m = re.search(b'(http://[^:]+:\d+)/', stdoutdata)
+        m = re.search(br'(http://[^:]+:\d+)/', stdoutdata)
         self.assertIsNotNone(m, "Regex failed to match on %s" % stdoutdata)
 
         stdoutdata = p.stdout.readline()  # DANGER! ...

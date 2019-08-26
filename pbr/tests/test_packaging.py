@@ -108,7 +108,7 @@ class GPGKeyFixture(fixtures.Fixture):
     def setUp(self):
         super(GPGKeyFixture, self).setUp()
         tempdir = self.useFixture(fixtures.TempDir())
-        gnupg_version_re = re.compile('^gpg\s.*\s([\d+])\.([\d+])\.([\d+])')
+        gnupg_version_re = re.compile(r'^gpg\s.*\s([\d+])\.([\d+])\.([\d+])')
         gnupg_version = base._run_cmd(['gpg', '--version'], tempdir.path)
         for line in gnupg_version[0].split('\n'):
             gnupg_version = gnupg_version_re.match(line)
@@ -293,23 +293,23 @@ class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
         self.run_setup('sdist', allow_fail=False)
         with open(os.path.join(self.package_dir, 'ChangeLog'), 'r') as f:
             body = f.read()
-        self.assertIn('\*', body)
+        self.assertIn(r'\*', body)
 
     def test_changelog_handles_dead_links_in_commit(self):
         self.repo.commit(message_content="See os_ for to_do about qemu_.")
         self.run_setup('sdist', allow_fail=False)
         with open(os.path.join(self.package_dir, 'ChangeLog'), 'r') as f:
             body = f.read()
-        self.assertIn('os\_', body)
-        self.assertIn('to\_do', body)
-        self.assertIn('qemu\_', body)
+        self.assertIn(r'os\_', body)
+        self.assertIn(r'to\_do', body)
+        self.assertIn(r'qemu\_', body)
 
     def test_changelog_handles_backticks(self):
         self.repo.commit(message_content="Allow `openstack.org` to `work")
         self.run_setup('sdist', allow_fail=False)
         with open(os.path.join(self.package_dir, 'ChangeLog'), 'r') as f:
             body = f.read()
-        self.assertIn('\`', body)
+        self.assertIn(r'\`', body)
 
     def test_manifest_exclude_honoured(self):
         self.run_setup('sdist', allow_fail=False)

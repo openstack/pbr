@@ -156,9 +156,9 @@ def _clean_changelog_message(msg):
     * Escapes '`' which is interpreted as a literal
     """
 
-    msg = msg.replace('*', '\*')
-    msg = msg.replace('_', '\_')
-    msg = msg.replace('`', '\`')
+    msg = msg.replace('*', r'\*')
+    msg = msg.replace('_', r'\_')
+    msg = msg.replace('`', r'\`')
 
     return msg
 
