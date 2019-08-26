@@ -328,6 +328,7 @@ except ImportError:
 def have_nose():
     return _have_nose
 
+
 _wsgi_text = """#PBR Generated from %(group)r
 
 import threading
@@ -651,6 +652,7 @@ class LocalSDist(sdist.sdist):
             self.filelist.extend(self._files)
             self.filelist.sort()
         sdist.sdist.make_distribution(self)
+
 
 try:
     from pbr import builddoc

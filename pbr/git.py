@@ -276,13 +276,14 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
             changelog = _iter_changelog(changelog)
     if not changelog:
         return
+
     new_changelog = os.path.join(dest_dir, 'ChangeLog')
-    # If there's already a ChangeLog and it's not writable, just use it
-    if (os.path.exists(new_changelog)
-            and not os.access(new_changelog, os.W_OK)):
+    if os.path.exists(new_changelog) and not os.access(new_changelog, os.W_OK):
+        # If there's already a ChangeLog and it's not writable, just use it
         log.info('[pbr] ChangeLog not written (file already'
                  ' exists and it is not writeable)')
         return
+
     log.info('[pbr] Writing ChangeLog')
     with io.open(new_changelog, "w", encoding="utf-8") as changelog_file:
         for release, content in changelog:
@@ -297,13 +298,14 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
                                              'SKIP_GENERATE_AUTHORS')
     if should_skip:
         return
+
     start = time.time()
     old_authors = os.path.join(dest_dir, 'AUTHORS.in')
     new_authors = os.path.join(dest_dir, 'AUTHORS')
-    # If there's already an AUTHORS file and it's not writable, just use it
-    if (os.path.exists(new_authors)
-            and not os.access(new_authors, os.W_OK)):
+    if os.path.exists(new_authors) and not os.access(new_authors, os.W_OK):
+        # If there's already an AUTHORS file and it's not writable, just use it
         return
+
     log.info('[pbr] Generating AUTHORS')
     ignore_emails = '((jenkins|zuul)@review|infra@lists|jenkins@openstack)'
     if git_dir is None:

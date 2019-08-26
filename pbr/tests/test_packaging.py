@@ -765,8 +765,10 @@ class TestVersions(base.BaseTestCase):
 
     def test_get_kwargs_corner_cases(self):
         # No tags:
-        git_dir = self.repo._basedir + '/.git'
-        get_kwargs = lambda tag: packaging._get_increment_kwargs(git_dir, tag)
+
+        def get_kwargs(tag):
+            git_dir = self.repo._basedir + '/.git'
+            return packaging._get_increment_kwargs(git_dir, tag)
 
         def _check_combinations(tag):
             self.repo.commit()
@@ -947,109 +949,109 @@ class TestRepositoryURLDependencies(base.BaseTestCase):
                 'pypi-proj1', 'pypi-proj2']))
 
     def test_egg_fragment(self):
-            expected = [
-                'django-thumborize',
-                'django-thumborize-beta',
-                'django-thumborize2-beta',
-                'django-thumborize2-beta>=4.0.1',
-                'django-thumborize2-beta>=1.0.0-alpha.beta.1',
-                'django-thumborize2-beta>=1.0.0-alpha-a.b-c-long+build.1-aef.1-its-okay',  # noqa
-                'django-thumborize2-beta>=2.0.0-rc.1+build.123',
-                'django-thumborize-beta>=0.0.4',
-                'django-thumborize-beta>=1.2.3',
-                'django-thumborize-beta>=10.20.30',
-                'django-thumborize-beta>=1.1.2-prerelease+meta',
-                'django-thumborize-beta>=1.1.2+meta',
-                'django-thumborize-beta>=1.1.2+meta-valid',
-                'django-thumborize-beta>=1.0.0-alpha',
-                'django-thumborize-beta>=1.0.0-beta',
-                'django-thumborize-beta>=1.0.0-alpha.beta',
-                'django-thumborize-beta>=1.0.0-alpha.beta.1',
-                'django-thumborize-beta>=1.0.0-alpha.1',
-                'django-thumborize-beta>=1.0.0-alpha0.valid',
-                'django-thumborize-beta>=1.0.0-alpha.0valid',
-                'django-thumborize-beta>=1.0.0-alpha-a.b-c-somethinglong+build.1-aef.1-its-okay',  # noqa
-                'django-thumborize-beta>=1.0.0-rc.1+build.1',
-                'django-thumborize-beta>=2.0.0-rc.1+build.123',
-                'django-thumborize-beta>=1.2.3-beta',
-                'django-thumborize-beta>=10.2.3-DEV-SNAPSHOT',
-                'django-thumborize-beta>=1.2.3-SNAPSHOT-123',
-                'django-thumborize-beta>=1.0.0',
-                'django-thumborize-beta>=2.0.0',
-                'django-thumborize-beta>=1.1.7',
-                'django-thumborize-beta>=2.0.0+build.1848',
-                'django-thumborize-beta>=2.0.1-alpha.1227',
-                'django-thumborize-beta>=1.0.0-alpha+beta',
-                'django-thumborize-beta>=1.2.3----RC-SNAPSHOT.12.9.1--.12+788',
-                'django-thumborize-beta>=1.2.3----R-S.12.9.1--.12+meta',
-                'django-thumborize-beta>=1.2.3----RC-SNAPSHOT.12.9.1--.12',
-                'django-thumborize-beta>=1.0.0+0.build.1-rc.10000aaa-kk-0.1',
-                'django-thumborize-beta>=999999999999999999.99999999999999.9999999999999',  # noqa
-                'Proj1',
-                'Proj2>=0.0.1',
-                'Proj3',
-                'Proj4>=0.0.2',
-                'Proj5',
-                'Proj>=0.0.3',
-                'Proj',
-                'Proj>=0.0.4',
-                'Proj',
-                'foo-bar>=1.2.4',
-            ]
-            tests = [
-                'egg=django-thumborize',
-                'egg=django-thumborize-beta',
-                'egg=django-thumborize2-beta',
-                'egg=django-thumborize2-beta-4.0.1',
-                'egg=django-thumborize2-beta-1.0.0-alpha.beta.1',
-                'egg=django-thumborize2-beta-1.0.0-alpha-a.b-c-long+build.1-aef.1-its-okay',  # noqa
-                'egg=django-thumborize2-beta-2.0.0-rc.1+build.123',
-                'egg=django-thumborize-beta-0.0.4',
-                'egg=django-thumborize-beta-1.2.3',
-                'egg=django-thumborize-beta-10.20.30',
-                'egg=django-thumborize-beta-1.1.2-prerelease+meta',
-                'egg=django-thumborize-beta-1.1.2+meta',
-                'egg=django-thumborize-beta-1.1.2+meta-valid',
-                'egg=django-thumborize-beta-1.0.0-alpha',
-                'egg=django-thumborize-beta-1.0.0-beta',
-                'egg=django-thumborize-beta-1.0.0-alpha.beta',
-                'egg=django-thumborize-beta-1.0.0-alpha.beta.1',
-                'egg=django-thumborize-beta-1.0.0-alpha.1',
-                'egg=django-thumborize-beta-1.0.0-alpha0.valid',
-                'egg=django-thumborize-beta-1.0.0-alpha.0valid',
-                'egg=django-thumborize-beta-1.0.0-alpha-a.b-c-somethinglong+build.1-aef.1-its-okay',  # noqa
-                'egg=django-thumborize-beta-1.0.0-rc.1+build.1',
-                'egg=django-thumborize-beta-2.0.0-rc.1+build.123',
-                'egg=django-thumborize-beta-1.2.3-beta',
-                'egg=django-thumborize-beta-10.2.3-DEV-SNAPSHOT',
-                'egg=django-thumborize-beta-1.2.3-SNAPSHOT-123',
-                'egg=django-thumborize-beta-1.0.0',
-                'egg=django-thumborize-beta-2.0.0',
-                'egg=django-thumborize-beta-1.1.7',
-                'egg=django-thumborize-beta-2.0.0+build.1848',
-                'egg=django-thumborize-beta-2.0.1-alpha.1227',
-                'egg=django-thumborize-beta-1.0.0-alpha+beta',
-                'egg=django-thumborize-beta-1.2.3----RC-SNAPSHOT.12.9.1--.12+788',  # noqa
-                'egg=django-thumborize-beta-1.2.3----R-S.12.9.1--.12+meta',
-                'egg=django-thumborize-beta-1.2.3----RC-SNAPSHOT.12.9.1--.12',
-                'egg=django-thumborize-beta-1.0.0+0.build.1-rc.10000aaa-kk-0.1',  # noqa
-                'egg=django-thumborize-beta-999999999999999999.99999999999999.9999999999999',  # noqa
-                'egg=Proj1',
-                'egg=Proj2-0.0.1',
-                'egg=Proj3',
-                'egg=Proj4-0.0.2',
-                'egg=Proj5',
-                'egg=Proj-0.0.3',
-                'egg=Proj',
-                'egg=Proj-0.0.4',
-                'egg=Proj',
-                'egg=foo-bar-1.2.4',
-            ]
-            for index, test in enumerate(tests):
-                self.assertEqual(expected[index],
-                                 re.sub(r'egg=([^&]+).*$',
-                                        packaging.egg_fragment,
-                                        test))
+        expected = [
+            'django-thumborize',
+            'django-thumborize-beta',
+            'django-thumborize2-beta',
+            'django-thumborize2-beta>=4.0.1',
+            'django-thumborize2-beta>=1.0.0-alpha.beta.1',
+            'django-thumborize2-beta>=1.0.0-alpha-a.b-c-long+build.1-aef.1-its-okay',  # noqa
+            'django-thumborize2-beta>=2.0.0-rc.1+build.123',
+            'django-thumborize-beta>=0.0.4',
+            'django-thumborize-beta>=1.2.3',
+            'django-thumborize-beta>=10.20.30',
+            'django-thumborize-beta>=1.1.2-prerelease+meta',
+            'django-thumborize-beta>=1.1.2+meta',
+            'django-thumborize-beta>=1.1.2+meta-valid',
+            'django-thumborize-beta>=1.0.0-alpha',
+            'django-thumborize-beta>=1.0.0-beta',
+            'django-thumborize-beta>=1.0.0-alpha.beta',
+            'django-thumborize-beta>=1.0.0-alpha.beta.1',
+            'django-thumborize-beta>=1.0.0-alpha.1',
+            'django-thumborize-beta>=1.0.0-alpha0.valid',
+            'django-thumborize-beta>=1.0.0-alpha.0valid',
+            'django-thumborize-beta>=1.0.0-alpha-a.b-c-somethinglong+build.1-aef.1-its-okay',  # noqa
+            'django-thumborize-beta>=1.0.0-rc.1+build.1',
+            'django-thumborize-beta>=2.0.0-rc.1+build.123',
+            'django-thumborize-beta>=1.2.3-beta',
+            'django-thumborize-beta>=10.2.3-DEV-SNAPSHOT',
+            'django-thumborize-beta>=1.2.3-SNAPSHOT-123',
+            'django-thumborize-beta>=1.0.0',
+            'django-thumborize-beta>=2.0.0',
+            'django-thumborize-beta>=1.1.7',
+            'django-thumborize-beta>=2.0.0+build.1848',
+            'django-thumborize-beta>=2.0.1-alpha.1227',
+            'django-thumborize-beta>=1.0.0-alpha+beta',
+            'django-thumborize-beta>=1.2.3----RC-SNAPSHOT.12.9.1--.12+788',
+            'django-thumborize-beta>=1.2.3----R-S.12.9.1--.12+meta',
+            'django-thumborize-beta>=1.2.3----RC-SNAPSHOT.12.9.1--.12',
+            'django-thumborize-beta>=1.0.0+0.build.1-rc.10000aaa-kk-0.1',
+            'django-thumborize-beta>=999999999999999999.99999999999999.9999999999999',  # noqa
+            'Proj1',
+            'Proj2>=0.0.1',
+            'Proj3',
+            'Proj4>=0.0.2',
+            'Proj5',
+            'Proj>=0.0.3',
+            'Proj',
+            'Proj>=0.0.4',
+            'Proj',
+            'foo-bar>=1.2.4',
+        ]
+        tests = [
+            'egg=django-thumborize',
+            'egg=django-thumborize-beta',
+            'egg=django-thumborize2-beta',
+            'egg=django-thumborize2-beta-4.0.1',
+            'egg=django-thumborize2-beta-1.0.0-alpha.beta.1',
+            'egg=django-thumborize2-beta-1.0.0-alpha-a.b-c-long+build.1-aef.1-its-okay',  # noqa
+            'egg=django-thumborize2-beta-2.0.0-rc.1+build.123',
+            'egg=django-thumborize-beta-0.0.4',
+            'egg=django-thumborize-beta-1.2.3',
+            'egg=django-thumborize-beta-10.20.30',
+            'egg=django-thumborize-beta-1.1.2-prerelease+meta',
+            'egg=django-thumborize-beta-1.1.2+meta',
+            'egg=django-thumborize-beta-1.1.2+meta-valid',
+            'egg=django-thumborize-beta-1.0.0-alpha',
+            'egg=django-thumborize-beta-1.0.0-beta',
+            'egg=django-thumborize-beta-1.0.0-alpha.beta',
+            'egg=django-thumborize-beta-1.0.0-alpha.beta.1',
+            'egg=django-thumborize-beta-1.0.0-alpha.1',
+            'egg=django-thumborize-beta-1.0.0-alpha0.valid',
+            'egg=django-thumborize-beta-1.0.0-alpha.0valid',
+            'egg=django-thumborize-beta-1.0.0-alpha-a.b-c-somethinglong+build.1-aef.1-its-okay',  # noqa
+            'egg=django-thumborize-beta-1.0.0-rc.1+build.1',
+            'egg=django-thumborize-beta-2.0.0-rc.1+build.123',
+            'egg=django-thumborize-beta-1.2.3-beta',
+            'egg=django-thumborize-beta-10.2.3-DEV-SNAPSHOT',
+            'egg=django-thumborize-beta-1.2.3-SNAPSHOT-123',
+            'egg=django-thumborize-beta-1.0.0',
+            'egg=django-thumborize-beta-2.0.0',
+            'egg=django-thumborize-beta-1.1.7',
+            'egg=django-thumborize-beta-2.0.0+build.1848',
+            'egg=django-thumborize-beta-2.0.1-alpha.1227',
+            'egg=django-thumborize-beta-1.0.0-alpha+beta',
+            'egg=django-thumborize-beta-1.2.3----RC-SNAPSHOT.12.9.1--.12+788',  # noqa
+            'egg=django-thumborize-beta-1.2.3----R-S.12.9.1--.12+meta',
+            'egg=django-thumborize-beta-1.2.3----RC-SNAPSHOT.12.9.1--.12',
+            'egg=django-thumborize-beta-1.0.0+0.build.1-rc.10000aaa-kk-0.1',  # noqa
+            'egg=django-thumborize-beta-999999999999999999.99999999999999.9999999999999',  # noqa
+            'egg=Proj1',
+            'egg=Proj2-0.0.1',
+            'egg=Proj3',
+            'egg=Proj4-0.0.2',
+            'egg=Proj5',
+            'egg=Proj-0.0.3',
+            'egg=Proj',
+            'egg=Proj-0.0.4',
+            'egg=Proj',
+            'egg=foo-bar-1.2.4',
+        ]
+        for index, test in enumerate(tests):
+            self.assertEqual(expected[index],
+                             re.sub(r'egg=([^&]+).*$',
+                                    packaging.egg_fragment,
+                                    test))
 
     def test_parse_repo_url_requirements(self):
         result = packaging.parse_requirements([self.requirements])

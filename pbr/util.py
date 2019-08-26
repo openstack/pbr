@@ -219,10 +219,11 @@ def cfg_to_args(path='setup.cfg', script_args=()):
     """
 
     # The method source code really starts here.
-    if sys.version_info >= (3, 2):
-            parser = configparser.ConfigParser()
+    if sys.version_info >= (3, 0):
+        parser = configparser.ConfigParser()
     else:
-            parser = configparser.SafeConfigParser()
+        parser = configparser.SafeConfigParser()
+
     if not os.path.exists(path):
         raise errors.DistutilsFileError("file '%s' does not exist" %
                                         os.path.abspath(path))
