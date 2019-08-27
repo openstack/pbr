@@ -120,9 +120,9 @@ class GPGKeyFixture(fixtures.Fixture):
         else:
             if gnupg_version is None:
                 gnupg_version = (0, 0, 0)
-        config_file = tempdir.path + '/key-config'
-        f = open(config_file, 'wt')
-        try:
+
+        config_file = os.path.join(tempdir.path, 'key-config')
+        with open(config_file, 'wt') as f:
             if gnupg_version[0] == 2 and gnupg_version[1] >= 1:
                 f.write("""
                 %no-protection
@@ -138,8 +138,7 @@ class GPGKeyFixture(fixtures.Fixture):
             Preferences: (setpref)
             %commit
             """)
-        finally:
-            f.close()
+
         # Note that --quick-random (--debug-quick-random in GnuPG 2.x)
         # does not have a corresponding preferences file setting and
         # must be passed explicitly on the command line instead
@@ -149,6 +148,7 @@ class GPGKeyFixture(fixtures.Fixture):
             gnupg_random = '--debug-quick-random'
         else:
             gnupg_random = ''
+
         base._run_cmd(
             ['gpg', '--gen-key', '--batch', gnupg_random, config_file],
             tempdir.path)
