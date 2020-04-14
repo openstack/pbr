@@ -97,10 +97,6 @@ name = test_project
 [entry_points]
 console_scripts =
     test_cmd = test_project:main
-
-[global]
-setup-hooks =
-    pbr.hooks.setup_hook
 EOF
 
 cat <<EOF > setup.py
@@ -115,18 +111,19 @@ from socket import error as SocketError
 try:
     setuptools.setup(
         setup_requires=['pbr'],
-        pbr=True)
+        pbr=True,
+    )
 except (SocketError, Timeout):
     setuptools.setup(
         setup_requires=['pbr'],
-        pbr=True)
-
+        pbr=True,
+    )
 EOF
 
 mkdir test_project
 cat <<EOF > test_project/__init__.py
 def main():
-    print "Test cmd"
+    print("Test cmd")
 EOF
 
 epvenv=$eptest/venv
@@ -165,6 +162,8 @@ export REPODIR
 export WHEELHOUSE
 export OS_TEST_TIMEOUT=600
 cd $REPODIR/pbr
-tox -epy27 --notest
-.tox/py27/bin/python -m pip install ${REPODIR}/requirements
-tox -epy27 -- test_integration
+mkvenv .venv
+source .venv/bin/activate
+pip install -r test-requirements.txt
+pip install ${REPODIR}/requirements
+stestr run --suppress-attachments test_integration
