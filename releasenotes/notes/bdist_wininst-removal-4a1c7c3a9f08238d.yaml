@@ -1,0 +1,9 @@
+---
+other:
+  - |
+    Support to generate bdist_wininst packages has been removed. As of Python
+    3.8 and Setuptools 47.2 it's deprecated in favor of just using wheels for
+    Windows platform packaging. See
+    https://discuss.python.org/t/deprecate-bdist-wininst/ and
+    https://discuss.python.org/t/remove-distutils-bdist-wininst-command/ for
+    more details.
