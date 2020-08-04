@@ -9,4 +9,5 @@
    packagers
    semver
    compatibility
+   releasenotes
    history
