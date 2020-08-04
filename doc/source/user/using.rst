@@ -57,7 +57,7 @@ versions of `setuptools`__. A simple sample can be found in *pbr*'s own
     project_urls =
         Bug Tracker = https://bugs.launchpad.net/pbr/
         Documentation = https://docs.openstack.org/pbr/
-        Source Code = https://git.openstack.org/cgit/openstack-dev/pbr/
+        Source Code = https://opendev.org/openstack/pbr
     license = Apache-2
     classifier =
         Development Status :: 4 - Beta

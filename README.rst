@@ -32,9 +32,8 @@ them as quickly as possible.
 
 * License: Apache License, Version 2.0
 * Documentation: https://docs.openstack.org/pbr/latest/
-* Source: https://git.openstack.org/cgit/openstack-dev/pbr
+* Source: https://opendev.org/openstack/pbr
 * Bugs: https://bugs.launchpad.net/pbr
-* Change Log: https://docs.openstack.org/pbr/latest/user/history.html
 
 .. _d2to1: https://pypi.python.org/pypi/d2to1
 .. _distutils2: https://pypi.python.org/pypi/Distutils2
