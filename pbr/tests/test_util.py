@@ -146,7 +146,7 @@ class TestKeywordsParsingScenarios(base.BaseTestCase):
                     three
                 """,  # noqa: E501
             'expected_keywords': ['one', 'two', 'three'],
-            },
+        },
         ),
         ('inline_keywords', {
             'config_text': """

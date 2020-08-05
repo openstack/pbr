@@ -548,7 +548,7 @@ def get_extension_modules(config):
         else:
             # Backwards compatibility for old syntax; don't use this though
             labels = section.split('=', 1)
-        labels = [l.strip() for l in labels]
+        labels = [label.strip() for label in labels]
         if (len(labels) == 2) and (labels[0] == 'extension'):
             ext_args = {}
             for field in EXTENSION_FIELDS:
