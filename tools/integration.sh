@@ -13,7 +13,7 @@ function mkvenv {
     venv=$1
 
     rm -rf $venv
-    virtualenv $venv
+    virtualenv -p python3 $venv
     $venv/bin/pip install $PIPFLAGS -U $PIPVERSION wheel requests
 
     # If a change to PBR is being tested, preinstall the wheel for it
@@ -22,11 +22,11 @@ function mkvenv {
     fi
 }
 
-# BASE should be a directory with a subdir called "new" and in that
+# BASE should be a directory with a subdir called "openstack" and in that
 #      dir, there should be a git repository for every entry in PROJECTS
-BASE=${BASE:-/opt/stack}
+BASE=${BASE:-/home/zuul/src/opendev.org/}
 
-REPODIR=${REPODIR:-$BASE/new}
+REPODIR=${REPODIR:-$BASE/openstack}
 
 # TODO: Figure out how to get this on to the box properly
 sudo apt-get update
