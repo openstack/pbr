@@ -34,6 +34,7 @@ them as quickly as possible.
 * Documentation: https://docs.openstack.org/pbr/latest/
 * Source: https://opendev.org/openstack/pbr
 * Bugs: https://bugs.launchpad.net/pbr
+* ChangeLog: https://docs.openstack.org/pbr/latest/user/history.html
 
 .. _d2to1: https://pypi.python.org/pypi/d2to1
 .. _distutils2: https://pypi.python.org/pypi/Distutils2
