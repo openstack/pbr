@@ -41,13 +41,16 @@ release = ''
 # a list of builtin themes.
 html_theme = 'openstackdocs'
 
-# If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
-# using the given strftime format.
-html_last_updated_fmt = '%Y-%m-%d %H:%M'
-
-
 # -- Options for openstackdocstheme ---------------------------------------
 
-repository_name = 'openstack-dev/pbr'
+# Deprecated options for openstackdocstheme < 2.2.0, can be removed once
+# pbr stops supporting py27.
+repository_name = 'openstack/pbr'
 bug_project = 'pbr'
 bug_tag = ''
+
+# New options with openstackdocstheme >=2.2.0
+openstackdocs_repo_name = 'openstack/pbr'
+openstackdocs_auto_name = False
+openstackdocs_bug_project = 'pbr'
+openstackdocs_bug_tag = ''

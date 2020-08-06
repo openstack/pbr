@@ -17,10 +17,17 @@ except ImportError:
     openstackdocstheme = None
 
 # openstackdocstheme options
+
+# Deprecated options for docstheme < 2.2.0, can be removed once
+# pbr stops supporting py27.
 repository_name = 'openstack/pbr'
 bug_project = 'pbr'
 bug_tag = ''
-html_last_updated_fmt = '%Y-%m-%d %H:%M'
+# New options with openstackdocstheme >=2.2.0
+openstackdocs_repo_name = 'openstack/pbr'
+openstackdocs_auto_name = False
+openstackdocs_bug_project = 'pbr'
+openstackdocs_bug_tag = ''
 
 # autodoc generation is a bit aggressive and a nuisance when doing heavy
 # text edit cycles.
