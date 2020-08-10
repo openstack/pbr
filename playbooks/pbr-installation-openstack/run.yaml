@@ -1,0 +1,6 @@
+- hosts: all
+  tasks:
+    - shell:
+        cmd: |
+          export PBR_PIP_VERSION="{{ pbr_pip_version }}"
+          bash -xe /home/zuul/src/opendev.org/openstack/pbr/tools/integration.sh $(cat /home/zuul/src/opendev.org/openstack/requirements/projects.txt)
