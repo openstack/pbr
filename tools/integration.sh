@@ -160,7 +160,7 @@ export PBRVERSION
 export PROJECTS
 export REPODIR
 export WHEELHOUSE
-export OS_TEST_TIMEOUT=600
+export OS_TEST_TIMEOUT=900
 cd $REPODIR/pbr
 mkvenv .venv
 source .venv/bin/activate
