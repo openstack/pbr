@@ -456,7 +456,11 @@ class LocalInstallScripts(install_scripts.install_scripts):
     command_name = 'install_scripts'
 
     def _make_wsgi_scripts_only(self, dist, executable, is_wininst):
-        header = easy_install.get_script_header("", executable, is_wininst)
+        # get_script_header() is deprecated since Setuptools 12.0
+        try:
+            header = easy_install.ScriptWriter.get_header("", executable)
+        except AttributeError:
+            header = easy_install.get_script_header("", executable, is_wininst)
         wsgi_script_template = ENTRY_POINTS_MAP['wsgi_scripts']
         for name, ep in dist.get_entry_map('wsgi_scripts').items():
             content = generate_script(
