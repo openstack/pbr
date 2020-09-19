@@ -1,0 +1,9 @@
+---
+other:
+  - |
+    The 2to3 conversion utility has been long discouraged in favor of writing
+    multi-version-capable scripts. As of Setuptools 46.2.0 it's deprecated and
+    slated for removal from the Python 3.10 standard library. Projects which
+    still need it are encouraged to perform conversion prior to packaging. See
+    https://bugs.python.org/issue40360 and
+    https://github.com/pypa/setuptools/issues/2086 for more details.

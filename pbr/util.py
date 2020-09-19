@@ -128,7 +128,6 @@ D1_D2_SETUP_ARGS = {
     "cmdclass": ("global", "commands"),
     # Not supported in distutils2, but provided for
     # backwards compatibility with setuptools
-    "use_2to3": ("backwards_compat", "use_2to3"),
     "zip_safe": ("backwards_compat", "zip_safe"),
     "tests_require": ("backwards_compat", "tests_require"),
     "dependency_links": ("backwards_compat",),
@@ -158,7 +157,7 @@ MULTI_FIELDS = ("classifiers",
 MAP_FIELDS = ("project_urls",)
 
 # setup() arguments that contain boolean values
-BOOL_FIELDS = ("use_2to3", "zip_safe", "include_package_data")
+BOOL_FIELDS = ("zip_safe", "include_package_data")
 
 CSV_FIELDS = ()
 
