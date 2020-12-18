@@ -110,7 +110,6 @@
       - lib-forward-testing
       - lib-forward-testing-python3
       - openstack-cover-jobs
-      - openstack-lower-constraints-jobs
       - openstack-python-jobs
       - openstack-python3-ussuri-jobs
       - periodic-stable-jobs
