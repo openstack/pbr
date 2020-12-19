@@ -48,7 +48,10 @@ import tempfile
 import textwrap
 
 import fixtures
-import mock
+try:
+    from unittest import mock
+except ImportError:
+    import mock
 import pkg_resources
 import six
 import testscenarios
