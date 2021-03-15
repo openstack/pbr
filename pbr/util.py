@@ -92,49 +92,49 @@ _VERSION_SPEC_RE = re.compile(r'\s*(.*?)\s*\((.*)\)\s*$')
 # Mappings from setup() keyword arguments to setup.cfg options;
 # The values are (section, option) tuples, or simply (section,) tuples if
 # the option has the same name as the setup() argument
-D1_D2_SETUP_ARGS = (
-    ('name', ('metadata',)),
-    ('version', ('metadata',)),
-    ('author', ('metadata',)),
-    ('author_email', ('metadata',)),
-    ('maintainer', ('metadata',)),
-    ('maintainer_email', ('metadata',)),
-    ('url', ('metadata', 'home_page')),
-    ('project_urls', ('metadata',)),
-    ('description', ('metadata', 'summary')),
-    ('keywords', ('metadata',)),
-    ('long_description', ('metadata', 'description')),
+CFG_TO_PY_SETUP_ARGS = (
+    (('metadata', 'name'), 'name'),
+    (('metadata', 'version'), 'version'),
+    (('metadata', 'author'), 'author'),
+    (('metadata', 'author_email'), 'author_email'),
+    (('metadata', 'maintainer'), 'maintainer'),
+    (('metadata', 'maintainer_email'), 'maintainer_email'),
+    (('metadata', 'home_page'), 'url'),
+    (('metadata', 'project_urls'), 'project_urls'),
+    (('metadata', 'summary'), 'description'),
+    (('metadata', 'keywords'), 'keywords'),
+    (('metadata', 'description'), 'long_description'),
     (
-        'long_description_content_type',
         ('metadata', 'description_content_type'),
+        'long_description_content_type',
     ),
-    ('download_url', ('metadata',)),
-    ('classifiers', ('metadata', 'classifier')),
-    ('platforms', ('metadata', 'platform')),  # **
-    ('license', ('metadata',)),
+    (('metadata', 'download_url'), 'download_url'),
+    (('metadata', 'classifier'), 'classifiers'),
+    (('metadata', 'platform'), 'platforms'),  # **
+    (('metadata', 'license'), 'license'),
     # Use setuptools install_requires, not
     # broken distutils requires
-    ('install_requires', ('metadata', 'requires_dist')),
-    ('setup_requires', ('metadata', 'setup_requires_dist')),
-    ('python_requires', ('metadata',)),
-    ('python_requires', ('metadata', 'requires_python')),
-    ('provides', ('metadata', 'provides_dist')),  # **
-    ('provides_extras', ('metadata',)),
-    ('obsoletes', ('metadata', 'obsoletes_dist')),  # **
-    ('package_dir', ('files', 'packages_root')),
-    ('packages', ('files',)),
-    ('package_data', ('files',)),
-    ('namespace_packages', ('files',)),
-    ('data_files', ('files',)),
-    ('scripts', ('files',)),
-    ('py_modules', ('files', 'modules')),   # **
-    ('cmdclass', ('global', 'commands')),
+    (('metadata', 'requires_dist'), 'install_requires'),
+    (('metadata', 'setup_requires_dist'), 'setup_requires'),
+    (('metadata', 'python_requires'), 'python_requires'),
+    (('metadata', 'requires_python'), 'python_requires'),
+    (('metadata', 'provides_dist'), 'provides'),  # **
+    (('metadata', 'provides_extras'), 'provides_extras'),
+    (('metadata', 'obsoletes_dist'), 'obsoletes'),  # **
+    (('files', 'packages_root'), 'package_dir'),
+    (('files', 'packages'), 'packages'),
+    (('files', 'package_data'), 'package_data'),
+    (('files', 'namespace_packages'), 'namespace_packages'),
+    (('files', 'data_files'), 'data_files'),
+    (('files', 'scripts'), 'scripts'),
+    (('files', 'modules'), 'py_modules'),   # **
+    (('global', 'commands'), 'cmdclass'),
     # Not supported in distutils2, but provided for
     # backwards compatibility with setuptools
-    ('zip_safe', ('backwards_compat', 'zip_safe')),
-    ('tests_require', ('backwards_compat', 'tests_require')),
-    ('dependency_links', ('backwards_compat',)),
-    ('include_package_data', ('backwards_compat',)),
+    (('backwards_compat', 'zip_safe'), 'zip_safe'),
+    (('backwards_compat', 'tests_require'), 'tests_require'),
+    (('backwards_compat', 'dependency_links'), 'dependency_links'),
+    (('backwards_compat', 'include_package_data'), 'include_package_data'),
 )
 
 # setup() arguments that can have multiple values in setup.cfg
@@ -315,15 +315,8 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
     # parse env_markers.
     all_requirements = {}
 
-    for arg, alias in D1_D2_SETUP_ARGS:
-        if len(alias) == 2:
-            # The distutils field name is different than distutils2's.
-            section, option = alias
-
-        elif len(alias) == 1:
-            # The distutils field name is the same as distutils2's.
-            section = alias[0]
-            option = arg
+    for alias, arg in CFG_TO_PY_SETUP_ARGS:
+        section, option = alias
 
         in_cfg_value = has_get_option(config, section, option)
         if not in_cfg_value and arg == "long_description":
