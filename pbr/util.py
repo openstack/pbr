@@ -406,7 +406,7 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
                 if arg == 'data_files':
                     # the data_files value is a pointlessly different structure
                     # from the package_data value
-                    data_files = data_files.items()
+                    data_files = sorted(data_files.items())
                 in_cfg_value = data_files
             elif arg == 'cmdclass':
                 cmdclass = {}
