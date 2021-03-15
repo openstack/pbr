@@ -321,28 +321,26 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
             section, option = alias
 
         elif len(alias) == 1:
-            # The distutils field name is the same thant distutils2's.
+            # The distutils field name is the same as distutils2's.
             section = alias[0]
             option = arg
 
         in_cfg_value = has_get_option(config, section, option)
+        if not in_cfg_value and arg == "long_description":
+            in_cfg_value = has_get_option(config, section, "description_file")
+            if in_cfg_value:
+                in_cfg_value = split_multiline(in_cfg_value)
+                value = ''
+                for filename in in_cfg_value:
+                    description_file = io.open(filename, encoding='utf-8')
+                    try:
+                        value += description_file.read().strip() + '\n\n'
+                    finally:
+                        description_file.close()
+                in_cfg_value = value
+
         if not in_cfg_value:
-            # There is no such option in the setup.cfg
-            if arg == "long_description":
-                in_cfg_value = has_get_option(config, section,
-                                              "description_file")
-                if in_cfg_value:
-                    in_cfg_value = split_multiline(in_cfg_value)
-                    value = ''
-                    for filename in in_cfg_value:
-                        description_file = io.open(filename, encoding='utf-8')
-                        try:
-                            value += description_file.read().strip() + '\n\n'
-                        finally:
-                            description_file.close()
-                    in_cfg_value = value
-            else:
-                continue
+            continue
 
         if arg in CSV_FIELDS:
             in_cfg_value = split_csv(in_cfg_value)
