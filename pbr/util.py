@@ -117,6 +117,7 @@ D1_D2_SETUP_ARGS = (
     ('install_requires', ('metadata', 'requires_dist')),
     ('setup_requires', ('metadata', 'setup_requires_dist')),
     ('python_requires', ('metadata',)),
+    ('python_requires', ('metadata', 'requires_python')),
     ('provides', ('metadata', 'provides_dist')),  # **
     ('provides_extras', ('metadata',)),
     ('obsoletes', ('metadata', 'obsoletes_dist')),  # **
