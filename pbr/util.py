@@ -88,10 +88,8 @@ import pbr.hooks
 # predicates in ()
 _VERSION_SPEC_RE = re.compile(r'\s*(.*?)\s*\((.*)\)\s*$')
 
-
-# Mappings from setup() keyword arguments to setup.cfg options;
-# The values are (section, option) tuples, or simply (section,) tuples if
-# the option has the same name as the setup() argument
+# Mappings from setup.cfg options, in (section, option) form, to setup()
+# keyword arguments
 CFG_TO_PY_SETUP_ARGS = (
     (('metadata', 'name'), 'name'),
     (('metadata', 'version'), 'version'),
