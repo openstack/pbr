@@ -9,7 +9,7 @@ default_language_version:
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: ebc15addedad713c86ef18ae9632c88e187dd0af  # v3.1.0
+    rev: 9136088a246768144165fcc3ecc3d31bb686920a # v3.3.0
     hooks:
       - id: trailing-whitespace
       # Replaces or checks mixed line ending
