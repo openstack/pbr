@@ -172,7 +172,7 @@ class Venv(fixtures.Fixture):
         """
         self._reason = reason
         if modules == ():
-            modules = ['pip', 'wheel', PBR_ROOT]
+            modules = ['pip', 'wheel', 'build', PBR_ROOT]
         self.modules = modules
         if pip_cmd is None:
             self.pip_cmd = ['-m', 'pip', '-v', 'install']
@@ -920,6 +920,56 @@ class TestRequirementParsing(base.BaseTestCase):
                 for s in generated_requirements[section]
             ]
             self.assertEqual(exp_parsed, gen_parsed)
+
+
+class TestPEP517Support(base.BaseTestCase):
+    def test_pep_517_support(self):
+        pkgs = {
+            'test_pep517':
+                {
+                    'requirements.txt': textwrap.dedent("""\
+                        sphinx
+                        iso8601
+                    """),
+                    # Override no setup.py.
+                    'setup.py': '',
+                    'setup.cfg': textwrap.dedent("""\
+                        [metadata]
+                        name = test_pep517
+                        summary = A tiny test project
+                        author = PBR Team
+                        author-email = foo@example.com
+                        home-page = https://example.com/
+                        classifier =
+                            Intended Audience :: Information Technology
+                            Intended Audience :: System Administrators
+                            License :: OSI Approved :: Apache Software License
+                            Operating System :: POSIX :: Linux
+                            Programming Language :: Python
+                            Programming Language :: Python :: 2
+                            Programming Language :: Python :: 2.7
+                            Programming Language :: Python :: 3
+                            Programming Language :: Python :: 3.6
+                            Programming Language :: Python :: 3.7
+                            Programming Language :: Python :: 3.8
+                    """),
+                    'pyproject.toml': textwrap.dedent("""\
+                        [build-system]
+                        requires = ["pbr", "setuptools>=36.6.0", "wheel"]
+                        build-backend = "pbr.build"
+                    """)},
+        }
+        pkg_dirs = self.useFixture(CreatePackages(pkgs)).package_dirs
+        pkg_dir = pkg_dirs['test_pep517']
+        venv = self.useFixture(Venv('PEP517'))
+
+        # Test building sdists and wheels works. Note we do not use pip here
+        # because pip will forcefully install the latest version of PBR on
+        # pypi to satisfy the build-system requires. This means we can't self
+        # test changes using pip. Build with --no-isolation appears to avoid
+        # this problem.
+        self._run_cmd(venv.python, ('-m', 'build', '--no-isolation', '.'),
+                      allow_fail=False, cwd=pkg_dir)
 
 
 class TestRepositoryURLDependencies(base.BaseTestCase):

@@ -34,6 +34,18 @@ something like this::
    While one can pass any arguments supported by setuptools to ``setup()``,
    any conflicting arguments supplied in ``setup.cfg`` will take precedence.
 
+``pyproject.toml``
+------------------
+
+As an alternative to writing a ``setup.py`` you can instead setup PBR
+through the PEP 517 build-system configuration in ``pyproject.toml``.
+Your build-system block in ``pyproject.toml`` will need to look something
+like this::
+
+    [build-system]
+    requires = ["pbr>=5.7.0", "setuptools>=36.6.0", "wheel"]
+    build-backend = "pbr.build"
+
 .. _setup_cfg:
 
 ``setup.cfg``

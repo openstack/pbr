@@ -1,0 +1,9 @@
+# PBR doesn't use the pyproject.toml interface internally yet as
+# fixing issues in the system will be difficult if PBR itself
+# depends on it. We will put this file into place at pyproject.toml
+# once we are more confident it works generally.
+
+[build-system]
+requires = ["setuptools>=36.6.0", "wheel"]
+build-backend = "pbr.build"
+backend-path = ["."]

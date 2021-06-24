@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    PBR now includes a PEP 517 build-backend and can be used in
+    pyproject.toml build-system configuration. Setuptools continues
+    to be the underlying mechanism with PBR acting as a driver via
+    PEP 517 entrypoints.
