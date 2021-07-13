@@ -17,7 +17,6 @@
       - openstack/debtcollector
       - openstack/dib-utils
       - openstack/diskimage-builder
-      - openstack/django_openstack_auth
       - openstack/futurist
       - openstack/glance
       - openstack/glance_store
