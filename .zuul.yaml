@@ -108,19 +108,28 @@
     templates:
       - lib-forward-testing
       - lib-forward-testing-python3
-      - openstack-cover-jobs
-      - openstack-python-jobs
-      - openstack-python3-ussuri-jobs
       - periodic-stable-jobs
       - publish-openstack-docs-pti
     check:
       jobs:
+        - openstack-tox-pep8
+        - openstack-tox-cover
+        - openstack-tox-py36
+        - openstack-tox-py37
+        - openstack-tox-py38
+        - openstack-tox-py39
         - pbr-installation-openstack
         - pbr-installation-openstack-pip-dev
         - tempest-full:
             override-checkout: stable/train
     gate:
       jobs:
+        - openstack-tox-pep8
+        - openstack-tox-cover
+        - openstack-tox-py36
+        - openstack-tox-py37
+        - openstack-tox-py38
+        - openstack-tox-py39
         - pbr-installation-openstack
         - pbr-installation-openstack-pip-dev
         - tempest-full:
