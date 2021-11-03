@@ -172,11 +172,10 @@ class Venv(fixtures.Fixture):
         """
         self._reason = reason
         if modules == ():
-            pbr = 'file://%s#egg=pbr' % PBR_ROOT
-            modules = ['pip', 'wheel', pbr]
+            modules = ['pip', 'wheel', PBR_ROOT]
         self.modules = modules
         if pip_cmd is None:
-            self.pip_cmd = ['-m', 'pip', 'install']
+            self.pip_cmd = ['-m', 'pip', '-v', 'install']
         else:
             self.pip_cmd = pip_cmd
 
@@ -230,6 +229,9 @@ class CreatePackages(fixtures.Fixture):
         self.packages = packages
 
     def _writeFile(self, directory, file_name, contents):
+        if not contents:
+            # We want to be able to override not having files
+            return
         path = os.path.abspath(os.path.join(directory, file_name))
         path_dir = os.path.dirname(path)
         if not os.path.exists(path_dir):
