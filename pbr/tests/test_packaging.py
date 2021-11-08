@@ -229,9 +229,6 @@ class CreatePackages(fixtures.Fixture):
         self.packages = packages
 
     def _writeFile(self, directory, file_name, contents):
-        if not contents:
-            # We want to be able to override not having files
-            return
         path = os.path.abspath(os.path.join(directory, file_name))
         path_dir = os.path.dirname(path)
         if not os.path.exists(path_dir):
@@ -924,6 +921,8 @@ class TestRequirementParsing(base.BaseTestCase):
 
 class TestPEP517Support(base.BaseTestCase):
     def test_pep_517_support(self):
+        # Note that the current PBR PEP517 entrypoints rely on a valid
+        # PBR setup.py existing.
         pkgs = {
             'test_pep517':
                 {
@@ -931,8 +930,7 @@ class TestPEP517Support(base.BaseTestCase):
                         sphinx
                         iso8601
                     """),
-                    # Override no setup.py.
-                    'setup.py': '',
+                    # Use default PBR test setup.py.
                     'setup.cfg': textwrap.dedent("""\
                         [metadata]
                         name = test_pep517
