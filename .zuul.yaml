@@ -114,6 +114,7 @@
       jobs:
         - openstack-tox-pep8
         - openstack-tox-cover
+        - openstack-tox-py27
         - openstack-tox-py36
         - openstack-tox-py37
         - openstack-tox-py38
@@ -126,6 +127,7 @@
       jobs:
         - openstack-tox-pep8
         - openstack-tox-cover
+        - openstack-tox-py27
         - openstack-tox-py36
         - openstack-tox-py37
         - openstack-tox-py38
