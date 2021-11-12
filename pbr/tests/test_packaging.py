@@ -930,7 +930,12 @@ class TestPEP517Support(base.BaseTestCase):
                         sphinx
                         iso8601
                     """),
-                    # Use default PBR test setup.py.
+                    # Override default setup.py to remove setup_requires.
+                    'setup.py': textwrap.dedent("""\
+                        #!/usr/bin/env python
+                        import setuptools
+                        setuptools.setup(pbr=True)
+                    """),
                     'setup.cfg': textwrap.dedent("""\
                         [metadata]
                         name = test_pep517

@@ -130,6 +130,14 @@ def pbr(dist, attr, value):
                 msg = 'Unknown distribution option: %s' % repr(key)
                 warnings.warn(msg)
 
+    # Distribution.finalize_options() is what calls this method. That means
+    # there is potential for recursion here. Recursion seems to be an issue
+    # particularly when using PEP517 build-system configs without
+    # setup_requires in setup.py. We can avoid the recursion by setting
+    # dist.pbr to a None value as the corresponding entrypoint (this function)
+    # will only be called on a non None value.
+    setattr(dist, "pbr", None)
+
     # Re-finalize the underlying Distribution
     try:
         super(dist.__class__, dist).finalize_options()
