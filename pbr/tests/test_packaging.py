@@ -381,6 +381,12 @@ class TestPackagingWheels(base.BaseTestCase):
         wheel_file.extractall(self.extracted_wheel_dir)
         wheel_file.close()
 
+    def test_metadata_directory_has_pbr_json(self):
+        # Build the path to the scripts directory
+        pbr_json = os.path.join(
+            self.extracted_wheel_dir, 'pbr_testpackage-0.0.dist-info/pbr.json')
+        self.assertTrue(os.path.exists(pbr_json))
+
     def test_data_directory_has_wsgi_scripts(self):
         # Build the path to the scripts directory
         scripts_dir = os.path.join(
