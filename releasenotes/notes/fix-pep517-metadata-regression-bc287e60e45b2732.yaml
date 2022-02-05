@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    Packages generated with the 5.8.0 release of PBR failed to incorporate
+    pbr.json metadata files. This is now corrected. Users can rebuild packages
+    with newer PBR if they want that missing metadata generated.
