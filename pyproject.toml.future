@@ -4,6 +4,6 @@
 # once we are more confident it works generally.
 
 [build-system]
-requires = ["setuptools>=36.6.0", "wheel"]
+requires = ["setuptools>=36.6.0"]
 build-backend = "pbr.build"
 backend-path = ["."]
