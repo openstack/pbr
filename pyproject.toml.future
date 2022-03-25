@@ -7,3 +7,6 @@
 requires = ["setuptools>=36.6.0"]
 build-backend = "pbr.build"
 backend-path = ["."]
+
+[tools.setuptools]
+py-modules=[]
