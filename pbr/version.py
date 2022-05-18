@@ -22,11 +22,16 @@ import itertools
 import operator
 import sys
 
-try:
-    import importlib_metadata
+# TODO(stephenfin): Remove this once we drop support for Python < 3.8
+if sys.version_info >= (3, 8):
+    from importlib import metadata as importlib_metadata
     use_importlib = True
-except ImportError:
-    use_importlib = False
+else:
+    try:
+        import importlib_metadata
+        use_importlib = True
+    except ImportError:
+        use_importlib = False
 
 
 def _is_int(string):
