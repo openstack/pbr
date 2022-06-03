@@ -672,6 +672,20 @@ class TestVersions(base.BaseTestCase):
         version = packaging._get_version_from_git()
         self.assertThat(version, matchers.StartsWith('2.0.0.dev1'))
 
+    def test_leading_space(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3')
+        self.repo.commit('   sem-ver: api-break')
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('2.0.0.dev1'))
+
+    def test_leading_characters_symbol_not_found(self):
+        self.repo.commit()
+        self.repo.tag('1.2.3')
+        self.repo.commit('  ssem-ver: api-break')
+        version = packaging._get_version_from_git()
+        self.assertThat(version, matchers.StartsWith('1.2.4.dev1'))
+
     def test_tagged_version_has_tag_version(self):
         self.repo.commit()
         self.repo.tag('1.2.3')

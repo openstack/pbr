@@ -694,7 +694,7 @@ def _get_increment_kwargs(git_dir, tag):
                                      git_dir)
     header_len = len('sem-ver:')
     commands = [line[header_len:].strip() for line in changelog.split('\n')
-                if line.lower().startswith('sem-ver:')]
+                if line.lower().strip().startswith('sem-ver:')]
     symbols = set()
     for command in commands:
         symbols.update([symbol.strip() for symbol in command.split(',')])
