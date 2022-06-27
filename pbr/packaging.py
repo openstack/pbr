@@ -692,12 +692,14 @@ def _get_increment_kwargs(git_dir, tag):
     # git log output affecting out ability to have working sem ver headers.
     changelog = git._run_git_command(['log', '--pretty=%B', version_spec],
                                      git_dir)
-    header_len = len('sem-ver:')
-    commands = [line[header_len:].strip() for line in changelog.split('\n')
-                if line.lower().strip().startswith('sem-ver:')]
     symbols = set()
-    for command in commands:
-        symbols.update([symbol.strip() for symbol in command.split(',')])
+    header = 'sem-ver:'
+    for line in changelog.split("\n"):
+        line = line.lower().strip()
+        if not line.lower().strip().startswith(header):
+            continue
+        new_symbols = line[len(header):].strip().split(",")
+        symbols.update([symbol.strip() for symbol in new_symbols])
 
     def _handle_symbol(symbol, symbols, impact):
         if symbol in symbols:
