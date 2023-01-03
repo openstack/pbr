@@ -61,11 +61,6 @@ else:
     integer_types = (int, long)  # noqa
 
 
-# We use this canary to detect whether the module has already been called,
-# in order to avoid recursion
-in_use = False
-
-
 def pbr(dist, attr, value):
     """Implements the actual pbr setup() keyword.
 
@@ -91,10 +86,9 @@ def pbr(dist, attr, value):
     # particularly when using PEP517 build-system configs without
     # setup_requires in setup.py. We can avoid the recursion by setting
     # this canary so we don't repeat ourselves.
-    global in_use
-    if in_use:
+    if hasattr(dist, '_pbr_initialized'):
         return
-    in_use = True
+    dist._pbr_initialized = True
 
     if not value:
         return
