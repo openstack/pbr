@@ -210,20 +210,24 @@ class TestMarkersPip(base.BaseTestCase):
 
     scenarios = [
         ('pip-latest', {'modules': ['pip']}),
-        ('setuptools-Bionic', {
-            'modules': ['pip==9.0.1', 'setuptools==39.0.1']}),
-        ('setuptools-Stretch', {
-            'modules': ['pip==9.0.1', 'setuptools==33.1.1']}),
-        ('setuptools-EL8', {'modules': ['pip==9.0.3', 'setuptools==39.2.0']}),
-        ('setuptools-Buster', {
-            'modules': ['pip==18.1', 'setuptools==40.8.0']}),
-        ('setuptools-Focal', {
-            'modules': ['pip==20.0.2', 'setuptools==45.2.0']}),
+        (
+            'setuptools-Bullseye',
+            {'modules': ['pip==20.3.4', 'setuptools==52.0.0']},
+        ),
+        (
+            'setuptools-Focal',
+            {'modules': ['pip==20.0.2', 'setuptools==45.2.0']},
+        ),
+        (
+            'setuptools-Jammy',
+            {'modules': ['pip==22.0.2', 'setuptools==59.6.0']},
+        ),
     ]
 
     @testtools.skipUnless(
         os.environ.get('PBR_INTEGRATION', None) == '1',
-        'integration tests not enabled')
+        'integration tests not enabled',
+    )
     def test_pip_versions(self):
         pkgs = {
             'test_markers':
@@ -265,16 +269,15 @@ class TestLTSSupport(base.BaseTestCase):
     # These versions come from the versions installed from the 'virtualenv'
     # command from the 'python-virtualenv' package.
     scenarios = [
-        ('Bionic', {'modules': ['pip==9.0.1', 'setuptools==39.0.1']}),
-        ('Stretch', {'modules': ['pip==9.0.1', 'setuptools==33.1.1']}),
-        ('EL8', {'modules': ['pip==9.0.3', 'setuptools==39.2.0']}),
-        ('Buster', {'modules': ['pip==18.1', 'setuptools==40.8.0']}),
+        ('Bullseye', {'modules': ['pip==20.3.4', 'setuptools==52.0.0']}),
         ('Focal', {'modules': ['pip==20.0.2', 'setuptools==45.2.0']}),
+        ('Jammy', {'modules': ['pip==22.0.2', 'setuptools==59.6.0']}),
     ]
 
     @testtools.skipUnless(
         os.environ.get('PBR_INTEGRATION', None) == '1',
-        'integration tests not enabled')
+        'integration tests not enabled',
+    )
     def test_lts_venv_default_versions(self):
         venv = self.useFixture(
             test_packaging.Venv('setuptools', modules=self.modules))

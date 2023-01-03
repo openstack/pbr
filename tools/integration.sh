@@ -38,9 +38,9 @@ sudo apt-get install -y --force-yes libvirt-dev libxml2-dev libxslt-dev libmysql
 # by apt-cache showsrc <PKG>
 
 # Numpy
-sudo apt-get install -y --force-yes cython debhelper gfortran libblas-dev liblapack-dev python-all-dbg python-all-dev python-nose python-tz python3-all-dbg python3-all-dev python3-nose python3-tz
+sudo apt-get install -y --force-yes cython3 debhelper gfortran libblas-dev liblapack-dev python3-all-dbg python3-all-dev python3-nose python3-tz
 #pyyaml
-sudo apt-get install -y --force-yes debhelper python-all-dev python-all-dbg python3-all-dev python3-all-dbg libyaml-dev cython cython-dbg quilt
+sudo apt-get install -y --force-yes debhelper python3-all-dev python3-all-dbg libyaml-dev cython3 cython3-dbg quilt
 
 # And use ccache explitly
 export PATH=/usr/lib/ccache:$PATH
