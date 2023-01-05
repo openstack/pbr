@@ -32,14 +32,7 @@ REPODIR=${REPODIR:-$BASE/openstack}
 sudo apt-get update
 sudo apt-get install -y --force-yes libvirt-dev libxml2-dev libxslt-dev libmysqlclient-dev libpq-dev libnspr4-dev pkg-config libsqlite3-dev libffi-dev libldap2-dev libsasl2-dev ccache libkrb5-dev liberasurecode-dev libjpeg-dev libsystemd-dev libnss3-dev libssl-dev
 
-# FOR numpy / pyyaml
-# The source list has been removed from our apt config so rather than
-# installing deps via apt-get build-dep <PKG> we install the lists provied
-# by apt-cache showsrc <PKG>
-
-# Numpy
-sudo apt-get install -y --force-yes cython3 debhelper gfortran libblas-dev liblapack-dev python3-all-dbg python3-all-dev python3-nose python3-tz
-#pyyaml
+# FOR pyyaml
 sudo apt-get install -y --force-yes debhelper python3-all-dev python3-all-dbg libyaml-dev cython3 cython3-dbg quilt
 
 # And use ccache explitly
