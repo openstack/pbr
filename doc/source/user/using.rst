@@ -117,7 +117,6 @@ However, *pbr* does provide a number of additional sections:
 In addition, there are some modifications to other sections:
 
 - ``metadata``
-- ``build_sphinx``
 
 For all other sections, you should refer to either the `setuptools`_
 documentation or the documentation of the package that provides the section,
@@ -354,54 +353,8 @@ The ``pbr`` section controls *pbr*-specific options and behaviours.
 
    This feature has been superseded by the `sphinxcontrib-apidoc`_ (for
    generation of API documentation) and :ref:`pbr.sphinxext` (for configuration
-   of versioning via package metadata) extensions. It will be removed in a
-   future release.
-
-The ``build_sphinx`` section is a version of the ``build_sphinx`` *setuptools*
-plugin provided with Sphinx. This plugin extends the original plugin to add the
-following:
-
-- Automatic generation of module documentation using the ``sphinx-apidoc`` tool
-
-- Automatic configuration of the ``project``, ``version`` and ``release``
-  settings using information from *pbr* itself
-
-- Support for multiple builders using the ``builders`` configuration option
-
-  .. note::
-
-     Only applies to Sphinx < 1.6. See documentation on ``builders`` below.
-
-The version of ``build_sphinx`` provided by *pbr* provides a single additional
-option.
-
-``builders``
-  A comma separated list of builders to run. For example, to build both HTML
-  and man page documentation, you would define the following in your
-  ``setup.cfg``:
-
-  .. code-block:: ini
-
-      [build_sphinx]
-      builders = html,man
-      source-dir = doc/source
-      build-dir = doc/build
-      all-files = 1
-      warning-is-error = 1
-
-  .. deprecated:: 3.2.0
-
-     Sphinx 1.6+ adds support for specifying multiple builders in the default
-     ``builder`` option. You should use this option instead. Refer to the
-     `Sphinx documentation`_ for more information.
-
-For information on the remaining options, refer to the `Sphinx documentation`_.
-In addition, the ``autodoc_index_modules``, ``autodoc_tree_index_modules``,
-``autodoc_exclude_modules`` and ``autodoc_tree_excludes`` options :ref:`in the
-pbr section <pbr-setup-cfg>` will affect the output of the automatic module
-documentation generation.
-
-.. _Sphinx documentation: http://www.sphinx-doc.org/en/stable/setuptools.html
+   of versioning via package metadata) extensions. It has been removed in
+   version 6.0.
 
 Requirements
 ------------

@@ -292,22 +292,10 @@ Setup Commands
 
    This feature has been superseded by the `sphinxcontrib-apidoc`__ (for
    generation of API documentation) and :ref:`pbr.sphinxext` (for configuration
-   of versioning via package metadata) extensions. It will be removed in a
-   future release.
+   of versioning via package metadata) extensions. It has been removed in
+   version 6.0.
 
    __ https://pypi.org/project/sphinxcontrib-apidoc/
-
-Sphinx can produce auto documentation indexes based on signatures and
-docstrings of your project but you have to give it index files to tell it to
-*autodoc* each module: that's kind of repetitive and boring. *pbr* will scan
-your project, find all of your modules, and generate all of the stub files for
-you.
-
-In addition, Sphinx documentation setups are altered to have several pieces of
-information that are known to ``setup.py`` injected into the Sphinx config.
-
-See the :ref:`pbr-setup-cfg` section of the configuration file for
-details on configuring your project for *autodoc*.
 
 ``test``
 ~~~~~~~~

@@ -47,9 +47,6 @@ class CommandsConfig(base.BaseConfig):
         if os.name != 'nt':
             easy_install.get_script_args = packaging.override_get_script_args
 
-        if packaging.have_sphinx():
-            self.add_command('pbr.builddoc.LocalBuildDoc')
-
         if os.path.exists('.testr.conf') and packaging.have_testr():
             # There is a .testr.conf file. We want to use it.
             self.add_command('pbr.packaging.TestrTest')

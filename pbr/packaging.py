@@ -659,19 +659,11 @@ class LocalSDist(sdist.sdist):
         sdist.sdist.make_distribution(self)
 
 
-try:
-    from pbr import builddoc
-    _have_sphinx = True
-    # Import the symbols from their new home so the package API stays
-    # compatible.
-    LocalBuildDoc = builddoc.LocalBuildDoc
-except ImportError:
-    _have_sphinx = False
-    LocalBuildDoc = None
+LocalBuildDoc = None
 
 
 def have_sphinx():
-    return _have_sphinx
+    return False
 
 
 def _get_increment_kwargs(git_dir, tag):
