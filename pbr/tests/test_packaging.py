@@ -40,7 +40,6 @@
 
 import email
 import email.errors
-import imp
 import os
 import re
 import sysconfig
@@ -63,6 +62,18 @@ from wheel import wheelfile
 from pbr import git
 from pbr import packaging
 from pbr.tests import base
+
+try:
+    import importlib.machinery
+    get_suffixes = importlib.machinery.all_suffixes
+# NOTE(JayF): ModuleNotFoundError only exists in Python 3.6+, not in 2.7
+except ImportError:
+    import imp
+    # NOTE(JayF) imp.get_suffixes returns a list of three-tuples;
+    # we need the first value from each tuple.
+
+    def get_suffixes():
+        return [x[0] for x in imp.get_suffixes]
 
 
 PBR_ROOT = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
@@ -1217,7 +1228,7 @@ def get_soabi():
         # NOTE(sigmavirus24): PyPy only added support for the SOABI config var
         # to sysconfig in 2015. That was well after 2.2.1 was published in the
         # Ubuntu 14.04 archive.
-        for suffix, _, _ in imp.get_suffixes():
+        for suffix in get_suffixes():
             if suffix.startswith('.pypy') and suffix.endswith('.so'):
                 soabi = suffix.split('.')[1]
                 break
