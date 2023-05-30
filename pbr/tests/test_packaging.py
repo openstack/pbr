@@ -40,7 +40,7 @@
 
 import email
 import email.errors
-import imp
+import importlib
 import os
 import re
 import sysconfig
@@ -1217,7 +1217,7 @@ def get_soabi():
         # NOTE(sigmavirus24): PyPy only added support for the SOABI config var
         # to sysconfig in 2015. That was well after 2.2.1 was published in the
         # Ubuntu 14.04 archive.
-        for suffix, _, _ in imp.get_suffixes():
+        for suffix, _, _ in importlib.machinery._SUFFIXES:
             if suffix.startswith('.pypy') and suffix.endswith('.so'):
                 soabi = suffix.split('.')[1]
                 break
