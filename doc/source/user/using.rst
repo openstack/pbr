@@ -68,11 +68,11 @@ versions of `setuptools`__. A simple sample can be found in *pbr*'s own
     [metadata]
     name = pbr
     author = OpenStack Foundation
-    author-email = openstack-discuss@lists.openstack.org
+    author_email = openstack-discuss@lists.openstack.org
     summary = OpenStack's setup automation in a reusable form
-    description-file = README.rst
-    description-content-type = text/x-rst; charset=UTF-8
-    home-page = https://launchpad.net/pbr
+    description_file = README.rst
+    description_content_type = text/x-rst; charset=UTF-8
+    home_page = https://launchpad.net/pbr
     project_urls =
         Bug Tracker = https://bugs.launchpad.net/pbr/
         Documentation = https://docs.openstack.org/pbr/

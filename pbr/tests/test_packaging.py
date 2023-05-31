@@ -997,8 +997,8 @@ class TestPEP517Support(base.BaseTestCase):
                         name = test_pep517
                         summary = A tiny test project
                         author = PBR Team
-                        author-email = foo@example.com
-                        home-page = https://example.com/
+                        author_email = foo@example.com
+                        home_page = https://example.com/
                         classifier =
                             Intended Audience :: Information Technology
                             Intended Audience :: System Administrators

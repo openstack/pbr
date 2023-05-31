@@ -52,9 +52,9 @@ Here's a similar package using *pbr*:
    [metadata]
    name = mypackage
    description = A short description
-   description-file = README.rst
+   description_file = README.rst
    author = John Doe
-   author-email = john.doe@example.com
+   author_email = john.doe@example.com
    license = BSD
 
 From this, we note a couple of the main features of *pbr*:
@@ -179,9 +179,9 @@ probably a good long_description. So we'll just inject the contents of your
 ``long_description``.
 
 You can also specify the exact file you want to use using the
-``description-file`` parameter.
+``description_file`` parameter.
 
-You can set the ``description-content-type`` to a MIME type that may
+You can set the ``description_content_type`` to a MIME type that may
 help rendering of the description; for example ``text/markdown`` or
 ``text/x-rst; charset=UTF-8``.
 
