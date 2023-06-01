@@ -1,0 +1,8 @@
+---
+upgrade:
+  - |
+    The deprecated support for `setup.py build_sphinx` has been removed.
+    This feature has been deprecated since version 4.2. Setuptools and
+    sphinx have removed support for this command which breaks PBR's ability
+    to integrate with those two tools to provide this functionality.
+    Users should switch to building sphinx docs with sphinx directly.
