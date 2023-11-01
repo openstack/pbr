@@ -131,7 +131,20 @@
         - pbr-installation-openstack-focal
         - pbr-installation-openstack-pip-dev
         - tempest-full:
+            # Default to stable/train as we want to integration test PBR
+            # against python2.7 and train is the last 2.7 release.
             override-checkout: stable/train
+            # Provide tag specific overrides for projects that have dropped
+            # train.
+            required-projects:
+              - name: opendev.org/openstack/placement
+                override-checkout: train-eol
+              - name: opendev.org/openstack/neutron
+                override-checkout: train-eol
+              - name: opendev.org/openstack/nova
+                override-checkout: train-eol
+            vars:
+              tox_envlist: smoke
     gate:
       jobs:
         - openstack-tox-pep8
@@ -145,10 +158,36 @@
         - pbr-installation-openstack-focal
         - pbr-installation-openstack-pip-dev
         - tempest-full:
+            # Default to stable/train as we want to integration test PBR
+            # against python2.7 and train is the last 2.7 release.
             override-checkout: stable/train
+            # Provide tag specific overrides for projects that have dropped
+            # train.
+            required-projects:
+              - name: opendev.org/openstack/placement
+                override-checkout: train-eol
+              - name: opendev.org/openstack/neutron
+                override-checkout: train-eol
+              - name: opendev.org/openstack/nova
+                override-checkout: train-eol
+            vars:
+              tox_envlist: smoke
     periodic:
       jobs:
         - pbr-installation-openstack
         - pbr-installation-openstack-pip-dev
         - tempest-full:
+            # Default to stable/train as we want to integration test PBR
+            # against python2.7 and train is the last 2.7 release.
             override-checkout: stable/train
+            # Provide tag specific overrides for projects that have dropped
+            # train.
+            required-projects:
+              - name: opendev.org/openstack/placement
+                override-checkout: train-eol
+              - name: opendev.org/openstack/neutron
+                override-checkout: train-eol
+              - name: opendev.org/openstack/nova
+                override-checkout: train-eol
+            vars:
+              tox_envlist: smoke

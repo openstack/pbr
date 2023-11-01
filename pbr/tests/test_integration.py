@@ -138,7 +138,7 @@ class TestIntegration(base.BaseTestCase):
         if self.short_name == 'nova':
             found = False
             for _, _, filenames in os.walk(root):
-                if 'migrate.cfg' in filenames:
+                if 'alembic.ini' in filenames:
                     found = True
             self.assertTrue(found)
         venv = self.useFixture(
