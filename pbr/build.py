@@ -40,16 +40,22 @@ __all__ = [
 # PEP-517
 
 def get_requires_for_build_wheel(config_settings=None):
-    return build_meta.get_requires_for_build_wheel(config_settings)
+    return build_meta.get_requires_for_build_wheel(
+        config_settings=config_settings,
+    )
 
 
 def get_requires_for_build_sdist(config_settings=None):
-    return build_meta.get_requires_for_build_sdist(config_settings)
+    return build_meta.get_requires_for_build_sdist(
+        config_settings=config_settings,
+    )
 
 
 def prepare_metadata_for_build_wheel(metadata_directory, config_settings=None):
     return build_meta.prepare_metadata_for_build_wheel(
-        metadata_directory, config_settings)
+        metadata_directory,
+        config_settings=config_settings,
+    )
 
 
 def build_wheel(
@@ -65,7 +71,10 @@ def build_wheel(
 
 
 def build_sdist(sdist_directory, config_settings=None):
-    return build_meta.build_sdist(sdist_directory, config_settings)
+    return build_meta.build_sdist(
+        sdist_directory,
+        config_settings=config_settings,
+    )
 
 
 # PEP-660
