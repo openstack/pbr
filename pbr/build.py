@@ -12,15 +12,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-"""pep-517 support
+"""PEP-517 / PEP-660 support
 
 Add::
 
-      [build-system]
-      requires = ["pbr>=5.7.0", "setuptools>=36.6.0", "wheel"]
-      build-backend = "pbr.build"
+    [build-system]
+    requires = ["pbr>=6.0.0", "setuptools>=64.0.0"]
+    build-backend = "pbr.build"
 
-to pyproject.toml to use this
+to ``pyproject.toml`` to use this.
 """
 
 from setuptools import build_meta
@@ -31,8 +31,13 @@ __all__ = [
     'prepare_metadata_for_build_wheel',
     'build_wheel',
     'build_sdist',
+    'build_editable',
+    'get_requires_for_build_editable',
+    'prepare_metadata_for_build_editable',
 ]
 
+
+# PEP-517
 
 def get_requires_for_build_wheel(config_settings=None):
     return build_meta.get_requires_for_build_wheel(config_settings)
@@ -53,9 +58,41 @@ def build_wheel(
     metadata_directory=None,
 ):
     return build_meta.build_wheel(
-        wheel_directory, config_settings, metadata_directory,
+        wheel_directory,
+        config_settings=config_settings,
+        metadata_directory=metadata_directory,
     )
 
 
 def build_sdist(sdist_directory, config_settings=None):
     return build_meta.build_sdist(sdist_directory, config_settings)
+
+
+# PEP-660
+
+def build_editable(
+    wheel_directory,
+    config_settings=None,
+    metadata_directory=None,
+):
+    return build_meta.build_editable(
+        wheel_directory,
+        config_settings=config_settings,
+        metadata_directory=metadata_directory,
+    )
+
+
+def get_requires_for_build_editable(config_settings=None):
+    return build_meta.get_requires_for_build_editable(
+        config_settings=config_settings,
+    )
+
+
+def prepare_metadata_for_build_editable(
+    metadata_directory,
+    config_settings=None,
+):
+    return build_meta.prepare_metadata_for_build_editable(
+        metadata_directory,
+        config_settings=config_settings,
+    )

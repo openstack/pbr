@@ -46,9 +46,8 @@ Your build-system block in ``pyproject.toml`` will need to look something
 like this::
 
     [build-system]
-    requires = ["pbr>=5.7.0", "setuptools>=36.6.0"]
+    requires = ["pbr>=6.0.0", "setuptools>=64.0.0"]
     build-backend = "pbr.build"
-
 
 Eventually PBR may grow its own direct support for PEP517 build hooks, but
 until then it will continue to need setuptools and ``setup.py``.

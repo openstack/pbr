@@ -1023,6 +1023,11 @@ class TestPEP517Support(base.BaseTestCase):
                             Programming Language :: Python :: 3.7
                             Programming Language :: Python :: 3.8
                     """),
+                    # note that we use 36.6.0 rather than 64.0.0 since the
+                    # latter doesn't support Python < 3.8 and we run our tests
+                    # against Python 2.7 still. That's okay since we're not
+                    # testing PEP-660 functionality here (which requires the
+                    # newer setuptools)
                     'pyproject.toml': textwrap.dedent("""\
                         [build-system]
                         requires = ["pbr", "setuptools>=36.6.0", "wheel"]
