@@ -7,7 +7,6 @@
     required-projects:
       # TODO update this list with current active python projects
       - openstack/pbr
-      - openstack/tripleo-ci
       - openstack/aodh
       - openstack/automaton
       - openstack/ceilometer
@@ -15,7 +14,6 @@
       - openstack/cinder
       - openstack/cliff
       - openstack/debtcollector
-      - openstack/dib-utils
       - openstack/diskimage-builder
       - openstack/futurist
       - openstack/glance
@@ -40,7 +38,6 @@
       - openstack/os-brick
       - openstack/os-client-config
       - openstack/os-collect-config
-      - openstack/os-net-config
       - openstack/os-refresh-config
       - openstack/osc-lib
       - openstack/oslo.cache
@@ -82,8 +79,6 @@
       - openstack/taskflow
       - openstack/tempest
       - openstack/tooz
-      - openstack/tripleo-heat-templates
-      - openstack/tripleo-image-elements
       - openstack/trove
       - openstack/trove-dashboard
       - openstack/zaqar
@@ -114,7 +109,6 @@
 
 - project:
     templates:
-      - lib-forward-testing
       - lib-forward-testing-python3
       - periodic-stable-jobs
       - publish-openstack-docs-pti
@@ -132,23 +126,6 @@
         - pbr-installation-openstack
         - pbr-installation-openstack-focal
         - pbr-installation-openstack-pip-dev
-        - tempest-full: &py2-tempest-overrides
-            # Default to stable/train as we want to integration test PBR
-            # against python2.7 and train is the last 2.7 release.
-            override-checkout: stable/train
-            # Provide tag specific overrides for projects that have dropped
-            # train.
-            required-projects:
-              - name: opendev.org/openstack/placement
-                override-checkout: train-eol
-              - name: opendev.org/openstack/neutron
-                override-checkout: train-eol
-              - name: opendev.org/openstack/nova
-                override-checkout: train-eol
-              - name: opendev.org/openstack/glance
-                override-checkout: train-eol
-            vars:
-              tox_envlist: smoke
     gate:
       jobs:
         - openstack-tox-pep8
@@ -163,9 +140,7 @@
         - pbr-installation-openstack
         - pbr-installation-openstack-focal
         - pbr-installation-openstack-pip-dev
-        - tempest-full: *py2-tempest-overrides
     periodic:
       jobs:
         - pbr-installation-openstack
         - pbr-installation-openstack-pip-dev
-        - tempest-full: *py2-tempest-overrides

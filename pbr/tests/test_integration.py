@@ -259,9 +259,14 @@ class TestMarkersPip(base.BaseTestCase):
             ['-m', 'pip', 'install', '--no-index', '-f', repo_dir,
              'test_markers'],
             cwd=venv.path, allow_fail=False)
-        self.assertIn('pkg-b', self._run_cmd(
-            bin_python, ['-m', 'pip', 'freeze'], cwd=venv.path,
-            allow_fail=False)[0])
+        pkgs = self._run_cmd(
+            bin_python,
+            ['-m', 'pip', 'freeze'],
+            cwd=venv.path, allow_fail=False)[0]
+        # Depending on the version of pip/setuptools etc the name of the
+        # installed package may be noramlized to 'pkg-b'. As of March 2024
+        # 'pkg_b' is what we get and previously 'pkg-b' was the result.
+        self.assertTrue('pkg_b' in pkgs or 'pkg-b' in pkgs)
 
 
 # Handle collections.abc moves in python breaking old pip
