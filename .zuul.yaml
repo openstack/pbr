@@ -99,14 +99,6 @@
     vars:
       pbr_pip_version: 'git+https://github.com/pypa/pip.git#egg=pip'
 
-- job:
-    name: pbr-installation-openstack-focal
-    parent: pbr-installation-openstack
-    nodeset: ubuntu-focal
-    description: |
-      Run pbr integration testing on older Ubuntu which allows us
-      to test compatibility with older versions of pip and setuptools.
-
 - project:
     templates:
       - lib-forward-testing-python3
@@ -124,7 +116,6 @@
         - openstack-tox-py310
         - openstack-tox-py311
         - pbr-installation-openstack
-        - pbr-installation-openstack-focal
         - pbr-installation-openstack-pip-dev
     gate:
       jobs:
@@ -138,7 +129,6 @@
         - openstack-tox-py310
         - openstack-tox-py311
         - pbr-installation-openstack
-        - pbr-installation-openstack-focal
         - pbr-installation-openstack-pip-dev
     periodic:
       jobs:
