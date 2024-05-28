@@ -186,7 +186,7 @@ class Venv(fixtures.Fixture):
         """
         self._reason = reason
         if modules == ():
-            modules = ['pip', 'wheel', 'build', PBR_ROOT]
+            modules = ['pip', 'wheel', 'build', 'setuptools', PBR_ROOT]
         self.modules = modules
         if pip_cmd is None:
             self.pip_cmd = ['-m', 'pip', '-v', 'install']
