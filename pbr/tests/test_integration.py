@@ -113,14 +113,16 @@ class TestIntegration(base.BaseTestCase):
 
         venv = self.useFixture(
             test_packaging.Venv('sdist',
-                                modules=['pip', 'wheel', PBRVERSION],
+                                modules=['pip', 'wheel',
+                                         'setuptools', PBRVERSION],
                                 pip_cmd=PIP_CMD))
         python = venv.python
         self.useFixture(base.CapturedSubprocess(
             'sdist', [python, 'setup.py', 'sdist'], cwd=path))
         venv = self.useFixture(
             test_packaging.Venv('tarball',
-                                modules=['pip', 'wheel', PBRVERSION],
+                                modules=['pip', 'wheel',
+                                         'setuptools', PBRVERSION],
                                 pip_cmd=PIP_CMD))
         python = venv.python
         filename = os.path.join(
@@ -129,7 +131,8 @@ class TestIntegration(base.BaseTestCase):
             'tarball', [python] + pip_cmd + [filename]))
         venv = self.useFixture(
             test_packaging.Venv('install-git',
-                                modules=['pip', 'wheel', PBRVERSION],
+                                modules=['pip', 'wheel',
+                                         'setuptools', PBRVERSION],
                                 pip_cmd=PIP_CMD))
         root = venv.path
         python = venv.python
@@ -143,7 +146,8 @@ class TestIntegration(base.BaseTestCase):
             self.assertTrue(found)
         venv = self.useFixture(
             test_packaging.Venv('install-e',
-                                modules=['pip', 'wheel', PBRVERSION],
+                                modules=['pip', 'wheel',
+                                         'setuptools', PBRVERSION],
                                 pip_cmd=PIP_CMD))
         root = venv.path
         python = venv.python
@@ -175,8 +179,9 @@ class TestInstallWithoutPbr(base.BaseTestCase):
                     import setuptools
                     setuptools.setup(
                         name = 'pkgTest',
-                        tests_require = ['pkgReq'],
-                        test_suite='pkgReq'
+                        # TODO should we use a random prefix to
+                        # avoid collisions?
+                        install_requires = ['pkgReq'],
                     )
                 """),
                 'setup.cfg': textwrap.dedent("""\
@@ -187,7 +192,8 @@ class TestInstallWithoutPbr(base.BaseTestCase):
                 'requirements.txt': textwrap.dedent("""\
                     pbr
                 """),
-                'pkgReq/__init__.py': textwrap.dedent("""\
+                'pkgReq/__init__.py': "",
+                'pkgReq/__main__.py': textwrap.dedent("""\
                     print("FakeTest loaded and ran")
                 """)},
         }
@@ -199,30 +205,51 @@ class TestInstallWithoutPbr(base.BaseTestCase):
         self._run_cmd(sys.executable, ('setup.py', 'sdist', '-d', dist_dir),
                       allow_fail=False, cwd=req_pkg_dir)
         # A venv to test within
-        venv = self.useFixture(test_packaging.Venv('nopbr', ['pip', 'wheel']))
+        venv = self.useFixture(test_packaging.Venv('nopbr',
+                                                   ['pip', 'wheel',
+                                                    'setuptools']))
         python = venv.python
-        # Run the depending script
+        # Install both packages
         self.useFixture(base.CapturedSubprocess(
-            'nopbr', [python] + ['setup.py', 'test'], cwd=test_pkg_dir))
+            'nopbr', [python] + ['setup.py', 'install'], cwd=test_pkg_dir))
+        # Execute code that should only be present if the install worked.
+        self.useFixture(base.CapturedSubprocess(
+            'nopbr', [python] + ['-m', 'pkgReq'], cwd=test_pkg_dir))
+        pbr_cmd = os.path.join(venv.path, 'bin', 'pbr')
+        self.useFixture(base.CapturedSubprocess(
+            'nopbr', [pbr_cmd] + ['freeze'], cwd=test_pkg_dir))
+
+
+# Handle various comaptibility issues with pip and setuptools versions against
+# python3 versions. Unfortunately python3.12 in particular isn't very backward
+# compatible with pip and setuptools.
+# TODO(clarkb) add other distros like EL9 and EL10
+if sys.version_info[0:3] < (3, 10, 0):
+    lts_scenarios = [
+        ('Bionic', {'modules': ['pip==9.0.1', 'setuptools==39.0.1']}),
+        ('Stretch', {'modules': ['pip==9.0.1', 'setuptools==33.1.1']}),
+        ('EL8', {'modules': ['pip==9.0.3', 'setuptools==39.2.0']}),
+        ('Buster', {'modules': ['pip==18.1', 'setuptools==40.8.0']}),
+        ('Focal', {'modules': ['pip==20.0.2', 'setuptools==45.2.0']}),
+    ]
+elif sys.version_info[0:3] < (3, 12, 0):
+    lts_scenarios = [
+        ('Bullseye', {'modules': ['pip==20.3.4', 'setuptools==52.0.0']}),
+        ('Bookworm', {'modules': ['pip==23.0.1', 'setuptools==66.1.1']}),
+        ('Focal', {'modules': ['pip==20.0.2', 'setuptools==45.2.0']}),
+        ('Jammy', {'modules': ['pip==22.0.2', 'setuptools==59.6.0']}),
+    ]
+else:
+    lts_scenarios = [
+        ('Noble', {'modules': ['pip==24.0.0', 'setuptools==68.1.2']}),
+    ]
 
 
 class TestMarkersPip(base.BaseTestCase):
 
     scenarios = [
-        ('pip-latest', {'modules': ['pip']}),
-        (
-            'setuptools-Bullseye',
-            {'modules': ['pip==20.3.4', 'setuptools==52.0.0']},
-        ),
-        (
-            'setuptools-Focal',
-            {'modules': ['pip==20.0.2', 'setuptools==45.2.0']},
-        ),
-        (
-            'setuptools-Jammy',
-            {'modules': ['pip==22.0.2', 'setuptools==59.6.0']},
-        ),
-    ]
+        ('pip-latest', {'modules': ['pip', 'setuptools']})
+    ] + lts_scenarios
 
     @testtools.skipUnless(
         os.environ.get('PBR_INTEGRATION', None) == '1',
@@ -246,10 +273,10 @@ class TestMarkersPip(base.BaseTestCase):
         bin_python = venv.python
         os.mkdir(repo_dir)
         for module in self.modules:
-            self._run_cmd(
-                bin_python,
-                ['-m', 'pip', 'install', '--upgrade', module],
-                cwd=venv.path, allow_fail=False)
+            self.useFixture(base.CapturedSubprocess(
+                'pip-version',
+                [bin_python, '-m', 'pip', 'install', '--upgrade', module],
+                cwd=venv.path))
         for pkg in pkg_dirs:
             self._run_cmd(
                 bin_python, ['setup.py', 'sdist', '-d', repo_dir],
@@ -269,25 +296,6 @@ class TestMarkersPip(base.BaseTestCase):
         self.assertTrue('pkg_b' in pkgs or 'pkg-b' in pkgs)
 
 
-# Handle collections.abc moves in python breaking old pip
-# These versions come from the versions installed from the 'virtualenv'
-# command from the 'python-virtualenv' package.
-if sys.version_info[0:3] < (3, 10, 0):
-    lts_scenarios = [
-        ('Bionic', {'modules': ['pip==9.0.1', 'setuptools==39.0.1']}),
-        ('Stretch', {'modules': ['pip==9.0.1', 'setuptools==33.1.1']}),
-        ('EL8', {'modules': ['pip==9.0.3', 'setuptools==39.2.0']}),
-        ('Buster', {'modules': ['pip==18.1', 'setuptools==40.8.0']}),
-        ('Focal', {'modules': ['pip==20.0.2', 'setuptools==45.2.0']}),
-    ]
-else:
-    lts_scenarios = [
-        ('Bullseye', {'modules': ['pip==20.3.4', 'setuptools==52.0.0']}),
-        ('Focal', {'modules': ['pip==20.0.2', 'setuptools==45.2.0']}),
-        ('Jammy', {'modules': ['pip==22.0.2', 'setuptools==59.6.0']}),
-    ]
-
-
 class TestLTSSupport(base.BaseTestCase):
 
     scenarios = lts_scenarios
@@ -303,5 +311,7 @@ class TestLTSSupport(base.BaseTestCase):
         pbr = 'file://%s#egg=pbr' % PBR_ROOT
         # Installing PBR is a reasonable indication that we are not broken on
         # this particular combination of setuptools and pip.
-        self._run_cmd(bin_python, ['-m', 'pip', 'install', pbr],
-                      cwd=venv.path, allow_fail=False)
+        self.useFixture(base.CapturedSubprocess(
+            'lts-support',
+            [bin_python, '-m', 'pip', 'install', pbr],
+            cwd=venv.path))

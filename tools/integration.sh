@@ -14,7 +14,7 @@ function mkvenv {
 
     rm -rf $venv
     virtualenv -p python3 $venv
-    $venv/bin/pip install $PIPFLAGS -U $PIPVERSION wheel requests
+    $venv/bin/pip install $PIPFLAGS -U $PIPVERSION 'setuptools;python_version>="3.12"' wheel requests
 
     # If a change to PBR is being tested, preinstall the wheel for it
     if [ -n "$PBR_CHANGE" ] ; then
@@ -30,10 +30,10 @@ REPODIR=${REPODIR:-$BASE/openstack}
 
 # TODO: Figure out how to get this on to the box properly
 sudo apt-get update
-sudo apt-get install -y --force-yes libvirt-dev libxml2-dev libxslt-dev libmysqlclient-dev libpq-dev libnspr4-dev pkg-config libsqlite3-dev libffi-dev libldap2-dev libsasl2-dev ccache libkrb5-dev liberasurecode-dev libjpeg-dev libsystemd-dev libnss3-dev libssl-dev
+sudo apt-get install -y --force-yes libvirt-dev libxml2-dev libxslt-dev libmysqlclient-dev libpq-dev libnspr4-dev pkg-config libsqlite3-dev libffi-dev libldap2-dev libsasl2-dev ccache libkrb5-dev liberasurecode-dev libjpeg-dev libsystemd-dev libnss3-dev libssl-dev libpcre3-dev
 
 # FOR pyyaml
-sudo apt-get install -y --force-yes debhelper python3-all-dev python3-all-dbg libyaml-dev cython3 cython3-dbg quilt
+sudo apt-get install -y --force-yes debhelper python3-all-dev python3-all-dbg libyaml-dev cython3 quilt
 
 # And use ccache explitly
 export PATH=/usr/lib/ccache:$PATH
@@ -73,6 +73,9 @@ git clone $REPODIR/pbr $pbrsdistdir
 cd $pbrsdistdir
 
 # Prepare a wheel and flag whether a change to PBR is being tested
+# TODO(clarkb) these ZUUL_* vars haven't been valid in quite some time
+# we need to find another way to check if we are in a PBR_CHANGE
+# context.
 if git fetch $ZUUL_URL/$ZUUL_PROJECT $ZUUL_REF ; then
     mkvenv wheel
     wheel/bin/python setup.py bdist_wheel
