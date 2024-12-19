@@ -72,11 +72,14 @@ pbrsdistdir=$tmpdir/pbrsdist
 git clone $REPODIR/pbr $pbrsdistdir
 cd $pbrsdistdir
 
-# Prepare a wheel and flag whether a change to PBR is being tested
-# TODO(clarkb) these ZUUL_* vars haven't been valid in quite some time
-# we need to find another way to check if we are in a PBR_CHANGE
-# context.
-if git fetch $ZUUL_URL/$ZUUL_PROJECT $ZUUL_REF ; then
+# Capture Zuul repo state info. Local master should be the current change.
+# origin/master should refer to the parent of the current change. If they
+# are the same then there is no change either from zuul or locally.
+git --git-dir $REPODIR/pbr/.git show --format=oneline --no-patch master
+git --git-dir $REPODIR/pbr/.git show --format=oneline --no-patch origin/master
+# If there is no diff between the branches then there is no local change.
+if ! git --git-dir $REPODIR/pbr/.git diff --quiet master..origin/master ; then
+    git show --format=oneline --no-patch HEAD
     mkvenv wheel
     wheel/bin/python setup.py bdist_wheel
     PBR_CHANGE=1

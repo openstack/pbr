@@ -179,7 +179,7 @@ class TestInstallWithoutPbr(base.BaseTestCase):
                     import setuptools
                     setuptools.setup(
                         name = 'pkgTest',
-                        # TODO should we use a random prefix to
+                        # TODO(clarkb) should we use a random prefix to
                         # avoid collisions?
                         install_requires = ['pkgReq'],
                     )
@@ -188,6 +188,8 @@ class TestInstallWithoutPbr(base.BaseTestCase):
                     [easy_install]
                     find_links = %s
                 """ % dist_dir)},
+            # We don't need to use PBRVERSION here because we precreate the
+            # pbr sdist and point to it with find_links.
             'pkgReq': {
                 'requirements.txt': textwrap.dedent("""\
                     pbr
@@ -277,6 +279,8 @@ class TestMarkersPip(base.BaseTestCase):
                 'pip-version',
                 [bin_python, '-m', 'pip', 'install', '--upgrade', module],
                 cwd=venv.path))
+        # TODO(clarkb) do we need to install PBR from source here to avoid
+        # using the latest release?
         for pkg in pkg_dirs:
             self._run_cmd(
                 bin_python, ['setup.py', 'sdist', '-d', repo_dir],
