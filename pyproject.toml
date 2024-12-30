@@ -1,0 +1,16 @@
+[build-system]
+requires = [
+  # Includes pep660 support in setuptools
+  "setuptools>=64.0.0;python_version>='3.7'",
+  # Fallback to whatever we can get otherwise.
+  # Note this is not something projects should typically
+  # need. PBR attempts to support a wide range of python
+  # versions and this is an exceptional case due to that
+  # need.
+  "setuptools;python_version<'3.7'"
+]
+build-backend = "pbr.build"
+backend-path = ["."]
+
+[tools.setuptools]
+py-modules=[]
