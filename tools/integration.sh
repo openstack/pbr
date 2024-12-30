@@ -14,7 +14,7 @@ function mkvenv {
 
     rm -rf $venv
     virtualenv -p python3 $venv
-    $venv/bin/pip install $PIPFLAGS -U $PIPVERSION 'setuptools;python_version>="3.12"' wheel requests
+    $venv/bin/pip install $PIPFLAGS -U $PIPVERSION wheel
 
     # If a change to PBR is being tested, preinstall the wheel for it
     if [ -n "$PBR_CHANGE" ] ; then
@@ -78,10 +78,16 @@ cd $pbrsdistdir
 # context.
 if git fetch $ZUUL_URL/$ZUUL_PROJECT $ZUUL_REF ; then
     mkvenv wheel
+    # TODO(clarkb) switch to using build tool here
+    wheel/bin/pip install setuptools
     wheel/bin/python setup.py bdist_wheel
     PBR_CHANGE=1
 fi
 
+##### Test Project Installation #####
+# Create a test project and install it multiple different ways
+# using different tools to sanity check behavior is consistent
+# with what expect and doesn't change.
 # TODO(clarkb) Add test coverage for build and wheel tools too.
 eptest=$tmpdir/eptest
 mkdir $eptest
@@ -99,22 +105,9 @@ EOF
 cat <<EOF > setup.py
 import setuptools
 
-from requests import Timeout
-from socket import error as SocketError
-
-# Some environments have network issues that drop connections to pypi
-# when running integration tests, so we retry here so that hour-long
-# test runs are less likely to fail randomly.
-try:
-    setuptools.setup(
-        setup_requires=['pbr'],
-        pbr=True,
-    )
-except (SocketError, Timeout):
-    setuptools.setup(
-        setup_requires=['pbr'],
-        pbr=True,
-    )
+setuptools.setup(
+    setup_requires=['pbr'],
+    pbr=True)
 EOF
 
 mkdir test_project
@@ -126,44 +119,90 @@ EOF
 eppbrdir=$tmpdir/eppbrdir
 git clone $REPODIR/pbr $eppbrdir
 
+function check_setuppy {
+    local checkname
+    checkname=$1
+
+    local epvenv
+    epvenv=$eptest/setuppyvenv_$checkname
+    mkvenv $epvenv
+    $epvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE -e $eppbrdir
+    # We install setuptools only in this venv to check setup.py
+    # behaviors.
+    $epvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE setuptools
+
+    # First check develop
+    PBR_VERSION=0.0 $epvenv/bin/python setup.py develop
+    cat $epvenv/bin/test_cmd
+    grep 'PBR Generated' $epvenv/bin/test_cmd
+    $epvenv/bin/test_cmd | grep 'Test cmd'
+    PBR_VERSION=0.0 $epvenv/bin/python setup.py develop --uninstall
+
+    # Now check install
+    PBR_VERSION=0.0 $epvenv/bin/python setup.py install
+    cat $epvenv/bin/test_cmd
+    grep 'PBR Generated' $epvenv/bin/test_cmd
+    $epvenv/bin/test_cmd | grep 'Test cmd'
+}
+
+function check_pip {
+    local checkname
+    checkname=$1
+
+    local epvenv
+    epvenv=$eptest/pipvenv_$checkname
+    mkvenv $epvenv
+    $epvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE -e $eppbrdir
+
+    # First check develop
+    PBR_VERSION=0.0 $epvenv/bin/pip install -e ./
+    cat $epvenv/bin/test_cmd
+    if [ -f ./pyproject.toml ] ; then
+        # Pip dev installs with pyproject.toml build from editable wheels
+        # which do not use PBR generated console scripts.
+        grep 'from test_project import main' $epvenv/bin/test_cmd
+        ! grep 'PBR Generated' $epvenv/bin/test_cmd
+    else
+        # Otherwise we should get the PBR generated script
+        grep 'PBR Generated' $epvenv/bin/test_cmd
+    fi
+    $epvenv/bin/test_cmd | grep 'Test cmd'
+    PBR_VERSION=0.0 $epvenv/bin/pip uninstall -y test-project
+
+    # Now check install
+    PBR_VERSION=0.0 $epvenv/bin/pip install ./
+    cat $epvenv/bin/test_cmd
+    # Pip installs install from wheel builds which do not use
+    # PBR generated console scripts.
+    grep 'from test_project import main' $epvenv/bin/test_cmd
+    ! grep 'PBR Generated' $epvenv/bin/test_cmd
+    $epvenv/bin/test_cmd | grep 'Test cmd'
+}
+
+### No pyproject.toml ###
 # Check setup.py behavior
-epvenv=$eptest/setuppyvenv
-mkvenv $epvenv
-$epvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE -e $eppbrdir
-
-# First check develop
-PBR_VERSION=0.0 $epvenv/bin/python setup.py develop
-cat $epvenv/bin/test_cmd
-grep 'PBR Generated' $epvenv/bin/test_cmd
-$epvenv/bin/test_cmd | grep 'Test cmd'
-PBR_VERSION=0.0 $epvenv/bin/python setup.py develop --uninstall
-
-# Now check install
-PBR_VERSION=0.0 $epvenv/bin/python setup.py install
-cat $epvenv/bin/test_cmd
-grep 'PBR Generated' $epvenv/bin/test_cmd
-$epvenv/bin/test_cmd | grep 'Test cmd'
+check_setuppy nopyprojecttoml
 
 # Check pip behavior
-epvenv=$eptest/pipvenv
-mkvenv $epvenv
-$epvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE -e $eppbrdir
+check_pip nopyprojecttoml
 
-# First check develop
-PBR_VERSION=0.0 $epvenv/bin/pip install -e ./
-cat $epvenv/bin/test_cmd
-grep 'PBR Generated' $epvenv/bin/test_cmd
-$epvenv/bin/test_cmd | grep 'Test cmd'
-PBR_VERSION=0.0 $epvenv/bin/pip uninstall -y test-project
+### pyproject.toml ###
+# Now write a pyproject.toml and recheck the results.
+# Note the pip install -e behavior differs.
+cat <<EOF > pyproject.toml
+[build-system]
+requires = [
+  "pbr>=6.0.0",
+  "setuptools>=64.0.0",
+]
+build-backend = "pbr.build"
+EOF
 
-# Now check install
-PBR_VERSION=0.0 $epvenv/bin/pip install ./
-cat $epvenv/bin/test_cmd
-# Pip installs install from wheel builds which do not use
-# PBR generated console scripts.
-grep 'from test_project import main' $epvenv/bin/test_cmd
-! grep 'PBR Generated' $epvenv/bin/test_cmd
-$epvenv/bin/test_cmd | grep 'Test cmd'
+# Check setup.py behavior
+check_setuppy pyprojecttoml
+
+# Check pip behavior
+check_pip pyprojecttoml
 
 projectdir=$tmpdir/projects
 mkdir -p $projectdir
