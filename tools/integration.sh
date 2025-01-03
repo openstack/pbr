@@ -82,6 +82,7 @@ if git fetch $ZUUL_URL/$ZUUL_PROJECT $ZUUL_REF ; then
     PBR_CHANGE=1
 fi
 
+# TODO(clarkb) Add test coverage for build and wheel tools too.
 eptest=$tmpdir/eptest
 mkdir $eptest
 cd $eptest
@@ -122,23 +123,46 @@ def main():
     print("Test cmd")
 EOF
 
-epvenv=$eptest/venv
-mkvenv $epvenv
-
 eppbrdir=$tmpdir/eppbrdir
 git clone $REPODIR/pbr $eppbrdir
+
+# Check setup.py behavior
+epvenv=$eptest/setuppyvenv
+mkvenv $epvenv
 $epvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE -e $eppbrdir
 
 # First check develop
 PBR_VERSION=0.0 $epvenv/bin/python setup.py develop
 cat $epvenv/bin/test_cmd
 grep 'PBR Generated' $epvenv/bin/test_cmd
+$epvenv/bin/test_cmd | grep 'Test cmd'
 PBR_VERSION=0.0 $epvenv/bin/python setup.py develop --uninstall
 
 # Now check install
 PBR_VERSION=0.0 $epvenv/bin/python setup.py install
 cat $epvenv/bin/test_cmd
 grep 'PBR Generated' $epvenv/bin/test_cmd
+$epvenv/bin/test_cmd | grep 'Test cmd'
+
+# Check pip behavior
+epvenv=$eptest/pipvenv
+mkvenv $epvenv
+$epvenv/bin/pip $PIPFLAGS install -f $WHEELHOUSE -e $eppbrdir
+
+# First check develop
+PBR_VERSION=0.0 $epvenv/bin/pip install -e ./
+cat $epvenv/bin/test_cmd
+grep 'PBR Generated' $epvenv/bin/test_cmd
+$epvenv/bin/test_cmd | grep 'Test cmd'
+PBR_VERSION=0.0 $epvenv/bin/pip uninstall -y test-project
+
+# Now check install
+PBR_VERSION=0.0 $epvenv/bin/pip install ./
+cat $epvenv/bin/test_cmd
+# Pip installs install from wheel builds which do not use
+# PBR generated console scripts.
+grep 'from test_project import main' $epvenv/bin/test_cmd
+! grep 'PBR Generated' $epvenv/bin/test_cmd
 $epvenv/bin/test_cmd | grep 'Test cmd'
 
 projectdir=$tmpdir/projects
