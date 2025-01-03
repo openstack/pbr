@@ -13,9 +13,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+# (hberaud) do not use six here to import configparser
+# to keep this module free from external dependencies
+# to avoid cross dependencies errors on minimal system
+# free from dependencies.
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 import os.path
 
-from six.moves import configparser
 from sphinx.util import logging
 
 import pbr.version

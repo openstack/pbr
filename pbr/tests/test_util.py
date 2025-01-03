@@ -13,12 +13,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+try:
+    import configparser
+except ImportError:
+    import ConfigParser as configparser
 import io
 import tempfile
 import textwrap
 
-import six
-from six.moves import configparser
 import sys
 
 from pbr.tests import base
@@ -27,7 +29,7 @@ from pbr import util
 
 def config_from_ini(ini):
     config = {}
-    ini = textwrap.dedent(six.u(ini))
+    ini = textwrap.dedent(ini)
     if sys.version_info >= (3, 2):
         parser = configparser.ConfigParser()
         parser.read_file(io.StringIO(ini))
@@ -43,7 +45,7 @@ class TestBasics(base.BaseTestCase):
 
     def test_basics(self):
         self.maxDiff = None
-        config_text = """
+        config_text = u"""
             [metadata]
             name = foo
             version = 1.0
@@ -145,7 +147,7 @@ class TestExtrasRequireParsingScenarios(base.BaseTestCase):
 
     scenarios = [
         ('simple_extras', {
-            'config_text': """
+            'config_text': u"""
                 [extras]
                 first =
                     foo
@@ -162,7 +164,7 @@ class TestExtrasRequireParsingScenarios(base.BaseTestCase):
             }
         }),
         ('with_markers', {
-            'config_text': """
+            'config_text': u"""
                 [extras]
                 test =
                     foo:python_version=='2.6'
@@ -174,7 +176,7 @@ class TestExtrasRequireParsingScenarios(base.BaseTestCase):
                 "test:(python_version=='2.6')": ['foo', 'baz<1.6'],
                 "test": ['bar', 'zaz']}}),
         ('no_extras', {
-            'config_text': """
+            'config_text': u"""
             [metadata]
             long_description = foo
             """,
@@ -201,7 +203,7 @@ class TestMapFieldsParsingScenarios(base.BaseTestCase):
 
     scenarios = [
         ('simple_project_urls', {
-            'config_text': """
+            'config_text': u"""
                 [metadata]
                 project_urls =
                     Bug Tracker = https://bugs.launchpad.net/pbr/
@@ -215,7 +217,7 @@ class TestMapFieldsParsingScenarios(base.BaseTestCase):
             },
         }),
         ('query_parameters', {
-            'config_text': """
+            'config_text': u"""
                 [metadata]
                 project_urls =
                     Bug Tracker = https://bugs.launchpad.net/pbr/?query=true
@@ -241,7 +243,7 @@ class TestKeywordsParsingScenarios(base.BaseTestCase):
 
     scenarios = [
         ('keywords_list', {
-            'config_text': """
+            'config_text': u"""
                 [metadata]
                 keywords =
                     one
@@ -252,7 +254,7 @@ class TestKeywordsParsingScenarios(base.BaseTestCase):
         },
         ),
         ('inline_keywords', {
-            'config_text': """
+            'config_text': u"""
                 [metadata]
                 keywords = one, two, three
                 """,  # noqa: E501
@@ -269,7 +271,7 @@ class TestKeywordsParsingScenarios(base.BaseTestCase):
 
 class TestProvidesExtras(base.BaseTestCase):
     def test_provides_extras(self):
-        ini = """
+        ini = u"""
         [metadata]
         provides_extras = foo
                           bar
@@ -283,7 +285,7 @@ class TestDataFilesParsing(base.BaseTestCase):
 
     scenarios = [
         ('data_files', {
-            'config_text': """
+            'config_text': u"""
             [files]
             data_files =
                 'i like spaces/' =
@@ -306,7 +308,7 @@ class TestDataFilesParsing(base.BaseTestCase):
 class TestUTF8DescriptionFile(base.BaseTestCase):
     def test_utf8_description_file(self):
         _, path = tempfile.mkstemp()
-        ini_template = """
+        ini_template = u"""
         [metadata]
         description_file = %s
         """

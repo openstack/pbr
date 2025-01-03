@@ -52,7 +52,6 @@ try:
 except ImportError:
     import mock
 import pkg_resources
-import six
 import testscenarios
 import testtools
 from testtools import matchers
@@ -218,18 +217,18 @@ class CreatePackages(fixtures.Fixture):
     """
 
     defaults = {
-        'setup.py': textwrap.dedent(six.u("""\
+        'setup.py': textwrap.dedent(u"""\
             #!/usr/bin/env python
             import setuptools
             setuptools.setup(
                 setup_requires=['pbr'],
                 pbr=True,
             )
-        """)),
-        'setup.cfg': textwrap.dedent(six.u("""\
+        """),
+        'setup.cfg': textwrap.dedent(u"""\
             [metadata]
             name = {pkg_name}
-        """))
+        """)
     }
 
     def __init__(self, packages):
