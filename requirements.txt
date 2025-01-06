@@ -1,0 +1,7 @@
+# PBR always implicitly depended on setuptools which until python3.12
+# was included by default in python installations. Since python3.12
+# setuptools is not included so we add an explicit dependency on
+# setuptools here.
+# DO NOT add any other dependencies as PBR is meant to be minimalist
+# to avoid problems with bootstrapping build environments.
+setuptools;python_version>='3.12'

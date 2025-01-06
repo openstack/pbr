@@ -113,16 +113,14 @@ class TestIntegration(base.BaseTestCase):
 
         venv = self.useFixture(
             test_packaging.Venv('sdist',
-                                modules=['pip', 'wheel',
-                                         'setuptools', PBRVERSION],
+                                modules=['pip', 'wheel', PBRVERSION],
                                 pip_cmd=PIP_CMD))
         python = venv.python
         self.useFixture(base.CapturedSubprocess(
             'sdist', [python, 'setup.py', 'sdist'], cwd=path))
         venv = self.useFixture(
             test_packaging.Venv('tarball',
-                                modules=['pip', 'wheel',
-                                         'setuptools', PBRVERSION],
+                                modules=['pip', 'wheel', PBRVERSION],
                                 pip_cmd=PIP_CMD))
         python = venv.python
         filename = os.path.join(
@@ -131,8 +129,7 @@ class TestIntegration(base.BaseTestCase):
             'tarball', [python] + pip_cmd + [filename]))
         venv = self.useFixture(
             test_packaging.Venv('install-git',
-                                modules=['pip', 'wheel',
-                                         'setuptools', PBRVERSION],
+                                modules=['pip', 'wheel', PBRVERSION],
                                 pip_cmd=PIP_CMD))
         root = venv.path
         python = venv.python
@@ -146,8 +143,7 @@ class TestIntegration(base.BaseTestCase):
             self.assertTrue(found)
         venv = self.useFixture(
             test_packaging.Venv('install-e',
-                                modules=['pip', 'wheel',
-                                         'setuptools', PBRVERSION],
+                                modules=['pip', 'wheel', PBRVERSION],
                                 pip_cmd=PIP_CMD))
         root = venv.path
         python = venv.python
@@ -157,6 +153,8 @@ class TestIntegration(base.BaseTestCase):
 
 class TestInstallWithoutPbr(base.BaseTestCase):
 
+    # TODO(clarkb) This test should be reimagined with modern packaging tools
+    # and expectations.
     @testtools.skipUnless(
         os.environ.get('PBR_INTEGRATION', None) == '1',
         'integration tests not enabled')
@@ -207,6 +205,7 @@ class TestInstallWithoutPbr(base.BaseTestCase):
         self._run_cmd(sys.executable, ('setup.py', 'sdist', '-d', dist_dir),
                       allow_fail=False, cwd=req_pkg_dir)
         # A venv to test within
+        # We install setuptools because we rely on setup.py below.
         venv = self.useFixture(test_packaging.Venv('nopbr',
                                                    ['pip', 'wheel',
                                                     'setuptools']))
