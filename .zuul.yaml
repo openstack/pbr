@@ -117,6 +117,8 @@
     nodeset: ubuntu-noble
 
 - project:
+    vars:
+      release_python: python3
     templates:
       - lib-forward-testing-python3
       - periodic-stable-jobs
@@ -124,6 +126,7 @@
     check:
       jobs:
         - openstack-tox-pep8
+        - build-python-release
         - openstack-tox-cover
         - openstack-tox-py27
         - openstack-tox-py36
@@ -140,6 +143,7 @@
     gate:
       jobs:
         - openstack-tox-pep8
+        - build-python-release
         - openstack-tox-cover
         - openstack-tox-py27
         - openstack-tox-py36
