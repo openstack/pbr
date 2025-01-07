@@ -37,20 +37,32 @@ something like this::
 ``pyproject.toml``
 ------------------
 
-PBR can be configured as a PEP517 build-system in ``pyproject.toml``. This
-currently continues to rely on setuptools which means you need the above
-``setup.py`` file to be present. The main benefits to using a
-``pyproject.toml`` file with PBR are that you can control the versions of
-PBR and setuptools that are used avoiding easy_install invocation.
-Your build-system block in ``pyproject.toml`` will need to look something
+*If your project only supports Python 3.7 or newer*, PBR can be configured as a
+PEP517 build-system in ``pyproject.toml``. The main benefits are that you can
+control the versions of PBR and setuptools that are used avoiding easy_install
+invocation. Your build-system block in ``pyproject.toml`` will need to look
 like this::
 
     [build-system]
-    requires = ["pbr>=6.0.0", "setuptools>=64.0.0"]
+    requires = ["pbr>=6", "setuptools>=64"]
     build-backend = "pbr.build"
 
 Eventually PBR may grow its own direct support for PEP517 build hooks, but
-until then it will continue to need setuptools and ``setup.py``.
+until then it will continue to need setuptools with a minimal ``setup.py`` and
+``setup.cfg`` as follows...
+
+``setup.py``::
+
+    import setuptools
+    setuptools.setup(pbr=True)
+
+``setup.cfg``::
+
+    [metadata]
+    name = myproject
+
+If desired, any other metadata can be placed in your ``pyproject.toml`` instead
+of ``setup.cfg``.
 
 .. _setup_cfg:
 
