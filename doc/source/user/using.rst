@@ -71,51 +71,51 @@ of ``setup.cfg``.
 
 The ``setup.cfg`` file is an INI-like file that can mostly replace the
 ``setup.py`` file. It is similar to the ``setup.cfg`` file found in recent
-versions of `setuptools`__. A simple sample can be found in *pbr*'s own
-``setup.cfg`` (it uses its own machinery to install itself):
-
-::
+versions of `setuptools`__. A simple example::
 
     [metadata]
-    name = pbr
-    author = OpenStack Foundation
-    author_email = openstack-discuss@lists.openstack.org
-    summary = OpenStack's setup automation in a reusable form
-    description_file = README.rst
-    description_content_type = text/x-rst; charset=UTF-8
-    home_page = https://launchpad.net/pbr
-    project_urls =
-        Bug Tracker = https://bugs.launchpad.net/pbr/
-        Documentation = https://docs.openstack.org/pbr/
-        Source Code = https://opendev.org/openstack/pbr
-    license = Apache-2
-    classifier =
-        Development Status :: 4 - Beta
+    name = my_project
+    summary = A brief one-line descriptive title of my project
+    author = My Project's Contributors
+    author_email = my-project-mailing-list@lists.example.org
+    classifiers =
+        Development Status :: 5 - Production/Stable
         Environment :: Console
-        Environment :: OpenStack
         Intended Audience :: Developers
         Intended Audience :: Information Technology
         License :: OSI Approved :: Apache Software License
         Operating System :: OS Independent
         Programming Language :: Python
-    keywords =
-        setup
-        distutils
+        Programming Language :: Python :: 3
+        Programming Language :: Python :: 3.10
+        Programming Language :: Python :: 3.11
+        Programming Language :: Python :: 3.12
+        Programming Language :: Python :: 3.13
+        Topic :: Utilities
+    keywords = commandline utility
+    long_description = file: README.rst
+    long_description_content_type = text/x-rst; charset=UTF-8
+    project_urls =
+        Homepage = https://my-project.example.org/
+        Bug Tracker = https://my-project.example.org/bugs/
+        Documentation = https://my-project.example.org/docs/
+        Release Notes = https://my-project.example.org/releasenotes/
+        Source Code = https://my-project.example.org/code/
+
+    [options]
+    python_requires = >=3.10
 
     [files]
     packages =
-        pbr
-    data_files =
-        etc/pbr = etc/*
-        etc/init =
-            pbr.packaging.conf
-            pbr.version.conf
+        my_project
 
     [entry_points]
     console_scripts =
-        pbr = pbr.cmd:main
-    pbr.config.drivers =
-        plain = pbr.cfg.driver:Plain
+        my-project = my_project.cmd:main
+
+    [pbr]
+    manpages =
+        my-project.1
 
 Recent versions of `setuptools`_ provide many of the same sections as *pbr*.
 However, *pbr* does provide a number of additional sections:
