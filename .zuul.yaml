@@ -133,6 +133,7 @@
         - openstack-tox-py310
         - openstack-tox-py311
         - openstack-tox-py312
+        - openstack-tox-py313
         - pbr-installation-openstack-jammy
         - pbr-installation-openstack-pip-dev-jammy
         - pbr-installation-openstack-noble
@@ -149,6 +150,7 @@
         - openstack-tox-py310
         - openstack-tox-py311
         - openstack-tox-py312
+        - openstack-tox-py313
         - pbr-installation-openstack-jammy
         - pbr-installation-openstack-pip-dev-jammy
         - pbr-installation-openstack-noble
