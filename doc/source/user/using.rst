@@ -44,7 +44,7 @@ invocation. Your build-system block in ``pyproject.toml`` will need to look
 like this::
 
     [build-system]
-    requires = ["pbr>=6", "setuptools>=64"]
+    requires = ["pbr>=6.1.1"]
     build-backend = "pbr.build"
 
 Eventually PBR may grow its own direct support for PEP517 build hooks, but
