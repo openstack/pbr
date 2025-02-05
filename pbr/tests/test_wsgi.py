@@ -19,6 +19,7 @@ import os
 import re
 import subprocess
 import sys
+import sysconfig
 
 from pbr._compat.five import urlopen
 from pbr.tests import base
@@ -29,6 +30,8 @@ class TestWsgiScripts(base.BaseTestCase):
     cmd_names = ('pbr_test_wsgi', 'pbr_test_wsgi_with_class')
 
     def _get_path(self):
+        if sys.version_info[0] > 3:
+            return sysconfig.get_path("platlib", vars={"base": self.temp_dir})
         if os.path.isdir("%s/lib64" % self.temp_dir):
             path = "%s/lib64" % self.temp_dir
         elif os.path.isdir("%s/lib" % self.temp_dir):
