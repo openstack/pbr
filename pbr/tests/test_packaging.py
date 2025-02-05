@@ -413,9 +413,13 @@ class TestPackagingWheels(base.BaseTestCase):
         built_package_dir = os.path.join(
             self.extracted_wheel_dir, 'pbr_testpackage')
         static_object_filename = 'testext.so'
-        soabi = get_soabi()
-        if soabi:
-            static_object_filename = 'testext.{0}.so'.format(soabi)
+        ext_suffix = sysconfig.get_config_var('EXT_SUFFIX')
+        if ext_suffix is not None:
+            static_object_filename = 'testext' + ext_suffix
+        else:
+            soabi = get_soabi()
+            if soabi:
+                static_object_filename = 'testext.{0}.so'.format(soabi)
         static_object_path = os.path.join(
             built_package_dir, static_object_filename)
 
