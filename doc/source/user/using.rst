@@ -163,8 +163,6 @@ All other metadata can be placed in your ``setup.cfg``. A simple example:
 
     [options]
     python_requires = >=3.10
-
-    [files]
     packages =
         my_project
 
@@ -175,7 +173,7 @@ All other metadata can be placed in your ``setup.cfg``. A simple example:
 Recent versions of `setuptools`_ provide many of the same sections as *pbr*.
 However, *pbr* does provide a number of additional sections:
 
-- ``files``
+- ``files`` (deprecated)
 - ``entry_points`` (deprecated)
 - ``backwards_compat``
 - ``pbr``
@@ -216,9 +214,66 @@ __ http://babel.pocoo.org/en/latest/setup.html
 ``files``
 ~~~~~~~~~
 
-The ``files`` section defines the install location of files in the package
-using three fundamental keys: ``packages``, ``namespace_packages``, and
-``data_files``.
+The ``files`` section defines the install location of files in the package.
+
+.. deprecated:: 7.0.0
+
+    `setuptools v30.3.0`__ introduced built-in support for configuring the
+    below information via the ``[options]`` section in ``setup.cfg``, while
+    `setuptools v68.1.0`__ adds support for doing this via ``pyproject.toml``
+    using the ``[tool.setuptools]`` section. For example, given the following
+    ``setup.cfg`` configuration:
+
+    .. code-block:: ini
+
+        [files]
+        packages =
+            foo
+        namespace_packages =
+            fooext
+        data_files =
+            etc/foo = etc/foo/*
+            etc/foo-api =
+                etc/api-paste.ini
+            etc/init.d = foo.init
+
+    You can represent this in ``setup.cfg`` like so:
+
+    .. code-block:: ini
+
+        [options]
+        packages =
+            foo
+        namespace_packages =
+            fooext
+
+        [options.data_files]
+        etc/foo = etc/foo/*
+        etc/foo-api =
+            etc/api-paste.ini
+        etc/init.d = foo.init
+
+    Neither namespace packages nor non-package data files are supported in
+    ``pyproject.toml`` format so only ``[files] packages`` can be migrated in
+    this example:
+
+    .. code-block:: toml
+
+        [tool.setuptools]
+        packages = ["foo"]
+
+    For more information, refer to the `Configuring setuptools using setup.cfg
+    files`__, `Package Discovery and Namespace Packages`__ and `Data Files
+    Support`__ documents in the setuptools docs.
+
+    .. __: https://pypi.org/project/setuptools/30.3.0/
+    .. __: https://pypi.org/project/setuptools/68.1.0/
+    .. __: https://setuptools.pypa.io/en/latest/userguide/declarative_config.html
+    .. __: https://setuptools.pypa.io/en/latest/userguide/package_discovery.html
+    .. __: https://setuptools.pypa.io/en/latest/userguide/datafiles.html
+
+The ``files`` section uses three fundamental keys: ``packages``,
+``namespace_packages``, and ``data_files``.
 
 ``packages``
   A list of top-level packages that should be installed. The behavior of
