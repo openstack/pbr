@@ -1,0 +1,11 @@
+---
+deprecations:
+  - |
+    A number of pbr-specific `setup.cfg` sections and options have been
+    deprecated in order in favour of setuptools native `setup.cfg` sections
+    and options or their `pyproject.toml` equivalents:
+
+    - The `entry_points` section has been deprecated in favour of the
+      `[options.entry_points]` section (if using `setup.cfg`) or the
+      `[project.scripts]` and/or `[project.entry-points.{name}]` sections
+      (if using `pyproject.toml`)

@@ -547,15 +547,18 @@ def get_extension_modules(config):
 
 
 def get_entry_points(config):
-    """Process the [entry_points] section of setup.cfg.
-
-    Processes setup.cfg to handle setuptools entry points. This is, of course,
-    not a standard feature of distutils2/packaging, but as there is not
-    currently a standard alternative in packaging, we provide support for them.
-    """
+    """Process the [entry_points] section of setup.cfg."""
 
     if 'entry_points' not in config:
         return {}
+
+    warnings.warn(
+        "The 'entry_points' section has been deprecated in favour of the "
+        "'[options.entry_points]' section (if using 'setup.cfg') or the "
+        "'[project.scripts]' and/or '[project.entry-points.{name}]' sections "
+        "(if using 'pyproject.toml')",
+        DeprecationWarning,
+    )
 
     return {
         option: split_multiline(value)

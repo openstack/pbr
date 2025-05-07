@@ -168,7 +168,7 @@ All other metadata can be placed in your ``setup.cfg``. A simple example:
     packages =
         my_project
 
-    [entry_points]
+    [options.entry_points]
     console_scripts =
         my-project = my_project.cmd:main
 
@@ -176,7 +176,7 @@ Recent versions of `setuptools`_ provide many of the same sections as *pbr*.
 However, *pbr* does provide a number of additional sections:
 
 - ``files``
-- ``entry_points``
+- ``entry_points`` (deprecated)
 - ``backwards_compat``
 - ``pbr``
 
@@ -277,12 +277,57 @@ using three fundamental keys: ``packages``, ``namespace_packages``, and
 ~~~~~~~~~~~~~~~~
 
 The ``entry_points`` section defines entry points for generated console scripts
-and Python libraries. This is actually provided by *setuptools* but is
-documented here owing to its importance.
+and Python libraries.
+
+.. deprecated:: 7.0.0
+
+    `setuptools v30.3.0`__ introduced built-in support for configuring the
+    below information via the ``[options.entry_points]`` section in
+    ``setup.cfg``, while `setuptools v68.1.0`__ adds support for doing this via
+    ``pyproject.toml`` using the ``[project.scripts]`` section. For example,
+    given the following ``setup.cfg`` configuration:
+
+    .. code-block:: ini
+
+        [entry_points]
+        console_scripts =
+            pbr = pbr.cmd:main
+        pbr.config.drivers =
+            plain = pbr.cfg.driver:Plain
+            fancy = pbr.cfg.driver:Fancy
+
+    You can represent this in ``setup.cfg`` like so:
+
+    .. code-block:: ini
+
+        [options.entry_points]
+        console_scripts =
+            pbr = pbr.cmd:main
+        pbr.config.drivers =
+            plain = pbr.cfg.driver:Plain
+            fancy = pbr.cfg.driver:Fancy
+
+    Or in ``pyproject.toml`` like so:
+
+    .. code-block:: toml
+
+        [project.scripts]
+        pbr = "pbr.cmd:main"
+
+        [project.entry-points."pbr.config.drivers"]
+        plain = "pbr.cfg.driver:Plain"
+        fancy = "pbr.cfg.driver:Fancy"
+
+    For more information, refer to the `Entry Points`__ document in the
+    setuptools docs.
+
+    .. __: https://pypi.org/project/setuptools/30.3.0/
+    .. __: https://pypi.org/project/setuptools/68.1.0/
+    .. __: https://setuptools.pypa.io/en/latest/userguide/entry_point.html
 
 The general syntax of specifying entry points is a top level name indicating
-the entry point group name, followed by one or more key value pairs naming
-the entry point to be installed. For example:
+the entry point group name, followed by one or more key value pairs naming the
+entry point to be installed. For example:
 
 .. code-block:: ini
 
