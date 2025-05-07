@@ -42,3 +42,44 @@ deprecations:
     - The `[files] modules` option has been deprecated in favour of the
       `[options] py_modules` option (if using `setup.cfg`) or the
       `[tools.setuptools] py-modules` option (if using `pyproject.toml`)
+
+    - The `[metadata] home_page` option has been deprecated in favour of the
+      `[metadata] url` option (if using `setup.cfg`) or the `[project.urls]`
+      option (if using `pyproject.toml`)
+
+    - The `[metadata] summary` option has been deprecated in favour of the
+      `[metadata] description` option (if using `setup.cfg`) or the `[project]
+      description` option (if using `pyproject.toml`)
+
+    - The `[metadata] classifier` option has been deprecated in favour of the
+      `[metadata] classifiers` option (if using `setup.cfg`) or the `[project]
+      classifiers` option (if using `pyproject.toml`)
+
+    - The `[metadata] platform` option has been deprecated in favour of the
+      `[metadata] platforms` option (if using `setup.cfg`) or the
+      `[tool.setuptools] platforms` (if using `pyproject.toml`)
+
+    - The `[metadata] requires_dist` option has been deprecated in favour of
+      the `[options] install_requires` option (if using `setup.cfg`) or the
+      `[project] dependencies` option (if using `pyproject.toml`)
+
+    - The `[metadata] setup_requires_dist` option has been deprecated in favour
+      of the `[options] setup_requires` option (if using `setup.cfg`) or the
+      `[build-system] requires` option (if using `pyproject.toml`)
+
+    - The `[metadata] python_requires` option has been deprecated in favour of
+      the `[options] python_requires` option (if using `setup.cfg`) or the
+      `[project] requires-python` option (if using `pyproject.toml`)
+
+    - The `[metadata] requires_python` option has been deprecated in favour of
+      the `[options] python_requires` option (if using `setup.cfg`) or the
+      `[project] requires-python` option (if using `pyproject.toml`)
+
+    - The `[metadata] provides_dist` option has been deprecated as it is
+      obsolete and is no longer used by pip
+
+    - The `[metadata] provides_extra` option has been deprecated as it is
+      obsolete and is no longer used by pip
+
+    - The `[metadata] obsoletes_dist` option has been deprecated as it is
+      obsolete and is no longer used by pip

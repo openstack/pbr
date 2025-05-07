@@ -129,6 +129,41 @@ CFG_TO_PY_SETUP_ARGS = (
 )
 
 DEPRECATED_CFG = {
+    ('metadata' 'home_page'): (
+        "Use '[metadata] url' (setup.cfg) or '[project.urls]' "
+        "(pyproject.toml) instead"
+    ),
+    ('metadata' 'summary'): (
+        "Use '[metadata] description' (setup.cfg) or '[project] description' "
+        "(pyproject.toml) instead"
+    ),
+    ('metadata' 'classifier'): (
+        "Use '[metadata] classifiers' (setup.cfg) or '[project] classifiers' "
+        "(pyproject.toml) instead"
+    ),
+    ('metadata' 'platform'): (
+        "Use '[metadata] platforms' (setup.cfg) or "
+        "'[tool.setuptools] platforms' (pyproject.toml) instead"
+    ),
+    ('metadata', 'requires_dist'): (
+        "Use '[options] install_requires' (setup.cfg) or "
+        "'[project] dependencies' (pyproject.toml) instead"
+    ),
+    ('metadata', 'setup_requires_dist'): (
+        "Use '[options] setup_requires' (setup.cfg) or "
+        "'[build-system] requires' (pyproject.toml) instead"
+    ),
+    ('metadata', 'python_requires'): (
+        "Use '[options] python_requires' (setup.cfg) or "
+        "'[project] requires-python' (pyproject.toml) instead"
+    ),
+    ('metadata', 'requires_python'): (
+        "Use '[options] python_requires' (setup.cfg) or "
+        "'[project] requires-python' (pyproject.toml) instead"
+    ),
+    ('metadata', 'provides_dist'): "This option is ignored by pip",
+    ('metadata', 'provides_extras'): "This option is ignored by pip",
+    ('metadata', 'obsoletes_dist'): "This option is ignored by pip",
     ('files', 'packages_root'): (
         "Use '[options] package_dir' (setup.cfg) or '[tools.setuptools] "
         "package_dir' (pyproject.toml) instead"

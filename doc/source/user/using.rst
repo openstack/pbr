@@ -134,7 +134,7 @@ All other metadata can be placed in your ``setup.cfg``. A simple example:
 
     [metadata]
     name = my_project
-    summary = A brief one-line descriptive title of my project
+    description = A brief one-line descriptive title of my project
     author = John Doe
     author_email = john@example.com
     classifiers =
