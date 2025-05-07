@@ -197,6 +197,20 @@ DEPRECATED_CFG = {
         "Use '[options] py_modules' (setup.cfg) or '[tools.setuptools] "
         "py-modules' (pyproject.toml) instead"
     ),
+    ('backwards_compat' 'zip_safe'): (
+        "This option is obsolete as it was only relevant in the context of "
+        "eggs"
+    ),
+    ('backwards_compat' 'dependency_links'): (
+        "This option is ignored by pip starting from pip 19.0"
+    ),
+    ('backwards_compat' 'tests_require'): (
+        "This option is ignored by pip starting from pip 19.0"
+    ),
+    ('backwards_compat' 'include_package_data'): (
+        "Use '[options] include_package_data' (setup.cfg) or "
+        "'[tools.setuptools] include-package-data' (pyproject.toml) instead"
+    ),
 }
 
 # setup() arguments that can have multiple values in setup.cfg

@@ -83,3 +83,17 @@ deprecations:
 
     - The `[metadata] obsoletes_dist` option has been deprecated as it is
       obsolete and is no longer used by pip
+
+    - The `[backwards_compat] zip_safe` option has been deprecated as it is
+      was only relevant in the context of eggs and is therefore obsolete
+
+    - The `[backwards_compat] dependency_links` option has been deprecated as
+      it is obsolete and is no longer used by pip
+
+    - The `[backwards_compat] tests_require` option has been deprecated as it
+      is obsolete and is no longer used by pip
+
+    - The `[backwards_compat] include_package_data` option has been deprecated
+      in favour of the `[options] include_package_data` option (is using
+      `setup.cfg`) or the `[tools.setuptools] include-package-data` option
+      (if using `pyproject.toml`)
