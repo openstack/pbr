@@ -19,9 +19,8 @@ import sys
 sys.path.insert(0, os.path.abspath('../..'))
 # -- General configuration ----------------------------------------------------
 
-# Add any Sphinx extension module names here, as strings. They can be
-# extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinxcontrib.apidoc']
+extensions = ['sphinx.ext.apidoc', 'sphinx.ext.todo']
+
 # make openstackdocstheme optional to not increase the needed dependencies
 try:
     import openstackdocstheme
@@ -31,23 +30,11 @@ except ImportError:
 
 # openstackdocstheme options
 
-# Deprecated options for docstheme < 2.2.0, can be removed once
-# pbr stops supporting py27.
-repository_name = 'openstack/pbr'
-bug_project = 'pbr'
-bug_tag = ''
 # New options with openstackdocstheme >=2.2.0
 openstackdocs_repo_name = 'openstack/pbr'
 openstackdocs_auto_name = False
 openstackdocs_bug_project = 'pbr'
 openstackdocs_bug_tag = ''
-
-# autodoc generation is a bit aggressive and a nuisance when doing heavy
-# text edit cycles.
-# execute "export SPHINX_DEBUG=1" in your terminal to disable
-
-# Add any paths that contain templates here, relative to this directory.
-# templates_path = ['_templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -57,7 +44,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pbr'
-copyright = '2013, OpenStack Foundation'
+copyright = '2013-, OpenStack Foundation'
 
 # If true, '()' will be appended to :func: etc. cross-reference text.
 add_function_parentheses = True
@@ -93,10 +80,12 @@ latex_documents = [
      'OpenStack Foundation', 'manual'),
 ]
 
-# -- sphinxcontrib.apidoc configuration --------------------------------------
+# -- Options for sphinx.ext.apidoc extension ----------------------------------
 
-apidoc_module_dir = '../../pbr'
-apidoc_output_dir = 'reference/api'
-apidoc_excluded_paths = [
-    'tests',
+apidoc_modules = [
+    {
+        'path': '../../pbr',
+        'destination': 'reference/api',
+        'exclude_patterns': ['**/tests/*'],
+    },
 ]
