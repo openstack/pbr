@@ -120,6 +120,10 @@ class GPGKeyFixture(fixtures.Fixture):
 
     def setUp(self):
         super(GPGKeyFixture, self).setUp()
+        # If a temporary home dir is in use (and it should be), ensure gpg is
+        # aware of it. This seems to be necessary on Fedora.
+        self.useFixture(fixtures.EnvironmentVariable(
+            'GNUPGHOME', os.getenv('HOME')))
         tempdir = self.useFixture(fixtures.TempDir())
         gnupg_version_re = re.compile(r'^gpg\s.*\s([\d+])\.([\d+])\.([\d+])')
         gnupg_version = base._run_cmd(['gpg', '--version'], tempdir.path)
@@ -161,9 +165,10 @@ class GPGKeyFixture(fixtures.Fixture):
         else:
             gnupg_random = ''
 
-        base._run_cmd(
+        _, _, retcode = base._run_cmd(
             ['gpg', '--gen-key', '--batch', gnupg_random, config_file],
             tempdir.path)
+        assert retcode == 0, 'gpg key generation failed!'
 
 
 class Venv(fixtures.Fixture):
