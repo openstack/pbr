@@ -107,30 +107,36 @@ class TestIntegration(base.BaseTestCase):
             with open(tmp_constraints, 'w') as dest:
                 for line in src:
                     constraint = line.split('===')[0]
+                    constraint = pkg_resources.safe_name(constraint).lower()
                     if project_name != constraint:
                         dest.write(line)
         pip_cmd = PIP_CMD + ['-c', tmp_constraints]
 
         venv = self.useFixture(
-            test_packaging.Venv('sdist',
-                                modules=['pip', 'wheel', PBRVERSION],
-                                pip_cmd=PIP_CMD))
+            test_packaging.Venv(
+                'sdist',
+                modules=['pip', 'wheel', 'setuptools<80', PBRVERSION],
+                pip_cmd=PIP_CMD))
         python = venv.python
         self.useFixture(base.CapturedSubprocess(
             'sdist', [python, 'setup.py', 'sdist'], cwd=path))
+
         venv = self.useFixture(
-            test_packaging.Venv('tarball',
-                                modules=['pip', 'wheel', PBRVERSION],
-                                pip_cmd=PIP_CMD))
+            test_packaging.Venv(
+                'tarball',
+                modules=['pip', 'wheel', 'setuptools<80', PBRVERSION],
+                pip_cmd=PIP_CMD))
         python = venv.python
         filename = os.path.join(
             path, 'dist', os.listdir(os.path.join(path, 'dist'))[0])
         self.useFixture(base.CapturedSubprocess(
             'tarball', [python] + pip_cmd + [filename]))
+
         venv = self.useFixture(
-            test_packaging.Venv('install-git',
-                                modules=['pip', 'wheel', PBRVERSION],
-                                pip_cmd=PIP_CMD))
+            test_packaging.Venv(
+                'install-git',
+                modules=['pip', 'wheel', 'setuptools<80', PBRVERSION],
+                pip_cmd=PIP_CMD))
         root = venv.path
         python = venv.python
         self.useFixture(base.CapturedSubprocess(
@@ -141,14 +147,16 @@ class TestIntegration(base.BaseTestCase):
                 if 'alembic.ini' in filenames:
                     found = True
             self.assertTrue(found)
+
         venv = self.useFixture(
-            test_packaging.Venv('install-e',
-                                modules=['pip', 'wheel', PBRVERSION],
-                                pip_cmd=PIP_CMD))
+            test_packaging.Venv(
+                'install-editable',
+                modules=['pip', 'wheel', 'setuptools<80', PBRVERSION],
+                pip_cmd=PIP_CMD))
         root = venv.path
         python = venv.python
         self.useFixture(base.CapturedSubprocess(
-            'install-e', [python] + pip_cmd + ['-e', path]))
+            'install-editable', [python] + pip_cmd + ['-e', path]))
 
 
 class TestInstallWithoutPbr(base.BaseTestCase):
@@ -206,9 +214,10 @@ class TestInstallWithoutPbr(base.BaseTestCase):
                       allow_fail=False, cwd=req_pkg_dir)
         # A venv to test within
         # We install setuptools because we rely on setup.py below.
-        venv = self.useFixture(test_packaging.Venv('nopbr',
-                                                   ['pip', 'wheel',
-                                                    'setuptools']))
+        # FIXME(stephenfin): We should not need to pin setuptools
+        # https://github.com/pypa/setuptools/commit/ef4cd2960d75f2d49f40f5495347523be62d20e5
+        venv = self.useFixture(
+            test_packaging.Venv('nopbr', ['pip', 'wheel', 'setuptools<80']))
         python = venv.python
         # Install both packages
         self.useFixture(base.CapturedSubprocess(
@@ -221,7 +230,7 @@ class TestInstallWithoutPbr(base.BaseTestCase):
             'nopbr', [pbr_cmd] + ['freeze'], cwd=test_pkg_dir))
 
 
-# Handle various comaptibility issues with pip and setuptools versions against
+# Handle various compatability issues with pip and setuptools versions against
 # python3 versions. Unfortunately python3.12 in particular isn't very backward
 # compatible with pip and setuptools.
 # TODO(clarkb) add other distros like EL9 and EL10

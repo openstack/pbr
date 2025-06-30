@@ -102,8 +102,7 @@ class TestCore(base.BaseTestCase):
         stdout, _, return_code = self.run_setup(
             'install_scripts', '--install-dir=%s' % self.temp_dir)
 
-        self.useFixture(
-            fixtures.EnvironmentVariable('PYTHONPATH', '.'))
+        self.useFixture(fixtures.EnvironmentVariable('PYTHONPATH', '.'))
 
         self.check_script_install(stdout)
 
@@ -118,6 +117,14 @@ class TestCore(base.BaseTestCase):
 
         if os.name == 'nt':
             self.skipTest('Windows support is passthrough')
+
+        # setuptools v80.0.0 switched to using pip for the 'develop' command,
+        # which means easy_install is no longer invoked
+        #
+        # https://github.com/pypa/setuptools/commit/98e6b4cac625c6c13b718eeccea42d00d75f2577
+        # https://setuptools.pypa.io/en/stable/history.html#v80-0-0
+        if self.get_setuptools_version() >= (80, 0):
+            self.skipTest('setuptools is too new')
 
         self.useFixture(
             fixtures.EnvironmentVariable(
