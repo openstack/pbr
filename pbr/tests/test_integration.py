@@ -38,23 +38,36 @@ PBR_ROOT = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
 
 
 def all_projects():
+    if os.environ.get('PBR_INTEGRATION', None) != '1':
+        return
+
     if not REPODIR:
         return
+
+    yielded = 0
+
     # Future: make this path parameterisable.
     excludes = set(['tempest', 'requirements'])
     for name in PROJECTS:
         name = name.strip()
         short_name = name.split('/')[-1]
         try:
-            with open(os.path.join(
-                    REPODIR, short_name, 'setup.py'), 'rt') as f:
+            with open(
+                os.path.join(REPODIR, short_name, 'setup.py'), 'rt'
+            ) as f:
                 if 'pbr' not in f.read():
                     continue
         except IOError:
             continue
         if short_name in excludes:
             continue
+        yielded += 1
         yield (short_name, dict(name=name, short_name=short_name))
+
+    if not yielded:
+        raise Exception(
+            'no projects found: is PROJECTS set, and do the paths exist'
+        )
 
 
 class TestIntegration(base.BaseTestCase):
