@@ -302,36 +302,15 @@ Setup Commands
 ``test``
 ~~~~~~~~
 
-.. admonition:: Summary
+.. versionremoved:: 7.0
 
-    *pbr* will automatically alias the ``test`` command to use the testing tool
-    of your choice.
+    *pbr* previously aliased the ``test`` command to use the testing tool of
+    your choice. However, the two test runners it supported - ``testr`` and
+    ``nose`` - are no longer maintained. The override of this command was
+    therefore removed in *pbr* v7.0.0.
 
-.. deprecated:: 4.0
-
-*pbr* overrides the *setuptools* ``test`` command if using `testrepository`__
-or `nose`__ (deprecated).
-
-- *pbr* will check for a ``.testr.conf`` file. If this exists and
-  *testrepository* is installed, the ``test`` command will alias the *testr*
-  test runner. If this is not the case...
-
-  .. note::
-
-    This is separate to ``setup.py testr`` (note the extra ``r``) which is
-    provided directly by the ``testrepository`` package. Be careful as there is
-    some overlap of command arguments.
-
-- *pbr* will check if ``[nosetests]`` is defined in ``setup.cfg``. If this
-  exists and *nose* is installed, the ``test`` command will alias the *nose*
-  runner. If this is not the case...
-
-- In other cases no override will be installed and the ``test`` command will
-  revert to the `setuptools default`__.
-
-__ https://testrepository.readthedocs.io/en/latest/
-__ https://nose.readthedocs.io/en/latest/
-__ https://setuptools.readthedocs.io/en/latest/setuptools.html#test-build-package-and-run-a-unittest-suite
+    If you relied on this command, you should switch to calling the test runner
+    directly.
 
 .. _pbr.sphinxext:
 

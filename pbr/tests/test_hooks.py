@@ -43,10 +43,6 @@ from __future__ import print_function
 
 import os
 
-from testtools import matchers
-from testtools import skipUnless
-
-from pbr import testr_command
 from pbr.tests import base
 from pbr.tests import util
 
@@ -74,9 +70,3 @@ class TestHooks(base.BaseTestCase):
         stdout, _, return_code = self.run_setup('egg_info')
         assert 'test_hook_1\ntest_hook_2' in stdout
         assert return_code == 0
-
-    @skipUnless(testr_command.have_testr, "testrepository not available")
-    def test_custom_commands_known(self):
-        stdout, _, return_code = self.run_setup('--help-commands')
-        self.assertFalse(return_code)
-        self.assertThat(stdout, matchers.Contains(" testr "))

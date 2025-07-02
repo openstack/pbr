@@ -368,35 +368,6 @@ environment, you can use::
 
 __ https://www.python.org/dev/peps/pep-0426/#environment-markers
 
-Testing
--------
-
-.. deprecated:: 4.0
-
-As described in :doc:`/user/features`, *pbr* may override the ``test`` command
-depending on the test runner used.
-
-A typical usage would be in ``tox.ini`` such as::
-
-  [tox]
-  minversion = 2.0
-  skipsdist = True
-  envlist = py33,py34,py35,py26,py27,pypy,pep8,docs
-
-  [testenv]
-  usedevelop = True
-  setenv =
-    VIRTUAL_ENV={envdir}
-    CLIENT_NAME=pbr
-  deps = .
-       -r{toxinidir}/test-requirements.txt
-  commands =
-    python setup.py test --testr-args='{posargs}'
-
-The argument ``--coverage`` will set ``PYTHON`` to ``coverage run`` to produce
-a coverage report.  ``--coverage-package-name`` can be used to modify or narrow
-the packages traced.
-
 
 Sphinx ``conf.py``
 ------------------

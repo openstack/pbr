@@ -45,7 +45,6 @@ from pbr import extra_files
 from pbr import git
 from pbr import options
 import pbr.pbr_json
-from pbr import testr_command
 from pbr import version
 
 REQUIREMENTS_FILES = ('requirements.txt', 'tools/pip-requires')
@@ -240,24 +239,6 @@ class LocalInstall(install.install):
         return du_install.install.run(self)
 
 
-class TestrTest(testr_command.Testr):
-    """Make setup.py test do the right thing."""
-
-    command_name = 'test'
-    description = 'DEPRECATED: Run unit tests using testr'
-
-    def run(self):
-        warnings.warn(
-            'testr integration is deprecated in pbr 4.2 and will '
-            'be removed in a future release. Please call your test '
-            'runner directly',
-            DeprecationWarning,
-        )
-
-        # Can't use super - base class old-style class
-        testr_command.Testr.run(self)
-
-
 class LocalRPMVersion(setuptools.Command):
     __doc__ = """Output the rpm *compatible* version string of this package"""
     description = __doc__
@@ -294,40 +275,6 @@ class LocalDebVersion(setuptools.Command):
 
     def finalize_options(self):
         pass
-
-
-def have_testr():
-    return testr_command.have_testr
-
-
-try:
-    from nose import commands
-
-    class NoseTest(commands.nosetests):
-        """Fallback test runner if testr is a no-go."""
-
-        command_name = 'test'
-        description = 'DEPRECATED: Run unit tests using nose'
-
-        def run(self):
-            warnings.warn(
-                'nose integration in pbr is deprecated. Please use '
-                'the native nose setuptools configuration or call '
-                'nose directly',
-                DeprecationWarning,
-            )
-
-            # Can't use super - base class old-style class
-            commands.nosetests.run(self)
-
-    _have_nose = True
-
-except ImportError:
-    _have_nose = False
-
-
-def have_nose():
-    return _have_nose
 
 
 _wsgi_text = """#PBR Generated from %(group)r
