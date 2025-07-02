@@ -17,25 +17,10 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import argparse
-import json
 import sys
 
-import pkg_resources
-
+import pbr._compat.metadata
 import pbr.version
-
-
-def _get_metadata(package_name):
-    try:
-        return json.loads(
-            pkg_resources.get_distribution(package_name).get_metadata(
-                'pbr.json'
-            )
-        )
-    except pkg_resources.DistributionNotFound:
-        raise Exception('Package {0} not installed'.format(package_name))
-    except Exception:
-        return None
 
 
 def get_sha(args):
@@ -55,9 +40,10 @@ def get_info(args):
         )
 
 
-def _get_info(name):
-    metadata = _get_metadata(name)
-    version = pkg_resources.get_distribution(name).version
+def _get_info(package_name):
+    metadata = pbr._compat.metadata.get_metadata(package_name)
+    version = pbr._compat.metadata.get_version(package_name)
+
     if metadata:
         if metadata['is_release']:
             released = 'released'
@@ -75,8 +61,9 @@ def _get_info(name):
             for part in version_parts:
                 if not part.isdigit():
                     released = "pre-release"
+
     return {
-        'name': name,
+        'name': package_name,
         'version': version,
         'sha': sha,
         'released': released,
@@ -84,10 +71,7 @@ def _get_info(name):
 
 
 def freeze(args):
-    sorted_dists = sorted(
-        pkg_resources.working_set, key=lambda dist: dist.project_name.lower()
-    )
-    for dist in sorted_dists:
+    for dist in pbr._compat.metadata.get_distributions():
         info = _get_info(dist.project_name)
         output = "{name}=={version}".format(**info)
         if info['sha']:

@@ -24,18 +24,7 @@ import itertools
 import operator
 import sys
 
-# TODO(stephenfin): Remove this once we drop support for Python < 3.8
-if sys.version_info >= (3, 8):
-    from importlib import metadata as importlib_metadata
-
-    use_importlib = True
-else:
-    try:
-        import importlib_metadata
-
-        use_importlib = True
-    except ImportError:
-        use_importlib = False
+import pbr._compat.metadata
 
 
 def _is_int(string):
@@ -485,51 +474,6 @@ class VersionInfo(object):
             self.version_string(),
         )
 
-    def _get_version_from_pkg_resources(self):
-        """Obtain a version from pkg_resources or setup-time logic if missing.
-
-        This will try to get the version of the package from the pkg_resources
-        This will try to get the version of the package from the
-        record associated with the package, and if there is no such record
-        importlib_metadata record associated with the package, and if there
-        falls back to the logic sdist would use.
-
-        is no such record falls back to the logic sdist would use.
-        """
-        import pkg_resources
-
-        try:
-            distribution = pkg_resources.get_distribution(self.package)
-            result_string = distribution.version
-        except pkg_resources.DistributionNotFound:
-            # The most likely cause for this is running tests in a tree
-            # produced from a tarball where the package itself has not been
-            # installed into anything. Revert to setup-time logic.
-            from pbr import packaging
-
-            result_string = packaging.get_version(self.package)
-
-        return SemanticVersion.from_pip_string(result_string)
-
-    def _get_version_from_importlib_metadata(self):
-        """Obtain a version from importlib or setup-time logic if missing.
-
-        This will try to get the version of the package from the
-        importlib_metadata record associated with the package, and if there
-        is no such record falls back to the logic sdist would use.
-        """
-        try:
-            distribution = importlib_metadata.distribution(self.package)
-            result_string = distribution.version
-        except importlib_metadata.PackageNotFoundError:
-            # The most likely cause for this is running tests in a tree
-            # produced from a tarball where the package itself has not been
-            # installed into anything. Revert to setup-time logic.
-            from pbr import packaging
-
-            result_string = packaging.get_version(self.package)
-        return SemanticVersion.from_pip_string(result_string)
-
     def release_string(self):
         """Return the full version of the package.
 
@@ -539,13 +483,21 @@ class VersionInfo(object):
 
     def semantic_version(self):
         """Return the SemanticVersion object for this version."""
-        if self._semantic is None:
-            # TODO(damami): simplify this once Python 3.8 is the oldest
-            # we support
-            if use_importlib:
-                self._semantic = self._get_version_from_importlib_metadata()
-            else:
-                self._semantic = self._get_version_from_pkg_resources()
+        if self._semantic is not None:
+            return self._semantic
+
+        try:
+            result_string = pbr._compat.metadata.get_version(self.package)
+        except pbr._compat.metadata.PackageNotFound:
+            # The most likely cause for this is running tests in a tree
+            # produced from a tarball where the package itself has not been
+            # installed into anything. Revert to setup-time logic.
+            from pbr import packaging
+
+            result_string = packaging.get_version(self.package)
+
+        self._semantic = SemanticVersion.from_pip_string(result_string)
+
         return self._semantic
 
     def version_string(self):
