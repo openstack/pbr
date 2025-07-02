@@ -132,7 +132,8 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
         return self._run_cmd('pbr', args, **kwargs)
 
     def get_setuptools_version(self):
-        # we rely on this to determine whether to skip tests, so we can't
+        # we rely on this to determine whether to skip tests, so we can't allow
+        # this to fail silently
         stdout, _, _ = self._run_cmd(
             sys.executable,
             ('-c', 'import setuptools; print(setuptools.__version__)'),
