@@ -499,9 +499,8 @@ class VersionInfo(object):
         import pkg_resources
 
         try:
-            requirement = pkg_resources.Requirement.parse(self.package)
-            provider = pkg_resources.get_provider(requirement)
-            result_string = provider.version
+            distribution = pkg_resources.get_distribution(self.package)
+            result_string = distribution.version
         except pkg_resources.DistributionNotFound:
             # The most likely cause for this is running tests in a tree
             # produced from a tarball where the package itself has not been
