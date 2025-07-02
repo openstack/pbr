@@ -675,13 +675,6 @@ class LocalSDist(sdist.sdist):
         sdist.sdist.make_distribution(self)
 
 
-LocalBuildDoc = None
-
-
-def have_sphinx():
-    return False
-
-
 def _get_increment_kwargs(git_dir, tag):
     """Calculate the sort of semver increment needed from git history.
 

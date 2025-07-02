@@ -282,20 +282,22 @@ Setup Commands
 ``build_sphinx``
 ~~~~~~~~~~~~~~~~
 
-.. admonition:: Summary
+.. versionremoved:: 6.0
 
-    *pbr* will override the Sphinx ``build_sphinx`` command to use
-    *pbr*-provided package metadata and automatically generate API
-    documentation.
+    *Sphinx* deprecated the ``build_sphinx`` distutils commands in *Sphinx*
+    v5.0.0 and removed it in *Sphinx* v7.0.0. *pbr* deprecated its override of
+    this command in *pbr* v4.2.0 and removed it in *pbr* v6.0.0.
 
-.. deprecated:: 4.2
+    For automated generation of API documentation, consider either the
+    `sphinx.ext.apidoc`__ extension, provided in Sphinx since v8.2.0, or the
+    `sphinxcontrib-apidoc`__ extension if you are stuck with older versions of
+    Sphinx.
 
-   This feature has been superseded by the `sphinxcontrib-apidoc`__ (for
-   generation of API documentation) and :ref:`pbr.sphinxext` (for configuration
-   of versioning via package metadata) extensions. It has been removed in
-   version 6.0.
+    For configuration of versioning via package metadata, consider the
+    :ref:`pbr.sphinxext` extension.
 
-   __ https://pypi.org/project/sphinxcontrib-apidoc/
+    .. __: https://www.sphinx-doc.org/en/master/usage/extensions/apidoc.html
+    .. __: https://pypi.org/project/sphinxcontrib-apidoc/
 
 ``test``
 ~~~~~~~~
