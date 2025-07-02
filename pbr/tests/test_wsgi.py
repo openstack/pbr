@@ -16,6 +16,7 @@ import os
 import re
 import subprocess
 import sys
+
 try:
     # python 2
     from urllib2 import urlopen
@@ -42,7 +43,8 @@ class TestWsgiScripts(base.BaseTestCase):
         return ".:%s/python%s.%s/site-packages" % (
             path,
             sys.version_info[0],
-            sys.version_info[1])
+            sys.version_info[1],
+        )
 
     def test_wsgi_script_install(self):
         """Test that we install a non-pkg-resources wsgi script."""
@@ -50,7 +52,8 @@ class TestWsgiScripts(base.BaseTestCase):
             self.skipTest('Windows support is passthrough')
 
         stdout, _, return_code = self.run_setup(
-            'install', '--prefix=%s' % self.temp_dir)
+            'install', '--prefix=%s' % self.temp_dir
+        )
 
         self._check_wsgi_install_content(stdout)
 
@@ -66,7 +69,8 @@ class TestWsgiScripts(base.BaseTestCase):
             self.skipTest('Windows support is passthrough')
 
         stdout, _, return_code = self.run_setup(
-            'install', '--prefix=%s' % self.temp_dir)
+            'install', '--prefix=%s' % self.temp_dir
+        )
 
         self._check_wsgi_install_content(stdout)
 
@@ -84,17 +88,19 @@ class TestWsgiScripts(base.BaseTestCase):
 
         env = {'PYTHONPATH': self._get_path()}
 
-        p = subprocess.Popen(popen_cmd, stdout=subprocess.PIPE,
-                             stderr=subprocess.PIPE, cwd=self.temp_dir,
-                             env=env)
+        p = subprocess.Popen(
+            popen_cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            cwd=self.temp_dir,
+            env=env,
+        )
         self.addCleanup(p.kill)
 
         stdoutdata = p.stdout.readline()  # ****...
 
         stdoutdata = p.stdout.readline()  # STARTING test server...
-        self.assertIn(
-            b"STARTING test server pbr_testpackage.wsgi",
-            stdoutdata)
+        self.assertIn(b"STARTING test server pbr_testpackage.wsgi", stdoutdata)
 
         stdoutdata = p.stdout.readline()  # Available at ...
         print(stdoutdata)
@@ -103,8 +109,8 @@ class TestWsgiScripts(base.BaseTestCase):
 
         stdoutdata = p.stdout.readline()  # DANGER! ...
         self.assertIn(
-            b"DANGER! For testing only, do not use in production",
-            stdoutdata)
+            b"DANGER! For testing only, do not use in production", stdoutdata
+        )
 
         stdoutdata = p.stdout.readline()  # ***...
 
@@ -123,8 +129,10 @@ class TestWsgiScripts(base.BaseTestCase):
 
     def _check_wsgi_install_content(self, install_stdout):
         for cmd_name in self.cmd_names:
-            install_txt = 'Installing %s script to %s' % (cmd_name,
-                                                          self.temp_dir)
+            install_txt = 'Installing %s script to %s' % (
+                cmd_name,
+                self.temp_dir,
+            )
             self.assertIn(install_txt, install_stdout)
 
             cmd_filename = os.path.join(self.temp_dir, 'bin', cmd_name)
@@ -143,8 +151,9 @@ class TestWsgiScripts(base.BaseTestCase):
             else:
                 app_name = "WSGI.app"
 
-            starting_block = ("STARTING test server pbr_testpackage.wsgi."
-                              "%s" % app_name)
+            starting_block = (
+                "STARTING test server pbr_testpackage.wsgi." "%s" % app_name
+            )
 
             else_block = """else:
     application = None"""
@@ -158,6 +167,7 @@ class TestWsgiScripts(base.BaseTestCase):
             self.skipTest('Windows support is passthrough')
 
         stdout, _, return_code = self.run_setup(
-            'install', '--prefix=%s' % self.temp_dir)
+            'install', '--prefix=%s' % self.temp_dir
+        )
 
         self._test_wsgi('pbr_test_wsgi', b'Foo Bar', ["--", "-c", "Foo Bar"])

@@ -76,8 +76,10 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
             test_timeout = int(test_timeout)
         except ValueError:
             # If timeout value is invalid, fail hard.
-            print("OS_TEST_TIMEOUT set to invalid value"
-                  " defaulting to no timeout")
+            print(
+                "OS_TEST_TIMEOUT set to invalid value"
+                " defaulting to no timeout"
+            )
             test_timeout = 0
         if test_timeout > 0:
             self.useFixture(fixtures.Timeout(test_timeout, gentle=True))
@@ -88,8 +90,7 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
         if os.environ.get('OS_STDERR_CAPTURE') in options.TRUE_VALUES:
             stderr = self.useFixture(fixtures.StringStream('stderr')).stream
             self.useFixture(fixtures.MonkeyPatch('sys.stderr', stderr))
-        self.log_fixture = self.useFixture(
-            fixtures.FakeLogger('pbr'))
+        self.log_fixture = self.useFixture(fixtures.FakeLogger('pbr'))
 
         # Older git does not have config --local, so create a temporary home
         # directory to permit using git config --global without stepping on
@@ -104,8 +105,10 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
 
         self.temp_dir = self.useFixture(fixtures.TempDir()).path
         self.package_dir = os.path.join(self.temp_dir, 'testpackage')
-        shutil.copytree(os.path.join(os.path.dirname(__file__), 'testpackage'),
-                        self.package_dir)
+        shutil.copytree(
+            os.path.join(os.path.dirname(__file__), 'testpackage'),
+            self.package_dir,
+        )
         self.addCleanup(os.chdir, os.getcwd())
         os.chdir(self.package_dir)
         self.addCleanup(self._discard_testpackage)
@@ -124,8 +127,7 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
         # Remove pbr.testpackage from sys.modules so that it can be freshly
         # re-imported by the next test
         for k in list(sys.modules):
-            if (k == 'pbr_testpackage' or
-                    k.startswith('pbr_testpackage.')):
+            if k == 'pbr_testpackage' or k.startswith('pbr_testpackage.'):
                 del sys.modules[k]
 
     def run_pbr(self, *args, **kwargs):
@@ -137,7 +139,8 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
         stdout, _, _ = self._run_cmd(
             sys.executable,
             ('-c', 'import setuptools; print(setuptools.__version__)'),
-            allow_fail=False)
+            allow_fail=False,
+        )
         return tuple(int(x) for x in stdout.strip().split('.')[:3])
 
     def run_setup(self, *args, **kwargs):
@@ -197,8 +200,9 @@ class CapturedSubprocess(fixtures.Fixture):
         self.returncode = proc.returncode
         if proc.returncode:
             raise AssertionError(
-                'Failed process args=%r, kwargs=%r, returncode=%s' % (
-                    self.args, self.kwargs, proc.returncode))
+                'Failed process args=%r, kwargs=%r, returncode=%s'
+                % (self.args, self.kwargs, proc.returncode)
+            )
         self.addCleanup(delattr, self, 'out')
         self.addCleanup(delattr, self, 'err')
         self.addCleanup(delattr, self, 'returncode')
@@ -213,8 +217,12 @@ def _run_cmd(args, cwd):
     """
     print('Running %s' % ' '.join(args))
     p = subprocess.Popen(
-        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE, cwd=cwd)
+        args,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=cwd,
+    )
     streams = tuple(s.decode('latin1').strip() for s in p.communicate())
     print('STDOUT:')
     print(streams[0])
@@ -226,10 +234,18 @@ def _run_cmd(args, cwd):
 def _config_git():
     _run_cmd(
         ['git', 'config', '--global', 'user.email', 'example@example.com'],
-        None)
+        None,
+    )
     _run_cmd(
-        ['git', 'config', '--global', 'user.name', 'OpenStack Developer'],
-        None)
+        ['git', 'config', '--global', 'user.name', 'OpenStack Developer'], None
+    )
     _run_cmd(
-        ['git', 'config', '--global', 'user.signingkey',
-         'example@example.com'], None)
+        [
+            'git',
+            'config',
+            '--global',
+            'user.signingkey',
+            'example@example.com',
+        ],
+        None,
+    )

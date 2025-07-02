@@ -18,6 +18,10 @@ repos:
       - id: debug-statements
       - id: check-yaml
         files: .*\.(yaml|yml)$
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 25.1.0
+    hooks:
+      - id: black
   - repo: https://opendev.org/openstack/hacking
     rev: 7.0.0
     hooks:

@@ -27,7 +27,5 @@ class TestJsonContent(base.BaseTestCase):
         cmd = mock.Mock()
         pbr_json.write_pbr_json(cmd, "basename", "pbr.json")
         cmd.write_file.assert_called_once_with(
-            'pbr',
-            'pbr.json',
-            '{"git_version": "123456", "is_release": true}'
+            'pbr', 'pbr.json', '{"git_version": "123456", "is_release": true}'
         )

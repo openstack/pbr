@@ -24,6 +24,7 @@ extensions = ['sphinx.ext.apidoc', 'sphinx.ext.todo']
 # make openstackdocstheme optional to not increase the needed dependencies
 try:
     import openstackdocstheme
+
     extensions.append('openstackdocstheme')
 except ImportError:
     openstackdocstheme = None
@@ -74,10 +75,13 @@ htmlhelp_basename = '%sdoc' % project
 # (source start file, target name, title, author, documentclass
 # [howto/manual]).
 latex_documents = [
-    ('index',
-     '%s.tex' % project,
-     '%s Documentation' % project,
-     'OpenStack Foundation', 'manual'),
+    (
+        'index',
+        '%s.tex' % project,
+        '%s Documentation' % project,
+        'OpenStack Foundation',
+        'manual',
+    ),
 ]
 
 # -- Options for sphinx.ext.apidoc extension ----------------------------------

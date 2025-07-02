@@ -43,14 +43,14 @@ def _run_shell_command(cmd, throw_on_error=False, buffer=True, env=None):
     if env:
         newenv.update(env)
 
-    output = subprocess.Popen(cmd,
-                              stdout=out_location,
-                              stderr=err_location,
-                              env=newenv)
+    output = subprocess.Popen(
+        cmd, stdout=out_location, stderr=err_location, env=newenv
+    )
     out = output.communicate()
     if output.returncode and throw_on_error:
         raise distutils.errors.DistutilsError(
-            "%s returned %d" % (cmd, output.returncode))
+            "%s returned %d" % (cmd, output.returncode)
+        )
     if len(out) == 0 or not out[0] or not out[0].strip():
         return ''
     # Since we don't control the history, and forcing users to rebase arbitrary
@@ -62,7 +62,8 @@ def _run_git_command(cmd, git_dir, **kwargs):
     if not isinstance(cmd, (list, tuple)):
         cmd = [cmd]
     return _run_shell_command(
-        ['git', '--git-dir=%s' % git_dir] + cmd, **kwargs)
+        ['git', '--git-dir=%s' % git_dir] + cmd, **kwargs
+    )
 
 
 def _get_git_directory():
@@ -138,8 +139,7 @@ def get_git_short_sha(git_dir=None):
     if not git_dir:
         git_dir = _run_git_functions()
     if git_dir:
-        return _run_git_command(
-            ['log', '-n1', '--pretty=format:%h'], git_dir)
+        return _run_git_command(['log', '-n1', '--pretty=format:%h'], git_dir)
     return None
 
 
@@ -180,8 +180,9 @@ def _iter_changelog(changelog):
             if not first_line:
                 yield current_release, '\n'
             yield current_release, (
-                "%(tag)s\n%(underline)s\n\n" %
-                dict(tag=current_release, underline=underline))
+                "%(tag)s\n%(underline)s\n\n"
+                % dict(tag=current_release, underline=underline)
+            )
 
         if not msg.startswith("Merge "):
             if msg.endswith("."):
@@ -260,14 +261,16 @@ def _iter_log_inner(git_dir):
         yield sha, tags, msg
 
 
-def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
-                        option_dict=None, changelog=None):
+def write_git_changelog(
+    git_dir=None, dest_dir=os.path.curdir, option_dict=None, changelog=None
+):
     """Write a changelog based on the git changelog."""
     start = time.time()
     if not option_dict:
         option_dict = {}
-    should_skip = options.get_boolean_option(option_dict, 'skip_changelog',
-                                             'SKIP_WRITE_GIT_CHANGELOG')
+    should_skip = options.get_boolean_option(
+        option_dict, 'skip_changelog', 'SKIP_WRITE_GIT_CHANGELOG'
+    )
     if should_skip:
         return
     if not changelog:
@@ -280,8 +283,10 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
     new_changelog = os.path.join(dest_dir, 'ChangeLog')
     if os.path.exists(new_changelog) and not os.access(new_changelog, os.W_OK):
         # If there's already a ChangeLog and it's not writable, just use it
-        log.info('[pbr] ChangeLog not written (file already'
-                 ' exists and it is not writeable)')
+        log.info(
+            '[pbr] ChangeLog not written (file already'
+            ' exists and it is not writeable)'
+        )
         return
 
     log.info('[pbr] Writing ChangeLog')
@@ -294,8 +299,9 @@ def write_git_changelog(git_dir=None, dest_dir=os.path.curdir,
 
 def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
     """Create AUTHORS file using git commits."""
-    should_skip = options.get_boolean_option(option_dict, 'skip_authors',
-                                             'SKIP_GENERATE_AUTHORS')
+    should_skip = options.get_boolean_option(
+        option_dict, 'skip_authors', 'SKIP_GENERATE_AUTHORS'
+    )
     if should_skip:
         return
 
@@ -320,10 +326,12 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
 
         # get all co-authors from commit messages
         co_authors_out = _run_git_command('log', git_dir)
-        co_authors = re.findall('Co-authored-by:.+', co_authors_out,
-                                re.MULTILINE)
-        co_authors = [signed.split(":", 1)[1].strip()
-                      for signed in co_authors if signed]
+        co_authors = re.findall(
+            'Co-authored-by:.+', co_authors_out, re.MULTILINE
+        )
+        co_authors = [
+            signed.split(":", 1)[1].strip() for signed in co_authors if signed
+        ]
 
         authors += co_authors
         authors = sorted(set(authors))
@@ -332,7 +340,6 @@ def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
             if os.path.exists(old_authors):
                 with open(old_authors, "rb") as old_authors_fh:
                     new_authors_fh.write(old_authors_fh.read())
-            new_authors_fh.write(('\n'.join(authors) + '\n')
-                                 .encode('utf-8'))
+            new_authors_fh.write(('\n'.join(authors) + '\n').encode('utf-8'))
     stop = time.time()
     log.info('[pbr] AUTHORS complete (%0.1fs)' % (stop - start))

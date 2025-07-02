@@ -64,7 +64,8 @@ class TestSemanticVersion(base.BaseTestCase):
 
     def test_from_pip_string_legacy_alpha(self):
         expected = version.SemanticVersion(
-            1, 2, 0, prerelease_type='rc', prerelease=1)
+            1, 2, 0, prerelease_type='rc', prerelease=1
+        )
         parsed = from_pip_string('1.2.0rc1')
         self.assertEqual(expected, parsed)
 
@@ -82,7 +83,8 @@ class TestSemanticVersion(base.BaseTestCase):
         # We can't define a mapping for .postN.devM, so it should raise.
         self.expectThat(
             lambda: from_pip_string('1.2.3.post5.dev6'),
-            matchers.raises(ValueError))
+            matchers.raises(ValueError),
+        )
 
     def test_from_pip_string_v_version(self):
         parsed = from_pip_string('v1.2.3')
@@ -94,37 +96,42 @@ class TestSemanticVersion(base.BaseTestCase):
         self.expectThat(expected, matchers.Equals(parsed))
 
         self.expectThat(
-            lambda: from_pip_string('x1.2.3'),
-            matchers.raises(ValueError))
+            lambda: from_pip_string('x1.2.3'), matchers.raises(ValueError)
+        )
 
     def test_from_pip_string_legacy_nonzero_lead_in(self):
         # reported in bug 1361251
         expected = version.SemanticVersion(
-            0, 0, 1, prerelease_type='a', prerelease=2)
+            0, 0, 1, prerelease_type='a', prerelease=2
+        )
         parsed = from_pip_string('0.0.1a2')
         self.assertEqual(expected, parsed)
 
     def test_from_pip_string_legacy_short_nonzero_lead_in(self):
         expected = version.SemanticVersion(
-            0, 1, 0, prerelease_type='a', prerelease=2)
+            0, 1, 0, prerelease_type='a', prerelease=2
+        )
         parsed = from_pip_string('0.1a2')
         self.assertEqual(expected, parsed)
 
     def test_from_pip_string_legacy_no_0_prerelease(self):
         expected = version.SemanticVersion(
-            2, 1, 0, prerelease_type='rc', prerelease=1)
+            2, 1, 0, prerelease_type='rc', prerelease=1
+        )
         parsed = from_pip_string('2.1.0.rc1')
         self.assertEqual(expected, parsed)
 
     def test_from_pip_string_legacy_no_0_prerelease_2(self):
         expected = version.SemanticVersion(
-            2, 0, 0, prerelease_type='rc', prerelease=1)
+            2, 0, 0, prerelease_type='rc', prerelease=1
+        )
         parsed = from_pip_string('2.0.0.rc1')
         self.assertEqual(expected, parsed)
 
     def test_from_pip_string_legacy_non_440_beta(self):
         expected = version.SemanticVersion(
-            2014, 2, prerelease_type='b', prerelease=2)
+            2014, 2, prerelease_type='b', prerelease=2
+        )
         parsed = from_pip_string('2014.2.b2')
         self.assertEqual(expected, parsed)
 
@@ -132,8 +139,9 @@ class TestSemanticVersion(base.BaseTestCase):
         self.assertRaises(ValueError, from_pip_string, '6eed5ae')
 
     def test_from_pip_string_non_digit_start(self):
-        self.assertRaises(ValueError, from_pip_string,
-                          'non-release-tag/2014.12.16-1')
+        self.assertRaises(
+            ValueError, from_pip_string, 'non-release-tag/2014.12.16-1'
+        )
 
     def test_final_version(self):
         semver = version.SemanticVersion(1, 2, 3)
@@ -243,22 +251,21 @@ class TestSemanticVersion(base.BaseTestCase):
     def test_decrement_nonrelease(self):
         # The prior version of any non-release is a release
         semver = version.SemanticVersion(1, 2, 4, 'b', 1)
-        self.assertEqual(
-            version.SemanticVersion(1, 2, 3), semver.decrement())
+        self.assertEqual(version.SemanticVersion(1, 2, 3), semver.decrement())
 
     def test_decrement_nonrelease_zero(self):
         # We set an arbitrary max version of 9999 when decrementing versions
         # - this is part of handling rpm support.
         semver = version.SemanticVersion(1, 0, 0)
         self.assertEqual(
-            version.SemanticVersion(0, 9999, 9999), semver.decrement())
+            version.SemanticVersion(0, 9999, 9999), semver.decrement()
+        )
 
     def test_decrement_release(self):
         # The next patch version of a release version requires a change to the
         # patch level.
         semver = version.SemanticVersion(2, 2, 5)
-        self.assertEqual(
-            version.SemanticVersion(2, 2, 4), semver.decrement())
+        self.assertEqual(version.SemanticVersion(2, 2, 4), semver.decrement())
 
     def test_increment_nonrelease(self):
         # The next patch version of a non-release version is another
@@ -266,23 +273,27 @@ class TestSemanticVersion(base.BaseTestCase):
         # incremented.
         semver = version.SemanticVersion(1, 2, 4, 'b', 1)
         self.assertEqual(
-            version.SemanticVersion(1, 2, 4, 'b', 2), semver.increment())
+            version.SemanticVersion(1, 2, 4, 'b', 2), semver.increment()
+        )
         # Major and minor increments however need to bump things.
         self.assertEqual(
-            version.SemanticVersion(1, 3, 0), semver.increment(minor=True))
+            version.SemanticVersion(1, 3, 0), semver.increment(minor=True)
+        )
         self.assertEqual(
-            version.SemanticVersion(2, 0, 0), semver.increment(major=True))
+            version.SemanticVersion(2, 0, 0), semver.increment(major=True)
+        )
 
     def test_increment_release(self):
         # The next patch version of a release version requires a change to the
         # patch level.
         semver = version.SemanticVersion(1, 2, 5)
+        self.assertEqual(version.SemanticVersion(1, 2, 6), semver.increment())
         self.assertEqual(
-            version.SemanticVersion(1, 2, 6), semver.increment())
+            version.SemanticVersion(1, 3, 0), semver.increment(minor=True)
+        )
         self.assertEqual(
-            version.SemanticVersion(1, 3, 0), semver.increment(minor=True))
-        self.assertEqual(
-            version.SemanticVersion(2, 0, 0), semver.increment(major=True))
+            version.SemanticVersion(2, 0, 0), semver.increment(major=True)
+        )
 
     def test_rc_dev_version(self):
         semver = version.SemanticVersion(1, 2, 4, 'rc', 1, 12)
@@ -305,7 +316,9 @@ class TestSemanticVersion(base.BaseTestCase):
     def test_to_dev(self):
         self.assertEqual(
             version.SemanticVersion(1, 2, 3, dev_count=1),
-            version.SemanticVersion(1, 2, 3).to_dev(1))
+            version.SemanticVersion(1, 2, 3).to_dev(1),
+        )
         self.assertEqual(
             version.SemanticVersion(1, 2, 3, 'rc', 1, dev_count=1),
-            version.SemanticVersion(1, 2, 3, 'rc', 1).to_dev(1))
+            version.SemanticVersion(1, 2, 3, 'rc', 1).to_dev(1),
+        )

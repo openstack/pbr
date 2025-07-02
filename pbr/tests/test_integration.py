@@ -78,14 +78,16 @@ class TestIntegration(base.BaseTestCase):
         # Integration tests need a higher default - big repos can be slow to
         # clone, particularly under guest load.
         env = fixtures.EnvironmentVariable(
-            'OS_TEST_TIMEOUT', os.environ.get('OS_TEST_TIMEOUT', '600'))
+            'OS_TEST_TIMEOUT', os.environ.get('OS_TEST_TIMEOUT', '600')
+        )
         with env:
             super(TestIntegration, self).setUp()
         base._config_git()
 
     @testtools.skipUnless(
         os.environ.get('PBR_INTEGRATION', None) == '1',
-        'integration tests not enabled')
+        'integration tests not enabled',
+    )
     def test_integration(self):
         # Test that we can:
         # - run sdist from the repo in a venv
@@ -103,17 +105,19 @@ class TestIntegration(base.BaseTestCase):
             config = configparser.ConfigParser()
             config.read(setup_cfg)
             if config.has_section('metadata'):
-                raw_name = config.get('metadata', 'name',
-                                      fallback='notapackagename')
+                raw_name = config.get(
+                    'metadata', 'name', fallback='notapackagename'
+                )
                 # Technically we should really only need to use the raw
                 # name because all our projects should be good and use
                 # normalized names but they don't...
                 project_name = pkg_resources.safe_name(raw_name).lower()
-        constraints = os.path.join(REPODIR, 'requirements',
-                                   'upper-constraints.txt')
+        constraints = os.path.join(
+            REPODIR, 'requirements', 'upper-constraints.txt'
+        )
         tmp_constraints = os.path.join(
-            self.useFixture(fixtures.TempDir()).path,
-            'upper-constraints.txt')
+            self.useFixture(fixtures.TempDir()).path, 'upper-constraints.txt'
+        )
         # We need to filter out the package we are installing to avoid
         # conflicts with the constraints.
         with open(constraints, 'r') as src:
@@ -129,31 +133,45 @@ class TestIntegration(base.BaseTestCase):
             test_packaging.Venv(
                 'sdist',
                 modules=['pip', 'wheel', 'setuptools<80', PBRVERSION],
-                pip_cmd=PIP_CMD))
+                pip_cmd=PIP_CMD,
+            )
+        )
         python = venv.python
-        self.useFixture(base.CapturedSubprocess(
-            'sdist', [python, 'setup.py', 'sdist'], cwd=path))
+        self.useFixture(
+            base.CapturedSubprocess(
+                'sdist', [python, 'setup.py', 'sdist'], cwd=path
+            )
+        )
 
         venv = self.useFixture(
             test_packaging.Venv(
                 'tarball',
                 modules=['pip', 'wheel', 'setuptools<80', PBRVERSION],
-                pip_cmd=PIP_CMD))
+                pip_cmd=PIP_CMD,
+            )
+        )
         python = venv.python
         filename = os.path.join(
-            path, 'dist', os.listdir(os.path.join(path, 'dist'))[0])
-        self.useFixture(base.CapturedSubprocess(
-            'tarball', [python] + pip_cmd + [filename]))
+            path, 'dist', os.listdir(os.path.join(path, 'dist'))[0]
+        )
+        self.useFixture(
+            base.CapturedSubprocess('tarball', [python] + pip_cmd + [filename])
+        )
 
         venv = self.useFixture(
             test_packaging.Venv(
                 'install-git',
                 modules=['pip', 'wheel', 'setuptools<80', PBRVERSION],
-                pip_cmd=PIP_CMD))
+                pip_cmd=PIP_CMD,
+            )
+        )
         root = venv.path
         python = venv.python
-        self.useFixture(base.CapturedSubprocess(
-            'install-git', [python] + pip_cmd + ['git+file://' + path]))
+        self.useFixture(
+            base.CapturedSubprocess(
+                'install-git', [python] + pip_cmd + ['git+file://' + path]
+            )
+        )
         if self.short_name == 'nova':
             found = False
             for _, _, filenames in os.walk(root):
@@ -165,11 +183,16 @@ class TestIntegration(base.BaseTestCase):
             test_packaging.Venv(
                 'install-editable',
                 modules=['pip', 'wheel', 'setuptools<80', PBRVERSION],
-                pip_cmd=PIP_CMD))
+                pip_cmd=PIP_CMD,
+            )
+        )
         root = venv.path
         python = venv.python
-        self.useFixture(base.CapturedSubprocess(
-            'install-editable', [python] + pip_cmd + ['-e', path]))
+        self.useFixture(
+            base.CapturedSubprocess(
+                'install-editable', [python] + pip_cmd + ['-e', path]
+            )
+        )
 
 
 class TestInstallWithoutPbr(base.BaseTestCase):
@@ -178,7 +201,8 @@ class TestInstallWithoutPbr(base.BaseTestCase):
     # and expectations.
     @testtools.skipUnless(
         os.environ.get('PBR_INTEGRATION', None) == '1',
-        'integration tests not enabled')
+        'integration tests not enabled',
+    )
     def test_install_without_pbr(self):
         # Test easy-install of a thing that depends on a thing using pbr
         tempdir = self.useFixture(fixtures.TempDir()).path
@@ -186,14 +210,19 @@ class TestInstallWithoutPbr(base.BaseTestCase):
         # in using-package.
         dist_dir = os.path.join(tempdir, 'distdir')
         os.mkdir(dist_dir)
-        self._run_cmd(sys.executable, ('setup.py', 'sdist', '-d', dist_dir),
-                      allow_fail=False, cwd=PBR_ROOT)
+        self._run_cmd(
+            sys.executable,
+            ('setup.py', 'sdist', '-d', dist_dir),
+            allow_fail=False,
+            cwd=PBR_ROOT,
+        )
         # testpkg - this requires a pbr-using package
         test_pkg_dir = os.path.join(tempdir, 'testpkg')
         os.mkdir(test_pkg_dir)
         pkgs = {
             'pkgTest': {
-                'setup.py': textwrap.dedent("""\
+                'setup.py': textwrap.dedent(
+                    """\
                     #!/usr/bin/env python
                     import setuptools
                     setuptools.setup(
@@ -202,45 +231,70 @@ class TestInstallWithoutPbr(base.BaseTestCase):
                         # avoid collisions?
                         install_requires = ['pkgReq'],
                     )
-                """),
-                'setup.cfg': textwrap.dedent("""\
+                """
+                ),
+                'setup.cfg': textwrap.dedent(
+                    """\
                     [easy_install]
                     find_links = %s
-                """ % dist_dir)},
+                """
+                    % dist_dir
+                ),
+            },
             # We don't need to use PBRVERSION here because we precreate the
             # pbr sdist and point to it with find_links.
             'pkgReq': {
-                'requirements.txt': textwrap.dedent("""\
+                'requirements.txt': textwrap.dedent(
+                    """\
                     pbr
-                """),
+                """
+                ),
                 'pkgReq/__init__.py': "",
-                'pkgReq/__main__.py': textwrap.dedent("""\
+                'pkgReq/__main__.py': textwrap.dedent(
+                    """\
                     print("FakeTest loaded and ran")
-                """)},
+                """
+                ),
+            },
         }
         pkg_dirs = self.useFixture(
-            test_packaging.CreatePackages(pkgs)).package_dirs
+            test_packaging.CreatePackages(pkgs)
+        ).package_dirs
         test_pkg_dir = pkg_dirs['pkgTest']
         req_pkg_dir = pkg_dirs['pkgReq']
 
-        self._run_cmd(sys.executable, ('setup.py', 'sdist', '-d', dist_dir),
-                      allow_fail=False, cwd=req_pkg_dir)
+        self._run_cmd(
+            sys.executable,
+            ('setup.py', 'sdist', '-d', dist_dir),
+            allow_fail=False,
+            cwd=req_pkg_dir,
+        )
         # A venv to test within
         # We install setuptools because we rely on setup.py below.
         # FIXME(stephenfin): We should not need to pin setuptools
         # https://github.com/pypa/setuptools/commit/ef4cd2960d75f2d49f40f5495347523be62d20e5
         venv = self.useFixture(
-            test_packaging.Venv('nopbr', ['pip', 'wheel', 'setuptools<80']))
+            test_packaging.Venv('nopbr', ['pip', 'wheel', 'setuptools<80'])
+        )
         python = venv.python
         # Install both packages
-        self.useFixture(base.CapturedSubprocess(
-            'nopbr', [python] + ['setup.py', 'install'], cwd=test_pkg_dir))
+        self.useFixture(
+            base.CapturedSubprocess(
+                'nopbr', [python] + ['setup.py', 'install'], cwd=test_pkg_dir
+            )
+        )
         # Execute code that should only be present if the install worked.
-        self.useFixture(base.CapturedSubprocess(
-            'nopbr', [python] + ['-m', 'pkgReq'], cwd=test_pkg_dir))
+        self.useFixture(
+            base.CapturedSubprocess(
+                'nopbr', [python] + ['-m', 'pkgReq'], cwd=test_pkg_dir
+            )
+        )
         pbr_cmd = os.path.join(venv.path, 'bin', 'pbr')
-        self.useFixture(base.CapturedSubprocess(
-            'nopbr', [pbr_cmd] + ['freeze'], cwd=test_pkg_dir))
+        self.useFixture(
+            base.CapturedSubprocess(
+                'nopbr', [pbr_cmd] + ['freeze'], cwd=test_pkg_dir
+            )
+        )
 
 
 # Handle various compatability issues with pip and setuptools versions against
@@ -280,41 +334,62 @@ class TestMarkersPip(base.BaseTestCase):
     )
     def test_pip_versions(self):
         pkgs = {
-            'test_markers':
-                {'requirements.txt': textwrap.dedent("""\
+            'test_markers': {
+                'requirements.txt': textwrap.dedent(
+                    """\
                     pkg_a; python_version=='1.2'
                     pkg_b; python_version!='1.2'
-                """)},
+                """
+                )
+            },
             'pkg_a': {},
             'pkg_b': {},
         }
         pkg_dirs = self.useFixture(
-            test_packaging.CreatePackages(pkgs)).package_dirs
+            test_packaging.CreatePackages(pkgs)
+        ).package_dirs
         temp_dir = self.useFixture(fixtures.TempDir()).path
         repo_dir = os.path.join(temp_dir, 'repo')
         venv = self.useFixture(test_packaging.Venv('markers'))
         bin_python = venv.python
         os.mkdir(repo_dir)
         for module in self.modules:
-            self.useFixture(base.CapturedSubprocess(
-                'pip-version',
-                [bin_python, '-m', 'pip', 'install', '--upgrade', module],
-                cwd=venv.path))
+            self.useFixture(
+                base.CapturedSubprocess(
+                    'pip-version',
+                    [bin_python, '-m', 'pip', 'install', '--upgrade', module],
+                    cwd=venv.path,
+                )
+            )
         # TODO(clarkb) do we need to install PBR from source here to avoid
         # using the latest release?
         for pkg in pkg_dirs:
             self._run_cmd(
-                bin_python, ['setup.py', 'sdist', '-d', repo_dir],
-                cwd=pkg_dirs[pkg], allow_fail=False)
+                bin_python,
+                ['setup.py', 'sdist', '-d', repo_dir],
+                cwd=pkg_dirs[pkg],
+                allow_fail=False,
+            )
         self._run_cmd(
             bin_python,
-            ['-m', 'pip', 'install', '--no-index', '-f', repo_dir,
-             'test_markers'],
-            cwd=venv.path, allow_fail=False)
+            [
+                '-m',
+                'pip',
+                'install',
+                '--no-index',
+                '-f',
+                repo_dir,
+                'test_markers',
+            ],
+            cwd=venv.path,
+            allow_fail=False,
+        )
         pkgs = self._run_cmd(
             bin_python,
             ['-m', 'pip', 'freeze'],
-            cwd=venv.path, allow_fail=False)[0]
+            cwd=venv.path,
+            allow_fail=False,
+        )[0]
         # Depending on the version of pip/setuptools etc the name of the
         # installed package may be noramlized to 'pkg-b'. As of March 2024
         # 'pkg_b' is what we get and previously 'pkg-b' was the result.
@@ -331,12 +406,16 @@ class TestLTSSupport(base.BaseTestCase):
     )
     def test_lts_venv_default_versions(self):
         venv = self.useFixture(
-            test_packaging.Venv('setuptools', modules=self.modules))
+            test_packaging.Venv('setuptools', modules=self.modules)
+        )
         bin_python = venv.python
         pbr = 'file://%s#egg=pbr' % PBR_ROOT
         # Installing PBR is a reasonable indication that we are not broken on
         # this particular combination of setuptools and pip.
-        self.useFixture(base.CapturedSubprocess(
-            'lts-support',
-            [bin_python, '-m', 'pip', 'install', pbr],
-            cwd=venv.path))
+        self.useFixture(
+            base.CapturedSubprocess(
+                'lts-support',
+                [bin_python, '-m', 'pip', 'install', pbr],
+                cwd=venv.path,
+            )
+        )

@@ -52,10 +52,14 @@ class TestHooks(base.BaseTestCase):
     def setUp(self):
         super(TestHooks, self).setUp()
         with util.open_config(
-                os.path.join(self.package_dir, 'setup.cfg')) as cfg:
-            cfg.set('global', 'setup-hooks',
-                    'pbr_testpackage._setup_hooks.test_hook_1\n'
-                    'pbr_testpackage._setup_hooks.test_hook_2')
+            os.path.join(self.package_dir, 'setup.cfg')
+        ) as cfg:
+            cfg.set(
+                'global',
+                'setup-hooks',
+                'pbr_testpackage._setup_hooks.test_hook_1\n'
+                'pbr_testpackage._setup_hooks.test_hook_2',
+            )
 
     def test_global_setup_hooks(self):
         """Test setup_hooks.

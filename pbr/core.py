@@ -98,7 +98,8 @@ def pbr(dist, attr, value):
         path = os.path.abspath('setup.cfg')
     if not os.path.exists(path):
         raise errors.DistutilsFileError(
-            'The setup.cfg file %s does not exist.' % path)
+            'The setup.cfg file %s does not exist.' % path
+        )
 
     # Converts the setup.cfg file to setup() arguments
     try:
@@ -110,7 +111,8 @@ def pbr(dist, attr, value):
         # being pretty isn't the #1 goal.. being diagnosable is.
         logging.exception('Error parsing')
         raise errors.DistutilsSetupError(
-            'Error parsing %s: %s: %s' % (path, e.__class__.__name__, e))
+            'Error parsing %s: %s: %s' % (path, e.__class__.__name__, e)
+        )
 
     # There are some metadata fields that are only supported by
     # setuptools and not distutils, and hence are not in
@@ -118,7 +120,9 @@ def pbr(dist, attr, value):
     # see
     #  https://github.com/pypa/setuptools/pull/1343
     _DISTUTILS_UNSUPPORTED_METADATA = (
-        'long_description_content_type', 'project_urls', 'provides_extras'
+        'long_description_content_type',
+        'project_urls',
+        'provides_extras',
     )
 
     # Repeat some of the Distribution initialization code with the newly

@@ -29,20 +29,25 @@ class FilesConfigTest(base.BaseTestCase):
         super(FilesConfigTest, self).setUp()
 
         pkg_fixture = fixtures.PythonPackage(
-            "fake_package", [
+            "fake_package",
+            [
                 ("fake_module.py", b""),
                 ("other_fake_module.py", b""),
-            ])
+            ],
+        )
         self.useFixture(pkg_fixture)
         pkg_etc = os.path.join(pkg_fixture.base, 'etc')
-        pkg_ansible = os.path.join(pkg_fixture.base, 'ansible',
-                                   'kolla-ansible', 'test')
+        pkg_ansible = os.path.join(
+            pkg_fixture.base, 'ansible', 'kolla-ansible', 'test'
+        )
         dir_spcs = os.path.join(pkg_fixture.base, 'dir with space')
-        dir_subdir_spc = os.path.join(pkg_fixture.base, 'multi space',
-                                      'more spaces')
+        dir_subdir_spc = os.path.join(
+            pkg_fixture.base, 'multi space', 'more spaces'
+        )
         pkg_sub = os.path.join(pkg_etc, 'sub')
         subpackage = os.path.join(
-            pkg_fixture.base, 'fake_package', 'subpackage')
+            pkg_fixture.base, 'fake_package', 'subpackage'
+        )
         os.makedirs(pkg_sub)
         os.makedirs(subpackage)
         os.makedirs(pkg_ansible)
@@ -64,10 +69,7 @@ class FilesConfigTest(base.BaseTestCase):
         self.useFixture(base.DiveDir(pkg_fixture.base))
 
     def test_implicit_auto_package(self):
-        config = dict(
-            files=dict(
-            )
-        )
+        config = dict(files=dict())
         files.FilesConfig(config, 'fake_package').run()
         self.assertIn('subpackage', config['files']['packages'])
 
@@ -81,38 +83,31 @@ class FilesConfigTest(base.BaseTestCase):
         self.assertIn('subpackage', config['files']['packages'])
 
     def test_data_files_globbing(self):
-        config = dict(
-            files=dict(
-                data_files="\n  etc/pbr = etc/*"
-            )
-        )
+        config = dict(files=dict(data_files="\n  etc/pbr = etc/*"))
         files.FilesConfig(config, 'fake_package').run()
         self.assertIn(
             "\n'etc/pbr/' = \n 'etc/foo'\n'etc/pbr/sub' = \n 'etc/sub/bar'",
-            config['files']['data_files'])
+            config['files']['data_files'],
+        )
 
     def test_data_files_with_spaces(self):
         config = dict(
-            files=dict(
-                data_files="\n  'i like spaces' = 'dir with space'/*"
-            )
+            files=dict(data_files="\n  'i like spaces' = 'dir with space'/*")
         )
         files.FilesConfig(config, 'fake_package').run()
         self.assertIn(
             "\n'i like spaces/' = \n 'dir with space/file with spc'",
-            config['files']['data_files'])
+            config['files']['data_files'],
+        )
 
     def test_data_files_with_spaces_subdirectories(self):
         # test that we can handle whitespace in subdirectories
         data_files = "\n 'one space/two space' = 'multi space/more spaces'/*"
         expected = (
             "\n'one space/two space/' = "
-            "\n 'multi space/more spaces/file with spc'")
-        config = dict(
-            files=dict(
-                data_files=data_files
-            )
+            "\n 'multi space/more spaces/file with spc'"
         )
+        config = dict(files=dict(data_files=data_files))
         files.FilesConfig(config, 'fake_package').run()
         self.assertIn(expected, config['files']['data_files'])
 
@@ -121,28 +116,23 @@ class FilesConfigTest(base.BaseTestCase):
         data_files = (
             "\n'one space'/'two space' = 'multi space'/'more spaces'/*"
         )
-        expected = ("\n'one space/two space/' = "
-                    "\n 'multi space/more spaces/file with spc'")
-        config = dict(
-            files=dict(
-                data_files=data_files
-            )
+        expected = (
+            "\n'one space/two space/' = "
+            "\n 'multi space/more spaces/file with spc'"
         )
+        config = dict(files=dict(data_files=data_files))
         files.FilesConfig(config, 'fake_package').run()
         self.assertIn(expected, config['files']['data_files'])
 
     def test_data_files_globbing_source_prefix_in_directory_name(self):
         # We want to test that the string, "docs", is not replaced in a
         # subdirectory name, "sub-docs"
-        config = dict(
-            files=dict(
-                data_files="\n  share/ansible = ansible/*"
-            )
-        )
+        config = dict(files=dict(data_files="\n  share/ansible = ansible/*"))
         files.FilesConfig(config, 'fake_package').run()
         self.assertIn(
             "\n'share/ansible/' = "
             "\n'share/ansible/kolla-ansible' = "
             "\n'share/ansible/kolla-ansible/test' = "
             "\n 'ansible/kolla-ansible/test/baz'",
-            config['files']['data_files'])
+            config['files']['data_files'],
+        )

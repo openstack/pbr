@@ -123,7 +123,6 @@ class TestBasics(base.BaseTestCase):
             'provides_extras': [u'bar'],
             'obsoletes': [u'baz'],
             'extras_require': {},
-
             'package_dir': {'': u'src'},
             'packages': [u'foo'],
             'package_data': {
@@ -146,8 +145,10 @@ class TestBasics(base.BaseTestCase):
 class TestExtrasRequireParsingScenarios(base.BaseTestCase):
 
     scenarios = [
-        ('simple_extras', {
-            'config_text': u"""
+        (
+            'simple_extras',
+            {
+                'config_text': u"""
                 [extras]
                 first =
                     foo
@@ -156,15 +157,18 @@ class TestExtrasRequireParsingScenarios(base.BaseTestCase):
                     baz>=3.2
                     foo
                 """,
-            'expected_extra_requires': {
-                'first': ['foo', 'bar==1.0'],
-                'second': ['baz>=3.2', 'foo'],
-                'test': ['requests-mock'],
-                "test:(python_version=='2.6')": ['ordereddict'],
-            }
-        }),
-        ('with_markers', {
-            'config_text': u"""
+                'expected_extra_requires': {
+                    'first': ['foo', 'bar==1.0'],
+                    'second': ['baz>=3.2', 'foo'],
+                    'test': ['requests-mock'],
+                    "test:(python_version=='2.6')": ['ordereddict'],
+                },
+            },
+        ),
+        (
+            'with_markers',
+            {
+                'config_text': u"""
                 [extras]
                 test =
                     foo:python_version=='2.6'
@@ -172,24 +176,31 @@ class TestExtrasRequireParsingScenarios(base.BaseTestCase):
                     baz<1.6 :python_version=='2.6'
                     zaz :python_version>'1.0'
                 """,
-            'expected_extra_requires': {
-                "test:(python_version=='2.6')": ['foo', 'baz<1.6'],
-                "test": ['bar', 'zaz']}}),
-        ('no_extras', {
-            'config_text': u"""
+                'expected_extra_requires': {
+                    "test:(python_version=='2.6')": ['foo', 'baz<1.6'],
+                    "test": ['bar', 'zaz'],
+                },
+            },
+        ),
+        (
+            'no_extras',
+            {
+                'config_text': u"""
             [metadata]
             long_description = foo
             """,
-            'expected_extra_requires':
-            {}
-        })]
+                'expected_extra_requires': {},
+            },
+        ),
+    ]
 
     def test_extras_parsing(self):
         config = config_from_ini(self.config_text)
         kwargs = util.setup_cfg_to_setup_kwargs(config)
 
-        self.assertEqual(self.expected_extra_requires,
-                         kwargs['extras_require'])
+        self.assertEqual(
+            self.expected_extra_requires, kwargs['extras_require']
+        )
 
 
 class TestInvalidMarkers(base.BaseTestCase):
@@ -202,34 +213,40 @@ class TestInvalidMarkers(base.BaseTestCase):
 class TestMapFieldsParsingScenarios(base.BaseTestCase):
 
     scenarios = [
-        ('simple_project_urls', {
-            'config_text': u"""
+        (
+            'simple_project_urls',
+            {
+                'config_text': u"""
                 [metadata]
                 project_urls =
                     Bug Tracker = https://bugs.launchpad.net/pbr/
                     Documentation = https://docs.openstack.org/pbr/
                     Source Code = https://opendev.org/openstack/pbr
                 """,  # noqa: E501
-            'expected_project_urls': {
-                'Bug Tracker': 'https://bugs.launchpad.net/pbr/',
-                'Documentation': 'https://docs.openstack.org/pbr/',
-                'Source Code': 'https://opendev.org/openstack/pbr',
+                'expected_project_urls': {
+                    'Bug Tracker': 'https://bugs.launchpad.net/pbr/',
+                    'Documentation': 'https://docs.openstack.org/pbr/',
+                    'Source Code': 'https://opendev.org/openstack/pbr',
+                },
             },
-        }),
-        ('query_parameters', {
-            'config_text': u"""
+        ),
+        (
+            'query_parameters',
+            {
+                'config_text': u"""
                 [metadata]
                 project_urls =
                     Bug Tracker = https://bugs.launchpad.net/pbr/?query=true
                     Documentation = https://docs.openstack.org/pbr/?foo=bar
                     Source Code = https://git.openstack.org/cgit/openstack-dev/pbr/commit/?id=hash
                 """,  # noqa: E501
-            'expected_project_urls': {
-                'Bug Tracker': 'https://bugs.launchpad.net/pbr/?query=true',
-                'Documentation': 'https://docs.openstack.org/pbr/?foo=bar',
-                'Source Code': 'https://git.openstack.org/cgit/openstack-dev/pbr/commit/?id=hash',  # noqa: E501
+                'expected_project_urls': {
+                    'Bug Tracker': 'https://bugs.launchpad.net/pbr/?query=true',
+                    'Documentation': 'https://docs.openstack.org/pbr/?foo=bar',
+                    'Source Code': 'https://git.openstack.org/cgit/openstack-dev/pbr/commit/?id=hash',  # noqa: E501
+                },
             },
-        }),
+        ),
     ]
 
     def test_project_url_parsing(self):
@@ -242,24 +259,29 @@ class TestMapFieldsParsingScenarios(base.BaseTestCase):
 class TestKeywordsParsingScenarios(base.BaseTestCase):
 
     scenarios = [
-        ('keywords_list', {
-            'config_text': u"""
+        (
+            'keywords_list',
+            {
+                'config_text': u"""
                 [metadata]
                 keywords =
                     one
                     two
                     three
                 """,  # noqa: E501
-            'expected_keywords': ['one', 'two', 'three'],
-        },
+                'expected_keywords': ['one', 'two', 'three'],
+            },
         ),
-        ('inline_keywords', {
-            'config_text': u"""
+        (
+            'inline_keywords',
+            {
+                'config_text': u"""
                 [metadata]
                 keywords = one, two, three
                 """,  # noqa: E501
-            'expected_keywords': ['one, two, three'],
-        }),
+                'expected_keywords': ['one, two, three'],
+            },
+        ),
     ]
 
     def test_keywords_parsing(self):
@@ -284,19 +306,28 @@ class TestProvidesExtras(base.BaseTestCase):
 class TestDataFilesParsing(base.BaseTestCase):
 
     scenarios = [
-        ('data_files', {
-            'config_text': u"""
+        (
+            'data_files',
+            {
+                'config_text': u"""
             [files]
             data_files =
                 'i like spaces/' =
                     'dir with space/file with spc 2'
                     'dir with space/file with spc 1'
             """,
-            'data_files': [
-                ('i like spaces/', ['dir with space/file with spc 2',
-                                    'dir with space/file with spc 1'])
-            ]
-        })]
+                'data_files': [
+                    (
+                        'i like spaces/',
+                        [
+                            'dir with space/file with spc 2',
+                            'dir with space/file with spc 1',
+                        ],
+                    )
+                ],
+            },
+        )
+    ]
 
     def test_handling_of_whitespace_in_data_files(self):
         config = config_from_ini(self.config_text)

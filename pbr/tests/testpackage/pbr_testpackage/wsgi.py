@@ -27,8 +27,9 @@ def application(env, start_response, data):
 
 def main():
     parser = argparse.ArgumentParser(description='Return a string.')
-    parser.add_argument('--content', '-c', help='String returned',
-                        default='Hello World')
+    parser.add_argument(
+        '--content', '-c', help='String returned', default='Hello World'
+    )
     args = parser.parse_args()
     return functools.partial(application, data=args.content)
 

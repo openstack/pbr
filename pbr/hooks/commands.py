@@ -55,7 +55,8 @@ class CommandsConfig(base.BaseConfig):
             self.add_command('pbr.packaging.NoseTest')
 
         use_egg = options.get_boolean_option(
-            self.pbr_config, 'use-egg', 'PBR_USE_EGG')
+            self.pbr_config, 'use-egg', 'PBR_USE_EGG'
+        )
         # We always want non-egg install unless explicitly requested
         if 'manpages' in self.pbr_config or not use_egg:
             self.add_command('pbr.packaging.LocalInstall')

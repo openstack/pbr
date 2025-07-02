@@ -41,8 +41,9 @@ def _find_setup_cfg(srcdir):
     # an sdist or wheel? Perhaps we should check for 'PKG-INFO' or
     # 'METADATA' files, a la 'pbr.packaging._get_version_from_pkg_metadata'
     for path in [
-            os.path.join(srcdir, os.pardir, 'setup.cfg'),
-            os.path.join(srcdir, os.pardir, os.pardir, 'setup.cfg')]:
+        os.path.join(srcdir, os.pardir, 'setup.cfg'),
+        os.path.join(srcdir, os.pardir, os.pardir, 'setup.cfg'),
+    ]:
         if os.path.exists(path):
             return path
 
@@ -63,8 +64,9 @@ def _get_project_name(srcdir):
 
         path = _find_setup_cfg(srcdir)
         if not path or not parser.read(path):
-            logger.info('Could not find a setup.cfg to extract project name '
-                        'from')
+            logger.info(
+                'Could not find a setup.cfg to extract project name ' 'from'
+            )
             return None
 
         try:

@@ -54,8 +54,10 @@ class TestCore(base.BaseTestCase):
 
     def check_script_install(self, install_stdout):
         for cmd_name in self.cmd_names:
-            install_txt = 'Installing %s script to %s' % (cmd_name,
-                                                          self.temp_dir)
+            install_txt = 'Installing %s script to %s' % (
+                cmd_name,
+                self.temp_dir,
+            )
             self.assertIn(install_txt, install_stdout)
 
             cmd_filename = os.path.join(self.temp_dir, cmd_name)
@@ -100,7 +102,8 @@ class TestCore(base.BaseTestCase):
             self.skipTest('Windows support is passthrough')
 
         stdout, _, return_code = self.run_setup(
-            'install_scripts', '--install-dir=%s' % self.temp_dir)
+            'install_scripts', '--install-dir=%s' % self.temp_dir
+        )
 
         self.useFixture(fixtures.EnvironmentVariable('PYTHONPATH', '.'))
 
@@ -127,11 +130,12 @@ class TestCore(base.BaseTestCase):
             self.skipTest('setuptools is too new')
 
         self.useFixture(
-            fixtures.EnvironmentVariable(
-                'PYTHONPATH', ".:%s" % self.temp_dir))
+            fixtures.EnvironmentVariable('PYTHONPATH', ".:%s" % self.temp_dir)
+        )
 
         stdout, _, return_code = self.run_setup(
-            'develop', '--install-dir=%s' % self.temp_dir)
+            'develop', '--install-dir=%s' % self.temp_dir
+        )
 
         self.check_script_install(stdout)
 
@@ -147,7 +151,8 @@ class TestGitSDist(base.BaseTestCase):
 
         stdout, _, return_code = self._run_cmd('git', ('add', '.'))
         stdout, _, return_code = self._run_cmd(
-            'git', ('commit', '-m', 'Turn this into a git repo'))
+            'git', ('commit', '-m', 'Turn this into a git repo')
+        )
 
         stdout, _, return_code = self.run_setup('sdist', '--formats=gztar')
 
