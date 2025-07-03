@@ -14,7 +14,9 @@ available, *pbr* makes it possible to express them through static data files.
 *pbr* only requires a minimal ``setup.py`` file compared to a standard
 *setuptools* project. This is because most configuration is located in static
 configuration files. This recommended minimal ``setup.py`` file should look
-something like this::
+something like this:
+
+.. code-block:: python
 
     #!/usr/bin/env python
 
@@ -32,7 +34,11 @@ something like this::
 .. note::
 
    While one can pass any arguments supported by setuptools to ``setup()``,
-   any conflicting arguments supplied in ``setup.cfg`` will take precedence.
+   any conflicting arguments supplied in ``pyproject.toml`` or ``setup.cfg``
+   will take precedence.
+
+Once configured, you can place your configuration into either
+``pyproject.toml`` or ``setup.cfg``.
 
 ``pyproject.toml``
 ------------------
@@ -40,8 +46,10 @@ something like this::
 *If your project only supports Python 3.7 or newer*, PBR can be configured as a
 PEP517 build-system in ``pyproject.toml``. The main benefits are that you can
 control the versions of PBR and setuptools that are used avoiding easy_install
-invocation. Your build-system block in ``pyproject.toml`` will need to look
-like this::
+invocation. Your ``[build-system]`` block in ``pyproject.toml`` will need to
+look like this:
+
+.. code-block:: toml
 
     [build-system]
     requires = ["pbr>=6.1.1"]
@@ -49,20 +57,61 @@ like this::
 
 Eventually PBR may grow its own direct support for PEP517 build hooks, but
 until then it will continue to need setuptools with a minimal ``setup.py`` and
-``setup.cfg`` as follows...
+``setup.cfg`` as follows. First, ``setup.py``:
 
-``setup.py``::
+.. code-block:: python
 
     import setuptools
     setuptools.setup(pbr=True)
 
-``setup.cfg``::
+Then ``setup.cfg``:
+
+.. code-block:: ini
 
     [metadata]
-    name = myproject
+    name = my_project
 
-If desired, any other metadata can be placed in your ``pyproject.toml`` instead
-of ``setup.cfg``.
+Almost all other metadata can be placed into ``pyproject.toml``. A simple example:
+
+.. code-block:: toml
+
+    [project]
+    name = "my_project"
+    description = "A brief one-line descriptive title of my project"
+    authors = [
+        {name = "John Doe", email = "john@example.com"},
+    ]
+    requires-python = ">=3.10"
+    classifiers = [
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Information Technology",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.13",
+        "Topic :: Utilities",
+    ]
+    keywords = ["commandline", "utility"]
+    readme = "README.rst"
+
+    [project.scripts]
+    my-project = "my_project.cmd:main"
+
+    [project.urls]
+    Homepage = "https://my-project.example.org/"
+    "Bug Tracker" = "https://my-project.example.org/bugs/"
+    Documentation = "https://my-project.example.org/docs/"
+    "Release Notes" = "https://my-project.example.org/releasenotes/"
+    "Source Code" = "https://my-project.example.org/code/"
+
+    [tool.setuptools]
+    packages = ["my_project"]
 
 .. _setup_cfg:
 
@@ -71,13 +120,23 @@ of ``setup.cfg``.
 
 The ``setup.cfg`` file is an INI-like file that can mostly replace the
 ``setup.py`` file. It is similar to the ``setup.cfg`` file found in recent
-versions of `setuptools`__. A simple example::
+versions of `setuptools`__. As with setuptools itself, you need to retain a
+minimal ``setup.py`` as follows:
+
+.. code-block:: python
+
+    import setuptools
+    setuptools.setup(pbr=True)
+
+All other metadata can be placed in your ``setup.cfg``. A simple example:
+
+.. code-block:: ini
 
     [metadata]
     name = my_project
     summary = A brief one-line descriptive title of my project
-    author = My Project's Contributors
-    author_email = my-project-mailing-list@lists.example.org
+    author = John Doe
+    author_email = john@example.com
     classifiers =
         Development Status :: 5 - Production/Stable
         Environment :: Console
@@ -113,10 +172,6 @@ versions of `setuptools`__. A simple example::
     console_scripts =
         my-project = my_project.cmd:main
 
-    [pbr]
-    manpages =
-        my-project.1
-
 Recent versions of `setuptools`_ provide many of the same sections as *pbr*.
 However, *pbr* does provide a number of additional sections:
 
@@ -138,7 +193,9 @@ such as the ``extract_messages`` section provided by Babel__.
    Comments may be used in ``setup.cfg``, however all comments should start
    with a ``#`` and may be on a single line, or in line, with at least one
    white space character immediately preceding the ``#``. Semicolons are not a
-   supported comment delimiter. For instance::
+   supported comment delimiter. For instance:
+
+   .. code-block:: ini
 
        [section]
        # A comment at the start of a dedicated line
@@ -168,11 +225,23 @@ using three fundamental keys: ``packages``, ``namespace_packages``, and
   packages is similar to ``setuptools.find_packages`` in that it recurses the
   Python package hierarchy below the given top level and installs all of it. If
   ``packages`` is not specified, it defaults to the value of the ``name`` field
-  given in the ``[metadata]`` section.
+  given in the ``[metadata]`` section. For example:
+
+  .. code-block:: ini
+
+      [files]
+      packages =
+          pbr
 
 ``namespace_packages``
   Similar to ``packages``, but is a list of packages that provide namespace
-  packages.
+  packages. For example:
+
+  .. code-block:: ini
+
+      [files]
+      namespace_packages =
+          pbrext
 
 ``data_files``
   A list of files to be installed. The format is an indented block that
@@ -180,7 +249,9 @@ using three fundamental keys: ``packages``, ``namespace_packages``, and
   install there. More than one source file for a directory may be indicated
   with a further indented list. Source files are stripped of leading
   directories. Additionally, *pbr* supports a simple file globbing syntax for
-  installing entire directory structures. For example::
+  installing entire directory structures. For example:
+
+  .. code-block:: ini
 
       [files]
       data_files =
@@ -211,7 +282,9 @@ documented here owing to its importance.
 
 The general syntax of specifying entry points is a top level name indicating
 the entry point group name, followed by one or more key value pairs naming
-the entry point to be installed. For instance::
+the entry point to be installed. For example:
+
+.. code-block:: ini
 
     [entry_points]
     console_scripts =
@@ -356,7 +429,9 @@ installed into Python 2.6.
 
 For extras specified in ``setup.cfg``, add an ``extras`` section. For instance,
 to create two groups of extra requirements with additional constraints on the
-environment, you can use::
+environment, you can use:
+
+.. code-block:: ini
 
     [extras]
     security =
@@ -377,7 +452,9 @@ automatically configure the version numbers for your documentation using *pbr*
 metadata.
 
 To enable this extension, you must add it to the list of extensions in
-your ``conf.py`` file::
+your ``conf.py`` file:
+
+.. code-block:: python
 
     extensions = [
         'pbr.sphinxext',
