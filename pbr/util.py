@@ -65,8 +65,8 @@ import re
 import shlex
 import sys
 import traceback
+import warnings
 
-import distutils.ccompiler
 from distutils import errors
 from distutils import log
 from setuptools import dist as st_dist
@@ -272,7 +272,12 @@ def cfg_to_args(path='setup.cfg', script_args=()):
         kwargs['include_package_data'] = True
         kwargs['zip_safe'] = False
 
-        register_custom_compilers(config)
+        if has_get_option(config, 'global', 'compilers'):
+            warnings.warn(
+                'Support for custom compilers was removed in pbr 7.0 and the '
+                '\'[global] compilers\' option is now ignored.',
+                DeprecationWarning,
+            )
 
         ext_modules = get_extension_modules(config)
         if ext_modules:
@@ -483,41 +488,6 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
     kwargs['extras_require'] = extras_require
 
     return kwargs
-
-
-def register_custom_compilers(config):
-    """Handle custom compilers.
-
-    This has no real equivalent in distutils, where additional compilers could
-    only be added programmatically, so we have to hack it in somehow.
-    """
-
-    compilers = has_get_option(config, 'global', 'compilers')
-    if compilers:
-        compilers = split_multiline(compilers)
-        for compiler in compilers:
-            compiler = resolve_name(compiler)
-
-            # In distutils2 compilers these class attributes exist; for
-            # distutils1 we just have to make something up
-            if hasattr(compiler, 'name'):
-                name = compiler.name
-            else:
-                name = compiler.__name__
-            if hasattr(compiler, 'description'):
-                desc = compiler.description
-            else:
-                desc = 'custom compiler %s' % name
-
-            module_name = compiler.__module__
-            # Note; this *will* override built in compilers with the same name
-            # TODO(embray): Maybe display a warning about this?
-            cc = distutils.ccompiler.compiler_class
-            cc[name] = (module_name, compiler.__name__, desc)
-
-            # HACK!!!!  Distutils assumes all compiler modules are in the
-            # distutils package
-            sys.modules['distutils.' + module_name] = sys.modules[module_name]
 
 
 def get_extension_modules(config):
