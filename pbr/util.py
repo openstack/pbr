@@ -69,6 +69,7 @@ import warnings
 
 from distutils import errors
 from distutils import log
+import setuptools
 from setuptools import dist as st_dist
 from setuptools import extension
 
@@ -233,6 +234,12 @@ MULTI_FIELDS = (
     "cmdclass",
     "provides_extras",
 )
+
+# a mapping of removed keywords to the version of setuptools that they were deprecated in
+REMOVED_KEYWORDS = {
+    # https://setuptools.pypa.io/en/stable/history.html#v72-0-0
+    'tests_requires': '72.0.0',
+}
 
 # setup() arguments that can have mapping values in setup.cfg
 MAP_FIELDS = ("project_urls",)
@@ -444,6 +451,14 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
                 in_cfg_value = False
 
         if in_cfg_value:
+            if arg in REMOVED_KEYWORDS and (
+                pbr._compat.packaging.parse_version(setuptools.__version__)
+                >= pbr._compat.packaging.parse_version(REMOVED_KEYWORDS[arg])
+            ):
+                # deprecation warnings, if any, will already have been logged,
+                # so simply skip this
+                continue
+
             if arg in ('install_requires', 'tests_require'):
                 # Replaces PEP345-style version specs with the sort expected by
                 # setuptools

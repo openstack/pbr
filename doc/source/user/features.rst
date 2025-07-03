@@ -191,8 +191,8 @@ Requirements
 .. admonition:: Summary
 
     *pbr* will extract requirements from ``requirements.txt`` files and
-    automatically populate the ``install_requires``, ``tests_require`` and
-    ``dependency_links`` arguments to ``setup`` with them.
+    automatically populate the ``install_requires`` argument to ``setup`` with
+    them.
 
 You may not have noticed, but there are differences in how pip
 ``requirements.txt`` files work and how *setuptools* wants to be told about
@@ -201,16 +201,25 @@ populate a *virtualenv* for testing or to just install everything you need.
 Duplicating the information, though, is super lame. To solve this issue, *pbr*
 will let you use ``requirements.txt``-format files to describe the requirements
 for your project and will then parse these files, split them up appropriately,
-and inject them into the ``install_requires``, ``tests_require`` and/or
-``dependency_links`` arguments to ``setup``. Voila!
+and inject them into the ``install_requires`` argument to ``setup``. Voila!
 
 Finally, it is possible to specify groups of optional dependencies, or
 :ref:`"extra" requirements <extra-requirements>`, in your ``setup.cfg`` rather
 than ``setup.py``.
 
+.. versionchanged:: 7.0
+
+   Previously, the ``tests_require`` and ``dependency_links`` setup arguments
+   were also populated by *pbr*. The ``tests_require`` argument is no longer
+   supported as of `setuptools v72.0.0`__, while the ``dependency_links``
+   argument is deprecated and ignored by `pip 19.0 or later`__.
+
+   .. __: https://setuptools.pypa.io/en/stable/history.html#v72-0-0
+   .. __: https://github.com/pypa/pip/pull/6060
+
 .. versionchanged:: 5.0
 
-   Previously you could specify requirements for a given major version of
+   Previously, you could specify requirements for a given major version of
    Python using requirments files with a ``-pyN`` suffix. This was deprecated
    in 4.0 and removed in 5.0 in favour of environment markers.
 
