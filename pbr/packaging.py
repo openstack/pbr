@@ -434,12 +434,12 @@ def generate_script(group, entry_point, header, template):
             "Script targets must be of the form "
             "'func' or 'Class.class_method'."
         )
-    script_text = template % dict(
-        group=group,
-        module_name=entry_point.module_name,
-        import_target=entry_point.attrs[0],
-        invoke_target='.'.join(entry_point.attrs),
-    )
+    script_text = template % {
+        'group': group,
+        'module_name': entry_point.module_name,
+        'import_target': entry_point.attrs[0],
+        'invoke_target': '.'.join(entry_point.attrs),
+    }
     return header + script_text
 
 
@@ -748,7 +748,7 @@ def _get_revno_and_last_tag(git_dir):
     row_count = 0
     for row_count, (ignored, tag_set, ignored) in enumerate(changelog):
         version_tags = set()
-        semver_to_tag = dict()
+        semver_to_tag = {}
         for tag in list(tag_set):
             try:
                 semver = version.SemanticVersion.from_pip_string(tag)
@@ -790,7 +790,7 @@ def _get_version_from_git_target(git_dir, target_version):
         raise ValueError(
             "git history requires a target version of %(new)s, but target "
             "version is %(target)s"
-            % dict(new=new_version, target=target_version)
+            % {'new': new_version, 'target': target_version}
         )
     if distance == 0:
         return last_semver

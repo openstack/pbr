@@ -299,8 +299,8 @@ class CreatePackages(fixtures.Fixture):
 class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
 
     scenarios = [
-        ('preversioned', dict(preversioned=True)),
-        ('postversioned', dict(preversioned=False)),
+        ('preversioned', {'preversioned': True}),
+        ('postversioned', {'preversioned': False}),
     ]
 
     def setUp(self):
@@ -467,7 +467,7 @@ class TestPackagingHelpers(testtools.TestCase):
         )
         header = '#!/usr/bin/env fake-header\n'
         template = (
-            '%(group)s %(module_name)s %(import_target)s ' '%(invoke_target)s'
+            '%(group)s %(module_name)s %(import_target)s %(invoke_target)s'
         )
 
         generated_script = packaging.generate_script(
@@ -487,7 +487,7 @@ class TestPackagingHelpers(testtools.TestCase):
         )
         header = '#!/usr/bin/env fake-header\n'
         template = (
-            '%(group)s %(module_name)s %(import_target)s ' '%(invoke_target)s'
+            '%(group)s %(module_name)s %(import_target)s %(invoke_target)s'
         )
         self.assertRaises(
             ValueError,
@@ -714,8 +714,8 @@ class ParseDependencyLinksTest(base.BaseTestCase):
 class TestVersions(base.BaseTestCase):
 
     scenarios = [
-        ('preversioned', dict(preversioned=True)),
-        ('postversioned', dict(preversioned=False)),
+        ('preversioned', {'preversioned': True}),
+        ('postversioned', {'preversioned': False}),
     ]
 
     def setUp(self):
@@ -784,7 +784,7 @@ class TestVersions(base.BaseTestCase):
     def test_leading_space_multiline(self):
         self.repo.commit()
         self.repo.tag('1.2.3')
-        self.repo.commit(('   Some cool text\n' '   sem-ver: api-break'))
+        self.repo.commit(('   Some cool text\n   sem-ver: api-break'))
         version = packaging._get_version_from_git()
         self.assertThat(version, matchers.StartsWith('2.0.0.dev1'))
 
@@ -905,19 +905,19 @@ class TestVersions(base.BaseTestCase):
 
         def _check_combinations(tag):
             self.repo.commit()
-            self.assertEqual(dict(), get_kwargs(tag))
+            self.assertEqual({}, get_kwargs(tag))
             self.repo.commit('sem-ver: bugfix')
-            self.assertEqual(dict(), get_kwargs(tag))
+            self.assertEqual({}, get_kwargs(tag))
             self.repo.commit('sem-ver: feature')
-            self.assertEqual(dict(minor=True), get_kwargs(tag))
+            self.assertEqual({'minor': True}, get_kwargs(tag))
             self.repo.uncommit()
             self.repo.commit('sem-ver: deprecation')
-            self.assertEqual(dict(minor=True), get_kwargs(tag))
+            self.assertEqual({'minor': True}, get_kwargs(tag))
             self.repo.uncommit()
             self.repo.commit('sem-ver: api-break')
-            self.assertEqual(dict(major=True), get_kwargs(tag))
+            self.assertEqual({'major': True}, get_kwargs(tag))
             self.repo.commit('sem-ver: deprecation')
-            self.assertEqual(dict(major=True, minor=True), get_kwargs(tag))
+            self.assertEqual({'major': True, 'minor': True}, get_kwargs(tag))
 
         _check_combinations('')
         self.repo.tag('1.2.3')

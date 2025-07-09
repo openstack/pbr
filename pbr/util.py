@@ -238,7 +238,7 @@ def cfg_to_args(path='setup.cfg', script_args=()):
         parser.read(path)
     config = {}
     for section in parser.sections():
-        config[section] = dict()
+        config[section] = {}
         for k, value in parser.items(section):
             config[section][k.replace('-', '_')] = value
 
@@ -596,10 +596,10 @@ def get_entry_points(config):
     if 'entry_points' not in config:
         return {}
 
-    return dict(
-        (option, split_multiline(value))
+    return {
+        option: split_multiline(value)
         for option, value in config['entry_points'].items()
-    )
+    }
 
 
 def has_get_option(config, section, option):

@@ -39,91 +39,91 @@ class SkipFileWrites(base.BaseTestCase):
     scenarios = [
         (
             'changelog_option_true',
-            dict(
-                option_key='skip_changelog',
-                option_value='True',
-                env_key='SKIP_WRITE_GIT_CHANGELOG',
-                env_value=None,
-                pkg_func=git.write_git_changelog,
-                filename='ChangeLog',
-            ),
+            {
+                'option_key': 'skip_changelog',
+                'option_value': 'True',
+                'env_key': 'SKIP_WRITE_GIT_CHANGELOG',
+                'env_value': None,
+                'pkg_func': git.write_git_changelog,
+                'filename': 'ChangeLog',
+            },
         ),
         (
             'changelog_option_false',
-            dict(
-                option_key='skip_changelog',
-                option_value='False',
-                env_key='SKIP_WRITE_GIT_CHANGELOG',
-                env_value=None,
-                pkg_func=git.write_git_changelog,
-                filename='ChangeLog',
-            ),
+            {
+                'option_key': 'skip_changelog',
+                'option_value': 'False',
+                'env_key': 'SKIP_WRITE_GIT_CHANGELOG',
+                'env_value': None,
+                'pkg_func': git.write_git_changelog,
+                'filename': 'ChangeLog',
+            },
         ),
         (
             'changelog_env_true',
-            dict(
-                option_key='skip_changelog',
-                option_value='False',
-                env_key='SKIP_WRITE_GIT_CHANGELOG',
-                env_value='True',
-                pkg_func=git.write_git_changelog,
-                filename='ChangeLog',
-            ),
+            {
+                'option_key': 'skip_changelog',
+                'option_value': 'False',
+                'env_key': 'SKIP_WRITE_GIT_CHANGELOG',
+                'env_value': 'True',
+                'pkg_func': git.write_git_changelog,
+                'filename': 'ChangeLog',
+            },
         ),
         (
             'changelog_both_true',
-            dict(
-                option_key='skip_changelog',
-                option_value='True',
-                env_key='SKIP_WRITE_GIT_CHANGELOG',
-                env_value='True',
-                pkg_func=git.write_git_changelog,
-                filename='ChangeLog',
-            ),
+            {
+                'option_key': 'skip_changelog',
+                'option_value': 'True',
+                'env_key': 'SKIP_WRITE_GIT_CHANGELOG',
+                'env_value': 'True',
+                'pkg_func': git.write_git_changelog,
+                'filename': 'ChangeLog',
+            },
         ),
         (
             'authors_option_true',
-            dict(
-                option_key='skip_authors',
-                option_value='True',
-                env_key='SKIP_GENERATE_AUTHORS',
-                env_value=None,
-                pkg_func=git.generate_authors,
-                filename='AUTHORS',
-            ),
+            {
+                'option_key': 'skip_authors',
+                'option_value': 'True',
+                'env_key': 'SKIP_GENERATE_AUTHORS',
+                'env_value': None,
+                'pkg_func': git.generate_authors,
+                'filename': 'AUTHORS',
+            },
         ),
         (
             'authors_option_false',
-            dict(
-                option_key='skip_authors',
-                option_value='False',
-                env_key='SKIP_GENERATE_AUTHORS',
-                env_value=None,
-                pkg_func=git.generate_authors,
-                filename='AUTHORS',
-            ),
+            {
+                'option_key': 'skip_authors',
+                'option_value': 'False',
+                'env_key': 'SKIP_GENERATE_AUTHORS',
+                'env_value': None,
+                'pkg_func': git.generate_authors,
+                'filename': 'AUTHORS',
+            },
         ),
         (
             'authors_env_true',
-            dict(
-                option_key='skip_authors',
-                option_value='False',
-                env_key='SKIP_GENERATE_AUTHORS',
-                env_value='True',
-                pkg_func=git.generate_authors,
-                filename='AUTHORS',
-            ),
+            {
+                'option_key': 'skip_authors',
+                'option_value': 'False',
+                'env_key': 'SKIP_GENERATE_AUTHORS',
+                'env_value': 'True',
+                'pkg_func': git.generate_authors,
+                'filename': 'AUTHORS',
+            },
         ),
         (
             'authors_both_true',
-            dict(
-                option_key='skip_authors',
-                option_value='True',
-                env_key='SKIP_GENERATE_AUTHORS',
-                env_value='True',
-                pkg_func=git.generate_authors,
-                filename='AUTHORS',
-            ),
+            {
+                'option_key': 'skip_authors',
+                'option_value': 'True',
+                'env_key': 'SKIP_GENERATE_AUTHORS',
+                'env_value': 'True',
+                'pkg_func': git.generate_authors,
+                'filename': 'AUTHORS',
+            },
         ),
     ]
 
@@ -138,7 +138,7 @@ class SkipFileWrites(base.BaseTestCase):
             )
             return
         self.filename = os.path.join(self.temp_path, self.filename)
-        self.option_dict = dict()
+        self.option_dict = {}
         if self.option_key is not None:
             self.option_dict[self.option_key] = (
                 'setup.cfg',

@@ -181,14 +181,14 @@ def _iter_changelog(changelog):
                 yield current_release, '\n'
             yield current_release, (
                 "%(tag)s\n%(underline)s\n\n"
-                % dict(tag=current_release, underline=underline)
+                % {'tag': current_release, 'underline': underline}
             )
 
         if not msg.startswith("Merge "):
             if msg.endswith("."):
                 msg = msg[:-1]
             msg = _clean_changelog_message(msg)
-            yield current_release, "* %(msg)s\n" % dict(msg=msg)
+            yield current_release, "* %(msg)s\n" % {'msg': msg}
         first_line = False
 
 
@@ -265,14 +265,16 @@ def write_git_changelog(
     git_dir=None, dest_dir=os.path.curdir, option_dict=None, changelog=None
 ):
     """Write a changelog based on the git changelog."""
-    start = time.time()
-    if not option_dict:
+    if option_dict is None:
         option_dict = {}
+
     should_skip = options.get_boolean_option(
         option_dict, 'skip_changelog', 'SKIP_WRITE_GIT_CHANGELOG'
     )
     if should_skip:
         return
+
+    start = time.time()
     if not changelog:
         changelog = _iter_log_oneline(git_dir=git_dir)
         if changelog:
@@ -297,8 +299,11 @@ def write_git_changelog(
     log.info('[pbr] ChangeLog complete (%0.1fs)' % (stop - start))
 
 
-def generate_authors(git_dir=None, dest_dir='.', option_dict=dict()):
+def generate_authors(git_dir=None, dest_dir='.', option_dict=None):
     """Create AUTHORS file using git commits."""
+    if option_dict is None:
+        option_dict = {}
+
     should_skip = options.get_boolean_option(
         option_dict, 'skip_authors', 'SKIP_GENERATE_AUTHORS'
     )

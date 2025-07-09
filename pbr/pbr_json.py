@@ -25,7 +25,7 @@ def write_pbr_json(cmd, basename, filename):
     git_dir = git._run_git_functions()
     if not git_dir:
         return
-    values = dict()
+    values = {}
     git_version = git.get_git_short_sha(git_dir)
     is_release = git.get_is_release(git_dir)
     if git_version is not None:

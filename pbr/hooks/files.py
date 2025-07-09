@@ -99,7 +99,7 @@ class FilesConfig(base.BaseConfig):
         self.data_files = "%s\n  '%s'" % (self.data_files, man_page)
 
     def get_man_sections(self):
-        man_sections = dict()
+        man_sections = {}
         manpages = self.pbr_config['manpages']
         for manpage in manpages.split():
             section_number = manpage.strip()[-1]

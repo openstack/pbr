@@ -62,7 +62,7 @@ def all_projects():
         if short_name in excludes:
             continue
         yielded += 1
-        yield (short_name, dict(name=name, short_name=short_name))
+        yield (short_name, {'name': name, 'short_name': short_name})
 
     if not yielded:
         raise Exception(

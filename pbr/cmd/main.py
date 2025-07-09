@@ -72,7 +72,12 @@ def _get_info(name):
             for part in version_parts:
                 if not part.isdigit():
                     released = "pre-release"
-    return dict(name=name, version=version, sha=sha, released=released)
+    return {
+        'name': name,
+        'version': version,
+        'sha': sha,
+        'released': released,
+    }
 
 
 def freeze(args):

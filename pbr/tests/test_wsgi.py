@@ -152,7 +152,7 @@ class TestWsgiScripts(base.BaseTestCase):
                 app_name = "WSGI.app"
 
             starting_block = (
-                "STARTING test server pbr_testpackage.wsgi." "%s" % app_name
+                "STARTING test server pbr_testpackage.wsgi.%s" % app_name
             )
 
             else_block = """else:

@@ -65,7 +65,7 @@ def _get_project_name(srcdir):
         path = _find_setup_cfg(srcdir)
         if not path or not parser.read(path):
             logger.info(
-                'Could not find a setup.cfg to extract project name ' 'from'
+                'Could not find a setup.cfg to extract project name from'
             )
             return None
 
