@@ -52,7 +52,6 @@ import textwrap
 import fixtures
 import pkg_resources
 import testscenarios
-import testtools
 from testtools import matchers
 from wheel import wheelfile
 
@@ -239,63 +238,6 @@ class TestPackagingWheels(base.BaseTestCase):
 
         self.assertTrue(os.path.exists(built_package_dir))
         self.assertTrue(os.path.exists(static_object_path))
-
-
-class TestPackagingHelpers(testtools.TestCase):
-
-    def test_generate_script(self):
-        group = 'console_scripts'
-        entry_point = pkg_resources.EntryPoint(
-            name='test-ep',
-            module_name='pbr.packaging',
-            attrs=('LocalInstallScripts',),
-        )
-        header = '#!/usr/bin/env fake-header\n'
-        template = (
-            '%(group)s %(module_name)s %(import_target)s %(invoke_target)s'
-        )
-
-        generated_script = packaging.generate_script(
-            group, entry_point, header, template
-        )
-
-        expected_script = (
-            '#!/usr/bin/env fake-header\nconsole_scripts pbr.packaging '
-            'LocalInstallScripts LocalInstallScripts'
-        )
-        self.assertEqual(expected_script, generated_script)
-
-    def test_generate_script_validates_expectations(self):
-        group = 'console_scripts'
-        entry_point = pkg_resources.EntryPoint(
-            name='test-ep', module_name='pbr.packaging'
-        )
-        header = '#!/usr/bin/env fake-header\n'
-        template = (
-            '%(group)s %(module_name)s %(import_target)s %(invoke_target)s'
-        )
-        self.assertRaises(
-            ValueError,
-            packaging.generate_script,
-            group,
-            entry_point,
-            header,
-            template,
-        )
-
-        entry_point = pkg_resources.EntryPoint(
-            name='test-ep',
-            module_name='pbr.packaging',
-            attrs=('attr1', 'attr2', 'attr3'),
-        )
-        self.assertRaises(
-            ValueError,
-            packaging.generate_script,
-            group,
-            entry_point,
-            header,
-            template,
-        )
 
 
 class TestPackagingInPlainDirectory(base.BaseTestCase):
