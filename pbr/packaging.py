@@ -22,18 +22,6 @@ from __future__ import absolute_import
 from __future__ import print_function
 from __future__ import unicode_literals
 
-from distutils.command import install as du_install
-from distutils import log
-
-# (hberaud) do not use six here to import urlparse
-# to keep this module free from external dependencies
-# to avoid cross dependencies errors on minimal system
-# free from dependencies.
-try:
-    from urllib.parse import urlparse
-except ImportError:
-    from urlparse import urlparse
-
 import email
 import email.errors
 import os
@@ -41,6 +29,8 @@ import re
 import sys
 import warnings
 
+from distutils.command import install as du_install
+from distutils import log
 import pkg_resources
 import setuptools
 from setuptools.command import develop
@@ -50,6 +40,7 @@ from setuptools.command import install
 from setuptools.command import install_scripts
 from setuptools.command import sdist
 
+from pbr._compat.five import urlparse
 from pbr import extra_files
 from pbr import git
 from pbr import options

@@ -14,10 +14,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
 import os.path
 import pkg_resources
 import shlex
@@ -27,6 +23,7 @@ import fixtures
 import testtools
 import textwrap
 
+from pbr._compat.five import ConfigParser
 from pbr.tests import base
 from pbr.tests import test_packaging
 
@@ -105,7 +102,7 @@ class TestIntegration(base.BaseTestCase):
         project_name = pkg_resources.safe_name(self.short_name).lower()
         # These projects should all have setup.cfg files but we'll be careful
         if os.path.exists(setup_cfg):
-            config = configparser.ConfigParser()
+            config = ConfigParser()
             config.read(setup_cfg)
             if config.has_section('metadata'):
                 raw_name = config.get(

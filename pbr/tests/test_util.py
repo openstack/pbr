@@ -16,16 +16,11 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-try:
-    import configparser
-except ImportError:
-    import ConfigParser as configparser
 import io
 import tempfile
 import textwrap
 
-import sys
-
+from pbr._compat.five import ConfigParser
 from pbr.tests import base
 from pbr import util
 
@@ -33,12 +28,8 @@ from pbr import util
 def config_from_ini(ini):
     config = {}
     ini = textwrap.dedent(ini)
-    if sys.version_info >= (3, 2):
-        parser = configparser.ConfigParser()
-        parser.read_file(io.StringIO(ini))
-    else:
-        parser = configparser.SafeConfigParser()
-        parser.readfp(io.StringIO(ini))
+    parser = ConfigParser()
+    parser.read_file(io.StringIO(ini))
     for section in parser.sections():
         config[section] = dict(parser.items(section))
     return config

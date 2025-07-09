@@ -45,16 +45,12 @@ import email
 import email.errors
 import os
 import re
+import sys
 import sysconfig
 import tempfile
 import textwrap
 
 import fixtures
-
-try:
-    from unittest import mock
-except ImportError:
-    import mock
 import pkg_resources
 import testscenarios
 import testtools
@@ -65,6 +61,11 @@ from wheel import wheelfile
 from pbr import git
 from pbr import packaging
 from pbr.tests import base
+
+if sys.version_info >= (3, 3):
+    from unittest import mock
+else:
+    import mock  # noqa
 
 try:
     import importlib.machinery

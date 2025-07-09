@@ -13,13 +13,15 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+import sys
 
 from pbr import pbr_json
 from pbr.tests import base
+
+if sys.version_info >= (3, 3):
+    from unittest import mock
+else:
+    import mock  # noqa
 
 
 class TestJsonContent(base.BaseTestCase):

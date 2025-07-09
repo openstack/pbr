@@ -19,17 +19,9 @@ from __future__ import print_function
 
 import os
 
-try:
-    import cStringIO as io
-
-    BytesIO = io.StringIO
-except ImportError:
-    import io
-
-    BytesIO = io.BytesIO
-
 import fixtures
 
+from pbr._compat.five import BytesIO
 from pbr import git
 from pbr import options
 from pbr.tests import base

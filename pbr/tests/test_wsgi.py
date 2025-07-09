@@ -20,13 +20,7 @@ import re
 import subprocess
 import sys
 
-try:
-    # python 2
-    from urllib2 import urlopen
-except ImportError:
-    # python 3
-    from urllib.request import urlopen
-
+from pbr._compat.five import urlopen
 from pbr.tests import base
 
 

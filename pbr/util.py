@@ -79,11 +79,7 @@ import pkg_resources
 from setuptools import dist as st_dist
 from setuptools import extension
 
-try:
-    import ConfigParser as configparser
-except ImportError:
-    import configparser
-
+from pbr._compat.five import ConfigParser
 from pbr import extra_files
 import pbr.hooks
 
@@ -223,12 +219,8 @@ def cfg_to_args(path='setup.cfg', script_args=()):
     :raises DistutilsFileError:
         When the setup.cfg file is not found.
     """
-
     # The method source code really starts here.
-    if sys.version_info >= (3, 0):
-        parser = configparser.ConfigParser()
-    else:
-        parser = configparser.SafeConfigParser()
+    parser = ConfigParser()
 
     if not os.path.exists(path):
         raise errors.DistutilsFileError(

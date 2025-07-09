@@ -53,15 +53,9 @@ import warnings
 
 from distutils import errors
 
+from pbr._compat.five import integer_types
+from pbr._compat.five import string_type
 from pbr import util
-
-
-if sys.version_info[0] == 3:
-    string_type = str
-    integer_types = (int,)
-else:
-    string_type = basestring  # noqa
-    integer_types = (int, long)  # noqa
 
 
 def pbr(dist, attr, value):
