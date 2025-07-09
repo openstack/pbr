@@ -13,6 +13,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import absolute_import
+from __future__ import print_function
+
 # (hberaud) do not use six here to import configparser
 # to keep this module free from external dependencies
 # to avoid cross dependencies errors on minimal system

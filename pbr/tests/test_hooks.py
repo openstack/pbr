@@ -38,6 +38,9 @@
 # INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
 
+from __future__ import absolute_import
+from __future__ import print_function
+
 import os
 
 from testtools import matchers

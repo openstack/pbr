@@ -23,6 +23,9 @@ Add::
 to ``pyproject.toml`` to use this.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
+
 from setuptools import build_meta
 
 __all__ = [

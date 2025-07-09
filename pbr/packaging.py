@@ -18,6 +18,8 @@
 Utilities with minimum-depends for use in setup.py
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
 from __future__ import unicode_literals
 
 from distutils.command import install as du_install

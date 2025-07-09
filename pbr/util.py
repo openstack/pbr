@@ -52,6 +52,9 @@ to be an installation dependency for our packages yet--it is still too unstable
 (the latest version on PyPI doesn't even install).
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
+
 # These first two imports are not used, but are needed to get around an
 # irritating Python bug that can crop up when using ./setup.py test.
 # See: http://www.eby-sarna.com/pipermail/peak/2010-May/003355.html

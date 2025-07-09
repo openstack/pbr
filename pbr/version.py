@@ -17,6 +17,9 @@
 Utilities for consuming the version from importlib-metadata.
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
+
 import itertools
 import operator
 import sys

@@ -40,6 +40,9 @@ each testr backend test runner after the run completes.
 
 """
 
+from __future__ import absolute_import
+from __future__ import print_function
+
 from distutils import cmd
 import distutils.errors
 import logging
