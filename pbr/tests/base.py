@@ -44,30 +44,14 @@ from __future__ import print_function
 
 import os
 import shutil
-import subprocess
 import sys
 
 import fixtures
 import testresources
 import testtools
-from testtools import content
 
 from pbr import options
-
-
-class DiveDir(fixtures.Fixture):
-    """Dive into given directory and return back on cleanup.
-
-    :ivar path: The target directory.
-    """
-
-    def __init__(self, path):
-        self.path = path
-
-    def setUp(self):
-        super(DiveDir, self).setUp()
-        self.addCleanup(os.chdir, os.getcwd())
-        os.chdir(self.path)
+from pbr.tests import util
 
 
 class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
@@ -160,95 +144,7 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
             within the named path.
         """
         cwd = cwd or self.package_dir
-        result = _run_cmd([cmd] + list(args), cwd=cwd)
+        result = util.run_cmd([cmd] + list(args), cwd=cwd)
         if result[2] and not allow_fail:
             raise Exception("Command failed retcode=%s" % result[2])
         return result
-
-
-class CapturedSubprocess(fixtures.Fixture):
-    """Run a process and capture its output.
-
-    :attr stdout: The output (a string).
-    :attr stderr: The standard error (a string).
-    :attr returncode: The return code of the process.
-
-    Note that stdout and stderr are decoded from the bytestrings subprocess
-    returns using error=replace.
-    """
-
-    def __init__(self, label, *args, **kwargs):
-        """Create a CapturedSubprocess.
-
-        :param label: A label for the subprocess in the test log. E.g. 'foo'.
-        :param *args: The *args to pass to Popen.
-        :param **kwargs: The **kwargs to pass to Popen.
-        """
-        super(CapturedSubprocess, self).__init__()
-        self.label = label
-        self.args = args
-        self.kwargs = kwargs
-        self.kwargs['stderr'] = subprocess.PIPE
-        self.kwargs['stdin'] = subprocess.PIPE
-        self.kwargs['stdout'] = subprocess.PIPE
-
-    def setUp(self):
-        super(CapturedSubprocess, self).setUp()
-        proc = subprocess.Popen(*self.args, **self.kwargs)
-        out, err = proc.communicate()
-        self.out = out.decode('utf-8', 'replace')
-        self.err = err.decode('utf-8', 'replace')
-        self.addDetail(self.label + '-stdout', content.text_content(self.out))
-        self.addDetail(self.label + '-stderr', content.text_content(self.err))
-        self.returncode = proc.returncode
-        if proc.returncode:
-            raise AssertionError(
-                'Failed process args=%r, kwargs=%r, returncode=%s'
-                % (self.args, self.kwargs, proc.returncode)
-            )
-        self.addCleanup(delattr, self, 'out')
-        self.addCleanup(delattr, self, 'err')
-        self.addCleanup(delattr, self, 'returncode')
-
-
-def _run_cmd(args, cwd):
-    """Run the command args in cwd.
-
-    :param args: The command to run e.g. ['git', 'status']
-    :param cwd: The directory to run the comamnd in.
-    :return: ((stdout, stderr), returncode)
-    """
-    print('Running %s' % ' '.join(args))
-    p = subprocess.Popen(
-        args,
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        cwd=cwd,
-    )
-    streams = tuple(s.decode('latin1').strip() for s in p.communicate())
-    print('STDOUT:')
-    print(streams[0])
-    print('STDERR:')
-    print(streams[1])
-    return (streams) + (p.returncode,)
-
-
-def _config_git():
-    _run_cmd(
-        ['git', 'config', '--global', 'user.email', 'example@example.com'],
-        None,
-    )
-    _run_cmd(
-        ['git', 'config', '--global', 'user.name', 'OpenStack Developer'], None
-    )
-    _run_cmd(
-        [
-            'git',
-            'config',
-            '--global',
-            'user.signingkey',
-            'example@example.com',
-        ],
-        None,
-    )

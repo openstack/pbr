@@ -41,7 +41,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-import email
 import email.errors
 import os
 import re
@@ -55,12 +54,12 @@ import pkg_resources
 import testscenarios
 import testtools
 from testtools import matchers
-import virtualenv
 from wheel import wheelfile
 
 from pbr import git
 from pbr import packaging
 from pbr.tests import base
+from pbr.tests import fixtures as pbr_fixtures
 
 if sys.version_info >= (3, 3):
     from unittest import mock
@@ -82,224 +81,6 @@ except ImportError:
         return [x[0] for x in imp.get_suffixes]
 
 
-PBR_ROOT = os.path.abspath(os.path.join(__file__, '..', '..', '..'))
-
-
-class TestRepo(fixtures.Fixture):
-    """A git repo for testing with.
-
-    Use of TempHomeDir with this fixture is strongly recommended as due to the
-    lack of config --local in older gits, it will write to the users global
-    configuration without TempHomeDir.
-    """
-
-    def __init__(self, basedir):
-        super(TestRepo, self).__init__()
-        self._basedir = basedir
-
-    def setUp(self):
-        super(TestRepo, self).setUp()
-        base._run_cmd(['git', 'init', '.'], self._basedir)
-        base._config_git()
-        base._run_cmd(['git', 'add', '.'], self._basedir)
-
-    def commit(self, message_content='test commit'):
-        files = len(os.listdir(self._basedir))
-        path = self._basedir + '/%d' % files
-        open(path, 'wt').close()
-        base._run_cmd(['git', 'add', path], self._basedir)
-        base._run_cmd(['git', 'commit', '-m', message_content], self._basedir)
-
-    def uncommit(self):
-        base._run_cmd(['git', 'reset', '--hard', 'HEAD^'], self._basedir)
-
-    def tag(self, version):
-        base._run_cmd(
-            ['git', 'tag', '-sm', 'test tag', version], self._basedir
-        )
-
-
-class GPGKeyFixture(fixtures.Fixture):
-    """Creates a GPG key for testing.
-
-    It's recommended that this be used in concert with a unique home
-    directory.
-    """
-
-    def setUp(self):
-        super(GPGKeyFixture, self).setUp()
-        # If a temporary home dir is in use (and it should be), ensure gpg is
-        # aware of it. This seems to be necessary on Fedora.
-        self.useFixture(
-            fixtures.EnvironmentVariable('GNUPGHOME', os.getenv('HOME'))
-        )
-        tempdir = self.useFixture(fixtures.TempDir())
-        gnupg_version_re = re.compile(r'^gpg\s.*\s([\d+])\.([\d+])\.([\d+])')
-        gnupg_version = base._run_cmd(['gpg', '--version'], tempdir.path)
-        for line in gnupg_version[0].split('\n'):
-            gnupg_version = gnupg_version_re.match(line)
-            if gnupg_version:
-                gnupg_version = (
-                    int(gnupg_version.group(1)),
-                    int(gnupg_version.group(2)),
-                    int(gnupg_version.group(3)),
-                )
-                break
-        else:
-            if gnupg_version is None:
-                gnupg_version = (0, 0, 0)
-
-        config_file = os.path.join(tempdir.path, 'key-config')
-        with open(config_file, 'wt') as f:
-            if gnupg_version[0] == 2 and gnupg_version[1] >= 1:
-                f.write(
-                    """
-                %no-protection
-                %transient-key
-                """
-                )
-            f.write(
-                """
-            %no-ask-passphrase
-            Key-Type: RSA
-            Name-Real: Example Key
-            Name-Comment: N/A
-            Name-Email: example@example.com
-            Expire-Date: 2d
-            %commit
-            """
-            )
-
-        # Note that --quick-random (--debug-quick-random in GnuPG 2.x)
-        # does not have a corresponding preferences file setting and
-        # must be passed explicitly on the command line instead
-        if gnupg_version[0] == 1:
-            gnupg_random = '--quick-random'
-        elif gnupg_version[0] >= 2:
-            gnupg_random = '--debug-quick-random'
-        else:
-            gnupg_random = ''
-
-        _, _, retcode = base._run_cmd(
-            ['gpg', '--gen-key', '--batch', gnupg_random, config_file],
-            tempdir.path,
-        )
-        assert retcode == 0, 'gpg key generation failed!'
-
-
-class Venv(fixtures.Fixture):
-    """Create a virtual environment for testing with.
-
-    :attr path: The path to the environment root.
-    :attr python: The path to the python binary in the environment.
-    """
-
-    def __init__(self, reason, modules=(), pip_cmd=None):
-        """Create a Venv fixture.
-
-        :param reason: A human readable string to bake into the venv
-            file path to aid diagnostics in the case of failures.
-        :param modules: A list of modules to install, defaults to latest
-            pip, wheel, and the working copy of PBR.
-        :attr pip_cmd: A list to override the default pip_cmd passed to
-            python for installing base packages.
-        """
-        self._reason = reason
-        if modules == ():
-            modules = ['pip', 'wheel', 'build', 'setuptools', PBR_ROOT]
-        self.modules = modules
-        if pip_cmd is None:
-            self.pip_cmd = ['-m', 'pip', '-v', 'install']
-        else:
-            self.pip_cmd = pip_cmd
-
-    def _setUp(self):
-        path = self.useFixture(fixtures.TempDir()).path
-        virtualenv.cli_run([path])
-
-        python = os.path.join(path, 'bin', 'python')
-        command = [python] + self.pip_cmd + ['-U']
-        if self.modules and len(self.modules) > 0:
-            command.extend(self.modules)
-            self.useFixture(
-                base.CapturedSubprocess('mkvenv-' + self._reason, command)
-            )
-        self.addCleanup(delattr, self, 'path')
-        self.addCleanup(delattr, self, 'python')
-        self.path = path
-        self.python = python
-        return path, python
-
-
-class CreatePackages(fixtures.Fixture):
-    """Creates packages from dict with defaults
-
-    :param package_dirs: A dict of package name to directory strings
-    {'pkg_a': '/tmp/path/to/tmp/pkg_a', 'pkg_b': '/tmp/path/to/tmp/pkg_b'}
-    """
-
-    defaults = {
-        'setup.py': textwrap.dedent(
-            u"""\
-            #!/usr/bin/env python
-            import setuptools
-            setuptools.setup(
-                setup_requires=['pbr'],
-                pbr=True,
-            )
-        """
-        ),
-        'setup.cfg': textwrap.dedent(
-            u"""\
-            [metadata]
-            name = {pkg_name}
-        """
-        ),
-    }
-
-    def __init__(self, packages):
-        """Creates packages from dict with defaults
-
-        :param packages: a dict where the keys are the package name and a
-        value that is a second dict that may be empty, containing keys of
-        filenames and a string value of the contents.
-        {'package-a': {'requirements.txt': 'string', 'setup.cfg': 'string'}
-        """
-        self.packages = packages
-
-    def _writeFile(self, directory, file_name, contents):
-        path = os.path.abspath(os.path.join(directory, file_name))
-        path_dir = os.path.dirname(path)
-        if not os.path.exists(path_dir):
-            if path_dir.startswith(directory):
-                os.makedirs(path_dir)
-            else:
-                raise ValueError
-        with open(path, 'wt') as f:
-            f.write(contents)
-
-    def _setUp(self):
-        tmpdir = self.useFixture(fixtures.TempDir()).path
-        package_dirs = {}
-        for pkg_name in self.packages:
-            pkg_path = os.path.join(tmpdir, pkg_name)
-            package_dirs[pkg_name] = pkg_path
-            os.mkdir(pkg_path)
-            for cf in ['setup.py', 'setup.cfg']:
-                if cf in self.packages[pkg_name]:
-                    contents = self.packages[pkg_name].pop(cf)
-                else:
-                    contents = self.defaults[cf].format(pkg_name=pkg_name)
-                self._writeFile(pkg_path, cf, contents)
-
-            for cf in self.packages[pkg_name]:
-                self._writeFile(pkg_path, cf, self.packages[pkg_name][cf])
-            self.useFixture(TestRepo(pkg_path)).commit()
-        self.addCleanup(delattr, self, 'package_dirs')
-        self.package_dirs = package_dirs
-        return package_dirs
-
-
 class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
 
     scenarios = [
@@ -309,7 +90,7 @@ class TestPackagingInGitRepoWithCommit(base.BaseTestCase):
 
     def setUp(self):
         super(TestPackagingInGitRepoWithCommit, self).setUp()
-        self.repo = self.useFixture(TestRepo(self.package_dir))
+        self.repo = self.useFixture(pbr_fixtures.GitRepo(self.package_dir))
         self.repo.commit()
 
     def test_authors(self):
@@ -383,7 +164,7 @@ class TestPackagingInGitRepoWithoutCommit(base.BaseTestCase):
 
     def setUp(self):
         super(TestPackagingInGitRepoWithoutCommit, self).setUp()
-        self.useFixture(TestRepo(self.package_dir))
+        self.useFixture(pbr_fixtures.GitRepo(self.package_dir))
         self.run_setup('sdist', allow_fail=False)
 
     def test_authors(self):
@@ -403,7 +184,7 @@ class TestPackagingWheels(base.BaseTestCase):
 
     def setUp(self):
         super(TestPackagingWheels, self).setUp()
-        self.useFixture(TestRepo(self.package_dir))
+        self.useFixture(pbr_fixtures.GitRepo(self.package_dir))
         # Build the wheel
         self.run_setup('bdist_wheel', allow_fail=False)
         # Slowly construct the path to the generated whl
@@ -724,9 +505,9 @@ class TestVersions(base.BaseTestCase):
 
     def setUp(self):
         super(TestVersions, self).setUp()
-        self.repo = self.useFixture(TestRepo(self.package_dir))
-        self.useFixture(GPGKeyFixture())
-        self.useFixture(base.DiveDir(self.package_dir))
+        self.repo = self.useFixture(pbr_fixtures.GitRepo(self.package_dir))
+        self.useFixture(pbr_fixtures.GPGKey())
+        self.useFixture(pbr_fixtures.Chdir(self.package_dir))
 
     def test_email_parsing_errors_are_handled(self):
         mocked_open = mock.mock_open()
@@ -1020,7 +801,7 @@ class TestRequirementParsing(base.BaseTestCase):
                 ),
             },
         }
-        pkg_dirs = self.useFixture(CreatePackages(pkgs)).package_dirs
+        pkg_dirs = self.useFixture(pbr_fixtures.Packages(pkgs)).package_dirs
         pkg_dir = pkg_dirs['test_reqparse']
         # pkg_resources.split_sections uses None as the title of an
         # anonymous section instead of the empty string. Weird.
@@ -1034,7 +815,7 @@ class TestRequirementParsing(base.BaseTestCase):
             'test': ['foo'],
             "test:(python_version=='2.7')": ['baz>3.2', 'bar>3.3'],
         }
-        venv = self.useFixture(Venv('reqParse'))
+        venv = self.useFixture(pbr_fixtures.Venv('reqParse'))
         bin_python = venv.python
         # Two things are tested by this
         # 1) pbr properly parses markers from requiremnts.txt and setup.cfg
@@ -1122,9 +903,9 @@ class TestPEP517Support(base.BaseTestCase):
                 ),
             },
         }
-        pkg_dirs = self.useFixture(CreatePackages(pkgs)).package_dirs
+        pkg_dirs = self.useFixture(pbr_fixtures.Packages(pkgs)).package_dirs
         pkg_dir = pkg_dirs['test_pep517']
-        venv = self.useFixture(Venv('PEP517'))
+        venv = self.useFixture(pbr_fixtures.Venv('PEP517'))
 
         # Test building sdists and wheels works. Note we do not use pip here
         # because pip will forcefully install the latest version of PBR on

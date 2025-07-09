@@ -45,6 +45,7 @@ import contextlib
 import os
 import shutil
 import stat
+import subprocess
 
 from pbr._compat.five import ConfigParser
 
@@ -72,3 +73,46 @@ def rmtree(path):
             raise
 
     return shutil.rmtree(path, onerror=onerror)
+
+
+def run_cmd(args, cwd):
+    """Run the command args in cwd.
+
+    :param args: The command to run e.g. ['git', 'status']
+    :param cwd: The directory to run the comamnd in.
+    :return: ((stdout, stderr), returncode)
+    """
+    print('Running %s' % ' '.join(args))
+    p = subprocess.Popen(
+        args,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        cwd=cwd,
+    )
+    streams = tuple(s.decode('latin1').strip() for s in p.communicate())
+    print('STDOUT:')
+    print(streams[0])
+    print('STDERR:')
+    print(streams[1])
+    return (streams) + (p.returncode,)
+
+
+def config_git():
+    run_cmd(
+        ['git', 'config', '--global', 'user.email', 'example@example.com'],
+        None,
+    )
+    run_cmd(
+        ['git', 'config', '--global', 'user.name', 'OpenStack Developer'], None
+    )
+    run_cmd(
+        [
+            'git',
+            'config',
+            '--global',
+            'user.signingkey',
+            'example@example.com',
+        ],
+        None,
+    )
