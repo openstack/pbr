@@ -51,7 +51,6 @@ import testresources
 import testtools
 
 from pbr import options
-from pbr.tests import util
 
 
 class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
@@ -116,35 +115,3 @@ class BaseTestCase(testtools.TestCase, testresources.ResourcedTestCase):
         for k in list(sys.modules):
             if k == 'pbr_testpackage' or k.startswith('pbr_testpackage.'):
                 del sys.modules[k]
-
-    def run_pbr(self, *args, **kwargs):
-        return self._run_cmd('pbr', args, **kwargs)
-
-    def get_setuptools_version(self):
-        # we rely on this to determine whether to skip tests, so we can't allow
-        # this to fail silently
-        stdout, _, _ = self._run_cmd(
-            sys.executable,
-            ('-c', 'import setuptools; print(setuptools.__version__)'),
-            allow_fail=False,
-        )
-        return tuple(int(x) for x in stdout.strip().split('.')[:3])
-
-    def run_setup(self, *args, **kwargs):
-        return self._run_cmd(sys.executable, ('setup.py',) + args, **kwargs)
-
-    def _run_cmd(self, cmd, args=[], allow_fail=True, cwd=None):
-        """Run a command in the root of the test working copy.
-
-        Runs a command, with the given argument list, in the root of the test
-        working copy--returns the stdout and stderr streams and the exit code
-        from the subprocess.
-
-        :param cwd: If falsy run within the test package dir, otherwise run
-            within the named path.
-        """
-        cwd = cwd or self.package_dir
-        result = util.run_cmd([cmd] + list(args), cwd=cwd)
-        if result[2] and not allow_fail:
-            raise Exception("Command failed retcode=%s" % result[2])
-        return result

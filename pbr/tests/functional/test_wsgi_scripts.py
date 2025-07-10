@@ -22,7 +22,23 @@ import sys
 import sysconfig
 
 from pbr._compat.five import urlopen
-from pbr.tests import base
+from pbr.tests.functional import base
+
+
+class TestPackaging(base.BaseWheelTestCase):
+
+    def test_data_directory_has_wsgi_scripts(self):
+        # Build the path to the scripts directory
+        scripts_dir = os.path.join(
+            self.extracted_wheel_dir, 'pbr_testpackage-0.0.data/scripts'
+        )
+        self.assertTrue(os.path.exists(scripts_dir))
+        scripts = os.listdir(scripts_dir)
+
+        self.assertIn('pbr_test_wsgi', scripts)
+        self.assertIn('pbr_test_wsgi_with_class', scripts)
+        self.assertNotIn('pbr_test_cmd', scripts)
+        self.assertNotIn('pbr_test_cmd_with_class', scripts)
 
 
 class TestWsgiScripts(base.BaseTestCase):

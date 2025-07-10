@@ -24,8 +24,8 @@ import testtools
 import textwrap
 
 from pbr._compat.five import ConfigParser
-from pbr.tests import base
 from pbr.tests import fixtures as pbr_fixtures
+from pbr.tests.functional import base
 from pbr.tests import util
 
 PIPFLAGS = shlex.split(os.environ.get('PIPFLAGS', ''))
