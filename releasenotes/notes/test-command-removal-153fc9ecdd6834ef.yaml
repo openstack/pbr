@@ -1,0 +1,10 @@
+---
+upgrade:
+  - |
+    The deprecated support for ``setup.py test`` has been removed.
+    This feature has been deprecated since version 4.0. The two test tools
+    supported, ``nose`` and ``testr``, are no longer maintained, and the
+    general concept of distutils commands is itself deprecated.
+    Users should switch to running the test runners directly and ideally
+    migrate to an alternative, supported test runner like ``stestr`` or
+    ``pytest``.
