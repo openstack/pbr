@@ -266,70 +266,11 @@ The ``pbr`` section controls *pbr*-specific options and behaviours.
   This can also be configured using the ``SKIP_GENERATE_RENO`` environment
   variable, as described :ref:`here <packaging-releasenotes>`.
 
-``autodoc_tree_index_modules``
-  A boolean option controlling whether *pbr* should generate an index of
-  modules using ``sphinx-apidoc``. By default, all files except ``setup.py``
-  are included, but this can be overridden using the ``autodoc_tree_excludes``
-  option.
+.. versionchanged:: 6.0
 
-  .. deprecated:: 4.2
-
-      This feature has been replaced by the `sphinxcontrib-apidoc`_ extension.
-      Refer to the :ref:`build_sphinx` overview for more information.
-
-``autodoc_tree_excludes``
-  A list of modules to exclude when building documentation using
-  ``sphinx-apidoc``. Defaults to ``[setup.py]``. Refer to the
-  `sphinx-apidoc man page`__ for more information.
-
-  __ http://sphinx-doc.org/man/sphinx-apidoc.html
-
-  .. deprecated:: 4.2
-
-      This feature has been replaced by the `sphinxcontrib-apidoc`_ extension.
-      Refer to the :ref:`build_sphinx` overview for more information.
-
-``autodoc_index_modules``
-  A boolean option controlling whether *pbr* should itself generates
-  documentation for Python modules of the project. By default, all found Python
-  modules are included; some of them can be excluded by listing them in
-  ``autodoc_exclude_modules``.
-
-  .. deprecated:: 4.2
-
-      This feature has been replaced by the `sphinxcontrib-apidoc`_ extension.
-      Refer to the :ref:`build_sphinx` overview for more information.
-
-``autodoc_exclude_modules``
-  A list of modules to exclude when building module documentation using *pbr*.
-  *fnmatch* style pattern (e.g. ``myapp.tests.*``) can be used.
-
-  .. deprecated:: 4.2
-
-      This feature has been replaced by the `sphinxcontrib-apidoc`_ extension.
-      Refer to the :ref:`build_sphinx` overview for more information.
-
-``api_doc_dir``
-  A subdirectory inside the ``build_sphinx.source_dir`` where auto-generated
-  API documentation should be written, if ``autodoc_index_modules`` is set to
-  True. Defaults to ``"api"``.
-
-  .. deprecated:: 4.2
-
-      This feature has been replaced by the `sphinxcontrib-apidoc`_ extension.
-      Refer to the :ref:`build_sphinx` overview for more information.
-
-.. note::
-
-   When using ``autodoc_tree_excludes`` or ``autodoc_index_modules`` you may
-   also need to set ``exclude_patterns`` in your Sphinx configuration file
-   (generally found at ``doc/source/conf.py`` in most OpenStack projects)
-   otherwise Sphinx may complain about documents that are not in a toctree.
-   This is especially true if the ``[sphinx_build] warning-is-error`` option is
-   set. See the `Sphinx build configuration file`__ documentation for more
-   information on configuring Sphinx.
-
-   __ http://sphinx-doc.org/config.html
+   The ``autodoc_tree_index_modules``, ``autodoc_tree_excludes``,
+   ``autodoc_index_modules``, ``autodoc_exclude_modules`` and ``api_doc_dir``
+   settings are all removed.
 
 .. versionchanged:: 4.2
 
