@@ -22,6 +22,7 @@ import fixtures
 
 from pbr.hooks import files
 from pbr.tests import base
+from pbr.tests import fixtures as pbr_fixtures
 
 
 class FilesConfigTest(base.BaseTestCase):
@@ -67,7 +68,7 @@ class FilesConfigTest(base.BaseTestCase):
         with open(os.path.join(dir_subdir_spc, "file with spc"), 'w') as file_:
             file_.write("# empty")
 
-        self.useFixture(base.DiveDir(pkg_fixture.base))
+        self.useFixture(pbr_fixtures.Chdir(pkg_fixture.base))
 
     def test_implicit_auto_package(self):
         config = {'files': {}}
