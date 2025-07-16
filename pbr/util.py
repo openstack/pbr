@@ -43,14 +43,8 @@
 # USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 # DAMAGE.
 
-"""The code in this module is mostly copy/pasted out of the distutils2 source
-code, as recommended by Tarek Ziade.  As such, it may be subject to some change
-as distutils2 development continues, and will have to be kept up to date.
-
-I didn't want to use it directly from distutils2 itself, since I do not want it
-to be an installation dependency for our packages yet--it is still too unstable
-(the latest version on PyPI doesn't even install).
-"""
+# The code in this module is mostly copy/pasted out of the distutils2 source
+# code, as recommended by Tarek Ziade.
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -75,11 +69,11 @@ import traceback
 import distutils.ccompiler
 from distutils import errors
 from distutils import log
-import pkg_resources
 from setuptools import dist as st_dist
 from setuptools import extension
 
 from pbr._compat.five import ConfigParser
+import pbr._compat.packaging
 from pbr import extra_files
 import pbr.hooks
 
@@ -469,7 +463,9 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
                 # multiple setup.py commands at once.
                 if 'bdist_wheel' not in script_args:
                     try:
-                        if pkg_resources.evaluate_marker('(%s)' % env_marker):
+                        if pbr._compat.packaging.evaluate_marker(
+                            '(%s)' % env_marker
+                        ):
                             extras_key = req_group
                     except SyntaxError:
                         log.error(

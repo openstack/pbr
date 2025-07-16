@@ -27,8 +27,7 @@ import re
 import subprocess
 import time
 
-import pkg_resources
-
+import pbr._compat.packaging
 from pbr import options
 from pbr import version
 
@@ -93,9 +92,9 @@ def _get_highest_tag(tags):
     """Find the highest tag from a list.
 
     Pass in a list of tag strings and this will return the highest
-    (latest) as sorted by the pkg_resources version parser.
+    (latest) as sorted by the (Python) version parsing algorithm.
     """
-    return max(tags, key=pkg_resources.parse_version)
+    return max(tags, key=pbr._compat.packaging.parse_version)
 
 
 def _find_git_files(dirname='', git_dir=None):

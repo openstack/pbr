@@ -31,7 +31,6 @@ import warnings
 
 from distutils.command import install as du_install
 from distutils import log
-import pkg_resources
 import setuptools
 from setuptools.command import develop
 from setuptools.command import easy_install
@@ -41,6 +40,7 @@ from setuptools.command import install_scripts
 from setuptools.command import sdist
 
 from pbr._compat.five import urlparse
+import pbr._compat.packaging
 from pbr import extra_files
 from pbr import git
 from pbr import options
@@ -152,10 +152,7 @@ def parse_requirements(requirements_files=None, strip_markers=False):
             )
             continue
 
-        try:
-            project_name = pkg_resources.Requirement.parse(line).project_name
-        except ValueError:
-            project_name = None
+        project_name = pbr._compat.packaging.extract_project_name(line)
 
         # For the requirements list, we need to inject only the portion
         # after egg= so that distutils knows the package it's looking for
@@ -482,6 +479,7 @@ class LocalInstallScripts(install_scripts.install_scripts):
 
     def run(self):
         import distutils.command.install_scripts
+        import pkg_resources
 
         self.run_command("egg_info")
         if self.distribution.scripts:
