@@ -1,0 +1,5 @@
+---
+upgrade:
+  - |
+    Support for the ``[global] compilers`` option has been removed. This was an
+    undocumented feature that did not appear to have any use.
