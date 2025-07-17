@@ -43,12 +43,6 @@ html_theme = 'openstackdocs'
 
 # -- Options for openstackdocstheme ---------------------------------------
 
-# Deprecated options for openstackdocstheme < 2.2.0, can be removed once
-# pbr stops supporting py27.
-repository_name = 'openstack/pbr'
-bug_project = 'pbr'
-bug_tag = ''
-
 # New options with openstackdocstheme >=2.2.0
 openstackdocs_repo_name = 'openstack/pbr'
 openstackdocs_auto_name = False
