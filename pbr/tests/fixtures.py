@@ -97,6 +97,10 @@ class CapturedSubprocess(fixtures.Fixture):
 
     def setUp(self):
         super(CapturedSubprocess, self).setUp()
+        # setuptools can be very shouty
+        env = os.environ.copy()
+        env['PYTHONWARNINGS'] = 'ignore'
+        self.kwargs['env'] = env
         proc = subprocess.Popen(*self.args, **self.kwargs)
         out, err = proc.communicate()
         self.out = out.decode('utf-8', 'replace')

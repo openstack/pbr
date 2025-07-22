@@ -79,9 +79,14 @@ def run_cmd(args, cwd):
     """Run the command args in cwd.
 
     :param args: The command to run e.g. ['git', 'status']
-    :param cwd: The directory to run the comamnd in.
+    :param cwd: The directory to run the command in.
+    :param env: The environment variables to set. If unset, fallback to the
+        default of inheriting those from the current process.
     :return: ((stdout, stderr), returncode)
     """
+    env = os.environ.copy()
+    env['PYTHONWARNINGS'] = 'ignore'
+
     print('Running %s' % ' '.join(args))
     p = subprocess.Popen(
         args,
@@ -89,6 +94,7 @@ def run_cmd(args, cwd):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         cwd=cwd,
+        env=env,
     )
     streams = tuple(s.decode('latin1').strip() for s in p.communicate())
     print('STDOUT:')
