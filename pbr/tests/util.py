@@ -46,6 +46,7 @@ import os
 import shutil
 import stat
 import subprocess
+import sys
 
 from pbr._compat.five import ConfigParser
 
@@ -65,14 +66,17 @@ def rmtree(path):
     Handle 'access denied' from trying to delete read-only files.
     """
 
-    def onerror(func, path, exc_info):
+    def onexc(func, path, exc_info):
         if not os.access(path, os.W_OK):
             os.chmod(path, stat.S_IWUSR)
             func(path)
         else:
             raise
 
-    return shutil.rmtree(path, onerror=onerror)
+    if sys.version_info >= (3, 12):
+        return shutil.rmtree(path, onexc=onexc)
+    else:
+        return shutil.rmtree(path, onerror=onexc)
 
 
 def run_cmd(args, cwd):
