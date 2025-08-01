@@ -1,4 +1,4 @@
-# Copyright (c) 2013 Hewlett-Packard Development Company, L.P.
+# Copyright (c) 2013 New Dream Network, LLC (DreamHost)
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -38,35 +38,16 @@
 # INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
 
-from __future__ import absolute_import
-from __future__ import print_function
-
 import os
 
-from pbr.tests import base
-from pbr.tests import util
+from pbr.tests.functional import base
 
 
-class TestHooks(base.BaseTestCase):
-    def setUp(self):
-        super(TestHooks, self).setUp()
-        with util.open_config(
-            os.path.join(self.package_dir, 'setup.cfg')
-        ) as cfg:
-            cfg.set(
-                'global',
-                'setup-hooks',
-                'pbr_testpackage._setup_hooks.test_hook_1\n'
-                'pbr_testpackage._setup_hooks.test_hook_2',
-            )
+class TestPbrJson(base.BaseWheelTestCase):
 
-    def test_global_setup_hooks(self):
-        """Test setup_hooks.
-
-        Test that setup_hooks listed in the [global] section of setup.cfg are
-        executed in order.
-        """
-
-        stdout, _, return_code = self.run_setup('egg_info')
-        assert 'test_hook_1\ntest_hook_2' in stdout
-        assert return_code == 0
+    def test_metadata_directory_has_pbr_json(self):
+        # Build the path to the scripts directory
+        pbr_json = os.path.join(
+            self.extracted_wheel_dir, 'pbr_testpackage-0.0.dist-info/pbr.json'
+        )
+        self.assertTrue(os.path.exists(pbr_json))

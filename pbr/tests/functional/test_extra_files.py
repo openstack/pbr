@@ -38,49 +38,16 @@
 # INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
 
-from __future__ import absolute_import
-from __future__ import print_function
-
 import glob
 import os
-import sys
 import tarfile
 
-import fixtures
+from testtools import matchers
 
-from pbr.tests import base
+from pbr.tests.functional import base
 
 
-class TestCore(base.BaseTestCase):
-
-    cmd_names = ('pbr_test_cmd', 'pbr_test_cmd_with_class')
-
-    def check_script_install(self, install_stdout):
-        for cmd_name in self.cmd_names:
-            install_txt = 'Installing %s script to %s' % (
-                cmd_name,
-                self.temp_dir,
-            )
-            self.assertIn(install_txt, install_stdout)
-
-            cmd_filename = os.path.join(self.temp_dir, cmd_name)
-
-            script_txt = open(cmd_filename, 'r').read()
-            self.assertNotIn('pkg_resources', script_txt)
-
-            stdout, _, return_code = self._run_cmd(cmd_filename)
-            self.assertIn("PBR", stdout)
-
-    def test_setup_py_keywords(self):
-        """setup.py --keywords.
-
-        Test that the `./setup.py --keywords` command returns the correct
-        value without balking.
-        """
-
-        self.run_setup('egg_info')
-        stdout, _, _ = self.run_setup('--keywords')
-        assert stdout == 'packaging, distutils, setuptools'
+class TestExtraFiles(base.BaseTestCase):
 
     def test_sdist_extra_files(self):
         """Test that the extra files are correctly added."""
@@ -98,55 +65,21 @@ class TestCore(base.BaseTestCase):
 
         self.assertIn('extra-file.txt', names)
 
-    def test_console_script_install(self):
-        """Test that we install a non-pkg-resources console script."""
 
-        if os.name == 'nt':
-            self.skipTest('Windows support is passthrough')
+class TestDataFiles(base.BaseTestCase):
 
-        stdout, _, return_code = self.run_setup(
-            'install_scripts', '--install-dir=%s' % self.temp_dir
+    def test_install_glob(self):
+        stdout, _, _ = self.run_setup(
+            'install', '--root', self.temp_dir + 'installed', allow_fail=False
         )
-
-        self.useFixture(fixtures.EnvironmentVariable('PYTHONPATH', '.'))
-
-        self.check_script_install(stdout)
-
-    def test_console_script_develop(self):
-        """Test that we develop a non-pkg-resources console script."""
-
-        if sys.version_info < (3, 0):
-            self.skipTest(
-                'Fails with recent virtualenv due to '
-                'https://github.com/pypa/virtualenv/issues/1638'
-            )
-
-        if os.name == 'nt':
-            self.skipTest('Windows support is passthrough')
-
-        # setuptools v80.0.0 switched to using pip for the 'develop' command,
-        # which means easy_install is no longer invoked
-        #
-        # https://github.com/pypa/setuptools/commit/98e6b4cac625c6c13b718eeccea42d00d75f2577
-        # https://setuptools.pypa.io/en/stable/history.html#v80-0-0
-        if self.get_setuptools_version() >= (80, 0):
-            self.skipTest('setuptools is too new')
-
-        self.useFixture(
-            fixtures.EnvironmentVariable('PYTHONPATH', ".:%s" % self.temp_dir)
-        )
-
-        stdout, _, return_code = self.run_setup(
-            'develop', '--install-dir=%s' % self.temp_dir
-        )
-
-        self.check_script_install(stdout)
+        self.expectThat(stdout, matchers.Contains('copying data_files/a.txt'))
+        self.expectThat(stdout, matchers.Contains('copying data_files/b.txt'))
 
 
-class TestGitSDist(base.BaseTestCase):
+class TestExtraFilesWithGit(base.BaseTestCase):
 
     def setUp(self):
-        super(TestGitSDist, self).setUp()
+        super(TestExtraFilesWithGit, self).setUp()
 
         stdout, _, return_code = self._run_cmd('git', ('init',))
         if return_code:
@@ -157,10 +90,10 @@ class TestGitSDist(base.BaseTestCase):
             'git', ('commit', '-m', 'Turn this into a git repo')
         )
 
-        stdout, _, return_code = self.run_setup('sdist', '--formats=gztar')
-
     def test_sdist_git_extra_files(self):
         """Test that extra files found in git are correctly added."""
+        stdout, _, return_code = self.run_setup('sdist', '--formats=gztar')
+
         # There can be only one
         tf_path = glob.glob(os.path.join('dist', '*.tar.gz'))[0]
         tf = tarfile.open(tf_path)

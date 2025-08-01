@@ -41,47 +41,32 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-from testtools import content
+import os
 
-from pbr.tests import base
+from pbr.tests.functional import base
+from pbr.tests import util
 
 
-class TestCommands(base.BaseTestCase):
-    def test_custom_build_py_command(self):
-        """Test custom build_py command.
+class TestHooks(base.BaseTestCase):
+    def setUp(self):
+        super(TestHooks, self).setUp()
+        with util.open_config(
+            os.path.join(self.package_dir, 'setup.cfg')
+        ) as cfg:
+            cfg.set(
+                'global',
+                'setup-hooks',
+                'pbr_testpackage._setup_hooks.test_hook_1\n'
+                'pbr_testpackage._setup_hooks.test_hook_2',
+            )
 
-        Test that a custom subclass of the build_py command runs when listed in
-        the commands [global] option, rather than the normal build command.
+    def test_global_setup_hooks(self):
+        """Test setup_hooks.
+
+        Test that setup_hooks listed in the [global] section of setup.cfg are
+        executed in order.
         """
 
-        stdout, stderr, return_code = self.run_setup('build_py')
-        self.addDetail('stdout', content.text_content(stdout))
-        self.addDetail('stderr', content.text_content(stderr))
-        self.assertIn('Running custom build_py command.', stdout)
-        self.assertEqual(0, return_code)
-
-    def test_custom_deb_version_py_command(self):
-        """Test custom deb_version command."""
-        stdout, stderr, return_code = self.run_setup('deb_version')
-        self.addDetail('stdout', content.text_content(stdout))
-        self.addDetail('stderr', content.text_content(stderr))
-        self.assertIn('Extracting deb version', stdout)
-        self.assertEqual(0, return_code)
-
-    def test_custom_rpm_version_py_command(self):
-        """Test custom rpm_version command."""
-        stdout, stderr, return_code = self.run_setup('rpm_version')
-        self.addDetail('stdout', content.text_content(stdout))
-        self.addDetail('stderr', content.text_content(stderr))
-        self.assertIn('Extracting rpm version', stdout)
-        self.assertEqual(0, return_code)
-
-    def test_freeze_command(self):
-        """Test that freeze output is sorted in a case-insensitive manner."""
-        stdout, stderr, return_code = self.run_pbr('freeze')
-        self.assertEqual(0, return_code)
-        pkgs = []
-        for line in stdout.split('\n'):
-            pkgs.append(line.split('==')[0].lower())
-        pkgs_sort = sorted(pkgs[:])
-        self.assertEqual(pkgs_sort, pkgs)
+        stdout, _, return_code = self.run_setup('egg_info')
+        assert 'test_hook_1\ntest_hook_2' in stdout
+        assert return_code == 0

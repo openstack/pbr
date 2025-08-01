@@ -18,6 +18,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import os
+import sys
 
 import fixtures
 
@@ -25,6 +26,24 @@ from pbr._compat.five import BytesIO
 from pbr import git
 from pbr import options
 from pbr.tests import base
+
+if sys.version_info >= (3, 3):
+    from unittest import mock
+else:
+    import mock  # noqa
+
+
+class TestGitIsInstalled(base.BaseTestCase):
+
+    def testGitIsInstalled(self):
+        with mock.patch.object(git, '_run_shell_command') as _command:
+            _command.return_value = 'git version 1.8.4.1'
+            self.assertEqual(True, git._git_is_installed())
+
+    def testGitIsNotInstalled(self):
+        with mock.patch.object(git, '_run_shell_command') as _command:
+            _command.side_effect = OSError
+            self.assertEqual(False, git._git_is_installed())
 
 
 class SkipFileWrites(base.BaseTestCase):
