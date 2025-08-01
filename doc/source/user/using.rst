@@ -171,8 +171,9 @@ All other metadata can be placed in your ``setup.cfg``. A simple example:
         my-project = my_project.cmd:main
 
 Recent versions of `setuptools`_ provide many of the same sections as *pbr*.
-However, for historical reasons, *pbr* does provide a number of additional
-sections:
+*pbr*'s support for setup.cfg predates that of setuptools'. For this reason
+*pbr* supports sections and functionality that setuptools never adopted.
+These sections are:
 
 - ``files`` (deprecated)
 - ``entry_points`` (deprecated)
