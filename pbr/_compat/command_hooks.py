@@ -20,9 +20,9 @@ import os
 
 from setuptools.command import easy_install
 
+import pbr._compat.commands
 from pbr.hooks import base
 from pbr import options
-from pbr import packaging
 
 
 class CommandsConfig(base.BaseConfig):
@@ -41,20 +41,22 @@ class CommandsConfig(base.BaseConfig):
         self.commands = "%s\n%s" % (self.commands, command)
 
     def hook(self):
-        self.add_command('pbr.packaging.LocalEggInfo')
-        self.add_command('pbr.packaging.LocalSDist')
-        self.add_command('pbr.packaging.LocalInstallScripts')
-        self.add_command('pbr.packaging.LocalDevelop')
-        self.add_command('pbr.packaging.LocalRPMVersion')
-        self.add_command('pbr.packaging.LocalDebVersion')
+        self.add_command('pbr._compat.commands.LocalEggInfo')
+        self.add_command('pbr._compat.commands.LocalSDist')
+        self.add_command('pbr._compat.commands.LocalInstallScripts')
+        self.add_command('pbr._compat.commands.LocalDevelop')
+        self.add_command('pbr._compat.commands.LocalRPMVersion')
+        self.add_command('pbr._compat.commands.LocalDebVersion')
         if os.name != 'nt':
-            easy_install.get_script_args = packaging.override_get_script_args
+            easy_install.get_script_args = (
+                pbr._compat.commands.override_get_script_args
+            )
 
         use_egg = options.get_boolean_option(
             self.pbr_config, 'use-egg', 'PBR_USE_EGG'
         )
         # We always want non-egg install unless explicitly requested
         if 'manpages' in self.pbr_config or not use_egg:
-            self.add_command('pbr.packaging.LocalInstall')
+            self.add_command('pbr._compat.commands.LocalInstall')
         else:
-            self.add_command('pbr.packaging.InstallWithGit')
+            self.add_command('pbr._compat.commands.InstallWithGit')
