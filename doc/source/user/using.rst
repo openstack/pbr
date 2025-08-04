@@ -171,11 +171,12 @@ All other metadata can be placed in your ``setup.cfg``. A simple example:
         my-project = my_project.cmd:main
 
 Recent versions of `setuptools`_ provide many of the same sections as *pbr*.
-However, *pbr* does provide a number of additional sections:
+However, for historical reasons, *pbr* does provide a number of additional
+sections:
 
 - ``files`` (deprecated)
 - ``entry_points`` (deprecated)
-- ``backwards_compat``
+- ``backwards_compat`` (deprecated)
 - ``pbr``
 
 In addition, there are some modifications to other sections:
