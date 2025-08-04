@@ -86,7 +86,6 @@ class TestCExtension(base.BaseWheelTestCase):
         )
         static_object_filename = 'testext.so'
         ext_suffix = sysconfig.get_config_var('EXT_SUFFIX')
-        ext_suffix = sysconfig.get_config_var('EXT_SUFFIX')
         if ext_suffix is not None:
             static_object_filename = 'testext' + ext_suffix
         else:
