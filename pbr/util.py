@@ -128,6 +128,42 @@ CFG_TO_PY_SETUP_ARGS = (
     (('backwards_compat', 'include_package_data'), 'include_package_data'),
 )
 
+DEPRECATED_CFG = {
+    ('files', 'packages_root'): (
+        "Use '[options] package_dir' (setup.cfg) or '[tools.setuptools] "
+        "package_dir' (pyproject.toml) instead"
+    ),
+    ('files', 'packages'): (
+        "Use '[options] packages' (setup.cfg) or '[tools.setuptools] "
+        "packages' (pyproject.toml) instead"
+    ),
+    ('files', 'package_data'): (
+        "Use '[options.package_data]' (setup.cfg) or "
+        "'[tool.setuptools.package-data]' (pyproject.toml) instead"
+    ),
+    ('files', 'namespace_packages'): (
+        "Use '[options] namespace_packages' (setup.cfg) or migrate to PEP "
+        "420-style namespace packages instead"
+    ),
+    ('files', 'data_files'): (
+        "For package data files, use '[options] package_data' (setup.cfg) "
+        "or '[tools.setuptools] package_data' (pyproject.toml) instead. "
+        "Support for non-package data files is deprecated in setuptools "
+        "and their use is discouraged. If necessary, use "
+        "'[options] data_files' (setup.cfg) or '[tools.setuptools] data-files'"
+        "(pyproject.toml) instead."
+    ),
+    ('files', 'scripts'): (
+        "Migrate to using the console_scripts entrypoint and use "
+        "'[options.entry_points]' (setup.cfg) or '[project.scripts]' "
+        "(pyproject.toml) instead"
+    ),
+    ('files', 'modules'): (
+        "Use '[options] py_modules' (setup.cfg) or '[tools.setuptools] "
+        "py-modules' (pyproject.toml) instead"
+    ),
+}
+
 # setup() arguments that can have multiple values in setup.cfg
 MULTI_FIELDS = (
     "classifiers",
@@ -314,6 +350,14 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
     all_requirements = {}
 
     for alias, arg in CFG_TO_PY_SETUP_ARGS:
+
+        if (alias, arg) in DEPRECATED_CFG:
+            warnings.warn(
+                "The '[%s] %s' option is deprecated: %s"
+                % (alias, arg, DEPRECATED_CFG[(alias, arg)]),
+                DeprecationWarning,
+            )
+
         section, option = alias
 
         in_cfg_value = has_get_option(config, section, option)

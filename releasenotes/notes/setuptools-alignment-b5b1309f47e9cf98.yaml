@@ -5,7 +5,40 @@ deprecations:
     deprecated in order in favour of setuptools native `setup.cfg` sections
     and options or their `pyproject.toml` equivalents:
 
-    - The `entry_points` section has been deprecated in favour of the
+    - The `[entry_points]` section has been deprecated in favour of the
       `[options.entry_points]` section (if using `setup.cfg`) or the
       `[project.scripts]` and/or `[project.entry-points.{name}]` sections
       (if using `pyproject.toml`)
+
+    - The `[files] packages_root` option has been deprecated in favour of the
+      `[options] package_dir` option (if using `setup.cfg`) or the
+      `[tools.setuptools] package_dir` option (if using `pyproject.toml`)
+
+    - The `[files] packages` option has been deprecated in favour of the
+      `[options] packages` option (if using `setup.cfg`) or the
+      `[tools.setuptools] packages` option (if using `pyproject.toml`)
+
+    - The `[files] package_data` option has been deprecated in favour of the
+      `[options.package_data]` option (if using `setup.cfg`) or the
+      `[tool.setuptools.package-data]` option (if using `pyproject.toml`)
+
+    - The `[files] namespace_packages` option has been deprecated in favour of
+      the `[options] namespace_packages` option (if using `setup.cfg`).
+      Alternatively, migrate to PEP 420-style namespace packages
+
+    - The `[files] data_files` option has been deprecated, and support for
+      non-package data files in general is deprecated in setuptools and their
+      use is discouraged. For package data files, use `[options] package_data`
+      (if using `setup.cfg`) or `[tools.setuptools] package_data` (if using
+      `pyproject.toml`) instead. If non-package data files are necessary, use
+      `[options] data_files` (if using `setup.cfg`) or `[tools.setuptools]
+      data-files` (if using `pyproject.toml`) instead.
+
+    - The `[files] scripts` option has been deprecated. There is no direct
+      replacement. Instead, migrate to using the `console_scripts` entrypoint
+      and use the `[options.entry_points]` option (if using `setup.cfg`) or
+      the `[project.scripts]` option (if using `pyproject.toml`).
+
+    - The `[files] modules` option has been deprecated in favour of the
+      `[options] py_modules` option (if using `setup.cfg`) or the
+      `[tools.setuptools] py-modules` option (if using `pyproject.toml`)
