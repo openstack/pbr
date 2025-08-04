@@ -17,9 +17,10 @@ import os
 import sys
 
 sys.path.insert(0, os.path.abspath('../..'))
+
 # -- General configuration ----------------------------------------------------
 
-extensions = ['sphinx.ext.apidoc', 'sphinx.ext.todo']
+extensions = ['sphinx.ext.apidoc', 'sphinx.ext.todo', 'reno.sphinxext']
 
 # make openstackdocstheme optional to not increase the needed dependencies
 try:

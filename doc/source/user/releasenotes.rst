@@ -2,5 +2,5 @@
  Release Notes
 ===============
 
-.. include:: ../../../RELEASENOTES.rst
-  :start-line: 4
+.. release-notes::
+   :unreleased-version-title: In Development
