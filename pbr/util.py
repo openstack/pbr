@@ -392,6 +392,25 @@ def cfg_to_args(path='setup.cfg', script_args=()):
     return kwargs
 
 
+def _read_description_file(config):
+    """Handle the legacy 'description_file' option."""
+    description_files = has_get_option(config, 'metadata', 'description_file')
+    if not description_files:
+        return None
+
+    description_files = split_multiline(description_files)
+
+    data = ''
+    for filename in description_files:
+        description_file = io.open(filename, encoding='utf-8')
+        try:
+            data += description_file.read().strip() + '\n\n'
+        finally:
+            description_file.close()
+
+    return data
+
+
 def setup_cfg_to_setup_kwargs(config, script_args=()):
     """Convert config options to kwargs.
 
@@ -406,22 +425,12 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
     all_requirements = {}
 
     for alias, arg in CFG_TO_PY_SETUP_ARGS:
-
         section, option = alias
 
         in_cfg_value = has_get_option(config, section, option)
-        if not in_cfg_value and arg == "long_description":
-            in_cfg_value = has_get_option(config, section, "description_file")
-            if in_cfg_value:
-                in_cfg_value = split_multiline(in_cfg_value)
-                value = ''
-                for filename in in_cfg_value:
-                    description_file = io.open(filename, encoding='utf-8')
-                    try:
-                        value += description_file.read().strip() + '\n\n'
-                    finally:
-                        description_file.close()
-                in_cfg_value = value
+
+        if alias == ('metadata', 'description') and not in_cfg_value:
+            in_cfg_value = _read_description_file(config)
 
         if not in_cfg_value:
             continue
