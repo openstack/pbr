@@ -130,19 +130,19 @@ CFG_TO_PY_SETUP_ARGS = (
 )
 
 DEPRECATED_CFG = {
-    ('metadata' 'home_page'): (
+    ('metadata', 'home_page'): (
         "Use '[metadata] url' (setup.cfg) or '[project.urls]' "
         "(pyproject.toml) instead"
     ),
-    ('metadata' 'summary'): (
+    ('metadata', 'summary'): (
         "Use '[metadata] description' (setup.cfg) or '[project] description' "
         "(pyproject.toml) instead"
     ),
-    ('metadata' 'classifier'): (
+    ('metadata', 'classifier'): (
         "Use '[metadata] classifiers' (setup.cfg) or '[project] classifiers' "
         "(pyproject.toml) instead"
     ),
-    ('metadata' 'platform'): (
+    ('metadata', 'platform'): (
         "Use '[metadata] platforms' (setup.cfg) or "
         "'[tool.setuptools] platforms' (pyproject.toml) instead"
     ),
@@ -198,17 +198,17 @@ DEPRECATED_CFG = {
         "Use '[options] py_modules' (setup.cfg) or '[tools.setuptools] "
         "py-modules' (pyproject.toml) instead"
     ),
-    ('backwards_compat' 'zip_safe'): (
+    ('backwards_compat', 'zip_safe'): (
         "This option is obsolete as it was only relevant in the context of "
         "eggs"
     ),
-    ('backwards_compat' 'dependency_links'): (
+    ('backwards_compat', 'dependency_links'): (
         "This option is ignored by pip starting from pip 19.0"
     ),
-    ('backwards_compat' 'tests_require'): (
+    ('backwards_compat', 'tests_require'): (
         "This option is ignored by pip starting from pip 19.0"
     ),
-    ('backwards_compat' 'include_package_data'): (
+    ('backwards_compat', 'include_package_data'): (
         "Use '[options] include_package_data' (setup.cfg) or "
         "'[tools.setuptools] include-package-data' (pyproject.toml) instead"
     ),
@@ -407,13 +407,6 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
 
     for alias, arg in CFG_TO_PY_SETUP_ARGS:
 
-        if (alias, arg) in DEPRECATED_CFG:
-            warnings.warn(
-                "The '[%s] %s' option is deprecated: %s"
-                % (alias, arg, DEPRECATED_CFG[(alias, arg)]),
-                DeprecationWarning,
-            )
-
         section, option = alias
 
         in_cfg_value = has_get_option(config, section, option)
@@ -433,8 +426,16 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
         if not in_cfg_value:
             continue
 
+        if alias in DEPRECATED_CFG:
+            warnings.warn(
+                "The '[%s] %s' option is deprecated: %s"
+                % (alias[0], alias[1], DEPRECATED_CFG[alias]),
+                DeprecationWarning,
+            )
+
         if arg in CSV_FIELDS:
             in_cfg_value = split_csv(in_cfg_value)
+
         if arg in MULTI_FIELDS:
             in_cfg_value = split_multiline(in_cfg_value)
         elif arg in MAP_FIELDS:

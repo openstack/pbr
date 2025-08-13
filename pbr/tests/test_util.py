@@ -19,6 +19,7 @@ from __future__ import print_function
 import io
 import tempfile
 import textwrap
+import warnings
 
 from pbr._compat.five import ConfigParser
 from pbr.tests import base
@@ -89,6 +90,14 @@ class TestBasics(base.BaseTestCase):
                 scripts/hello-world.py
             modules =
                 mod1
+
+            [backwards_compat]
+            zip_safe = true
+            tests_require =
+              fixtures
+            dependency_links =
+              https://example.com/mypackage/v1.2.3.zip#egg=mypackage-1.2.3
+            include_package_data = true
             """
         expected = {
             'name': u'foo',
@@ -130,10 +139,47 @@ class TestBasics(base.BaseTestCase):
             ],
             'scripts': [u'scripts/hello-world.py'],
             'py_modules': [u'mod1'],
+            'zip_safe': True,
+            'tests_require': [
+                'fixtures',
+            ],
+            'dependency_links': [
+                'https://example.com/mypackage/v1.2.3.zip#egg=mypackage-1.2.3',
+            ],
+            'include_package_data': True,
         }
         config = config_from_ini(config_text)
-        actual = util.setup_cfg_to_setup_kwargs(config)
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            actual = util.setup_cfg_to_setup_kwargs(config)
         self.assertDictEqual(expected, actual)
+
+        # split on colon to avoid having to repeat the entire string...
+        warning_messages = set(str(x.message).split(':')[0] for x in w)
+        for warning_message in (
+            "The '[metadata] home_page' option is deprecated",
+            "The '[metadata] summary' option is deprecated",
+            "The '[metadata] classifier' option is deprecated",
+            "The '[metadata] platform' option is deprecated",
+            "The '[metadata] requires_dist' option is deprecated",
+            "The '[metadata] setup_requires_dist' option is deprecated",
+            "The '[metadata] python_requires' option is deprecated",
+            # "The '[metadata] requires_python' option is deprecated",
+            "The '[metadata] provides_dist' option is deprecated",
+            "The '[metadata] provides_extras' option is deprecated",
+            "The '[metadata] obsoletes_dist' option is deprecated",
+            "The '[files] packages' option is deprecated",
+            "The '[files] package_data' option is deprecated",
+            "The '[files] namespace_packages' option is deprecated",
+            "The '[files] data_files' option is deprecated",
+            "The '[files] scripts' option is deprecated",
+            "The '[files] modules' option is deprecated",
+            "The '[backwards_compat] zip_safe' option is deprecated",
+            "The '[backwards_compat] dependency_links' option is deprecated",
+            "The '[backwards_compat] tests_require' option is deprecated",
+            "The '[backwards_compat] include_package_data' option is deprecated",
+        ):
+            self.assertIn(warning_message, warning_messages)
 
 
 class TestExtrasRequireParsingScenarios(base.BaseTestCase):
