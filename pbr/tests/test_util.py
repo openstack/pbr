@@ -17,6 +17,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import io
+import os
 import tempfile
 import textwrap
 import warnings
@@ -180,6 +181,92 @@ class TestBasics(base.BaseTestCase):
             "The '[backwards_compat] include_package_data' option is deprecated",
         ):
             self.assertIn(warning_message, warning_messages)
+
+    def test_bug_2120575(self):
+        # check behavior with description, long_description (modern)
+        config_text = u"""
+            [metadata]
+            name = foo
+            description = A short package summary
+            long_description = file: README.rst
+        """
+        expected = {
+            'name': u'foo',
+            'description': u'A short package summary',
+            'long_description': u'file: README.rst',
+            'extras_require': {},
+            'install_requires': [],
+        }
+        config = config_from_ini(config_text)
+        actual = util.setup_cfg_to_setup_kwargs(config)
+        self.assertDictEqual(expected, actual)
+
+        readme = os.path.join(self.temp_dir, 'README.rst')
+        with open(readme, 'w') as f:
+            f.write('A longer summary from the README')
+
+        # check behavior with description, description_file (semi-modern)
+        config_text = (
+            u"""
+            [metadata]
+            name = foo
+            description = A short package summary
+            description_file = %s
+        """
+            % readme
+        )
+        expected = {
+            'name': u'foo',
+            'description': u'A short package summary',
+            'long_description': u'A longer summary from the README\n\n',
+            'extras_require': {},
+            'install_requires': [],
+        }
+        config = config_from_ini(config_text)
+        actual = util.setup_cfg_to_setup_kwargs(config)
+        self.assertDictEqual(expected, actual)
+
+        # check behavior with summary, long_description (old)
+        config_text = (
+            u"""
+            [metadata]
+            name = foo
+            summary = A short package summary
+            long_description = %s
+        """
+            % readme
+        )
+        expected = {
+            'name': u'foo',
+            'description': u'A short package summary',
+            # long_description is retrieved by setuptools
+            'extras_require': {},
+            'install_requires': [],
+        }
+        config = config_from_ini(config_text)
+        actual = util.setup_cfg_to_setup_kwargs(config)
+        self.assertDictEqual(expected, actual)
+
+        # check behavior with summary, description_file (ancient)
+        config_text = (
+            u"""
+            [metadata]
+            name = foo
+            summary = A short package summary
+            description_file = %s
+        """
+            % readme
+        )
+        expected = {
+            'name': u'foo',
+            'description': u'A short package summary',
+            'long_description': u'A longer summary from the README\n\n',
+            'extras_require': {},
+            'install_requires': [],
+        }
+        config = config_from_ini(config_text)
+        actual = util.setup_cfg_to_setup_kwargs(config)
+        self.assertDictEqual(expected, actual)
 
 
 class TestExtrasRequireParsingScenarios(base.BaseTestCase):

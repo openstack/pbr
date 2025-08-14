@@ -424,8 +424,35 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
     # parse env_markers.
     all_requirements = {}
 
+    # We want people to use description and long_description over summary and
+    # description but there is obvious overlap. If we see the both of the
+    # former being used, don't normalize
+    skip_description_normalization = False
+    if has_get_option(config, 'metadata', 'description') and (
+        has_get_option(config, 'metadata', 'long_description')
+        or has_get_option(config, 'metadata', 'description_file')
+    ):
+        kwargs['description'] = has_get_option(
+            config, 'metadata', 'description'
+        )
+        long_description = has_get_option(
+            config, 'metadata', 'long_description'
+        )
+        if long_description:
+            kwargs['long_description'] = long_description
+        else:
+            kwargs['long_description'] = _read_description_file(config)
+
+        skip_description_normalization = True
+
     for alias, arg in CFG_TO_PY_SETUP_ARGS:
         section, option = alias
+
+        if skip_description_normalization and alias in (
+            ('metadata', 'summary'),
+            ('metadata', 'description'),
+        ):
+            continue
 
         in_cfg_value = has_get_option(config, section, option)
 
