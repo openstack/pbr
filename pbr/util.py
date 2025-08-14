@@ -138,6 +138,10 @@ DEPRECATED_CFG = {
         "Use '[metadata] description' (setup.cfg) or '[project] description' "
         "(pyproject.toml) instead"
     ),
+    ('metadata', 'description_file'): (
+        "Use '[metadata] long_description' (setup.cfg) or '[project] readme' "
+        "(pyproject.toml) instead"
+    ),
     ('metadata', 'classifier'): (
         "Use '[metadata] classifiers' (setup.cfg) or '[project] classifiers' "
         "(pyproject.toml) instead"
