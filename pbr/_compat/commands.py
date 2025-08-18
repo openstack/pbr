@@ -164,19 +164,6 @@ class LocalInstallScripts(install_scripts.install_scripts):
 
     command_name = 'install_scripts'
 
-    def _make_wsgi_scripts_only(self, dist, executable):
-        # get_script_header() is deprecated since Setuptools 12.0
-        try:
-            header = easy_install.ScriptWriter.get_header("", executable)
-        except AttributeError:
-            header = easy_install.get_script_header("", executable)
-        wsgi_script_template = ENTRY_POINTS_MAP['wsgi_scripts']
-        for name, ep in dist.get_entry_map('wsgi_scripts').items():
-            content = generate_script(
-                'wsgi_scripts', ep, header, wsgi_script_template
-            )
-            self.write_script(name, content)
-
     def run(self):
         import distutils.command.install_scripts
         import pkg_resources
@@ -202,7 +189,18 @@ class LocalInstallScripts(install_scripts.install_scripts):
             # scripts for us. Let's build them.
             # NOTE(sigmavirus24): This needs to happen here because, as the
             # comment below indicates, no_ep is True when building a wheel.
-            self._make_wsgi_scripts_only(dist, executable)
+
+            # get_script_header() is deprecated since Setuptools 12.0
+            try:
+                header = easy_install.ScriptWriter.get_header("", executable)
+            except AttributeError:
+                header = easy_install.get_script_header("", executable)
+            wsgi_script_template = ENTRY_POINTS_MAP['wsgi_scripts']
+            for name, ep in dist.get_entry_map('wsgi_scripts').items():
+                content = generate_script(
+                    'wsgi_scripts', ep, header, wsgi_script_template
+                )
+                self.write_script(name, content)
 
         if self.no_ep:
             # no_ep is True if we're installing into an .egg file or building
