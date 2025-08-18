@@ -23,12 +23,12 @@ import sys
 
 import setuptools
 from setuptools.command import develop
-from setuptools.command import easy_install
 from setuptools.command import egg_info
 from setuptools.command import install
 from setuptools.command import install_scripts
 from setuptools.command import sdist
 
+import pbr._compat.easy_install
 from pbr import extra_files
 from pbr import git
 from pbr import options
@@ -137,11 +137,7 @@ def override_get_script_args(
     dist, executable=os.path.normpath(sys.executable)
 ):
     """Override entrypoints console_script."""
-    # get_script_header() is deprecated since Setuptools 12.0
-    try:
-        header = easy_install.ScriptWriter.get_header("", executable)
-    except AttributeError:
-        header = easy_install.get_script_header("", executable)
+    header = pbr._compat.easy_install.ScriptWriter.get_header("", executable)
     for group, template in ENTRY_POINTS_MAP.items():
         for name, ep in dist.get_entry_map(group).items():
             yield (name, generate_script(group, ep, header, template))
@@ -183,18 +179,18 @@ class LocalInstallScripts(install_scripts.install_scripts):
             ei_cmd.egg_version,
         )
         bs_cmd = self.get_finalized_command('build_scripts')
-        executable = getattr(bs_cmd, 'executable', easy_install.sys_executable)
+        executable = getattr(
+            bs_cmd, 'executable', pbr._compat.easy_install.sys_executable
+        )
         if 'bdist_wheel' in self.distribution.have_run:
             # We're building a wheel which has no way of generating mod_wsgi
             # scripts for us. Let's build them.
             # NOTE(sigmavirus24): This needs to happen here because, as the
             # comment below indicates, no_ep is True when building a wheel.
 
-            # get_script_header() is deprecated since Setuptools 12.0
-            try:
-                header = easy_install.ScriptWriter.get_header("", executable)
-            except AttributeError:
-                header = easy_install.get_script_header("", executable)
+            header = pbr._compat.easy_install.ScriptWriter.get_header(
+                "", executable
+            )
             wsgi_script_template = ENTRY_POINTS_MAP['wsgi_scripts']
             for name, ep in dist.get_entry_map('wsgi_scripts').items():
                 content = generate_script(
@@ -211,7 +207,9 @@ class LocalInstallScripts(install_scripts.install_scripts):
         if os.name != 'nt':
             get_script_args = override_get_script_args
         else:
-            get_script_args = easy_install.get_script_args
+            get_script_args = (
+                pbr._compat.easy_install.ScriptWriter.get_script_args
+            )
             executable = '"%s"' % executable
 
         for args in get_script_args(dist, executable):
