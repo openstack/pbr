@@ -1,6 +1,13 @@
+# The order of packages is significant on Python 2.7, because older pip
+# versions (before pip v20.3) process them in the order of appearance. Changing
+# the order has an impact on the overall integration process, which may cause
+# wedges in the gate later.
+
 wheel>=0.32.0 # MIT
 fixtures>=3.0.0 # Apache-2.0/BSD
 mock>=2.0.0,<4.0.0;python_version=='2.7' # BSD
+# indirect dependency (via stestr) with broken Python 2.7 support
+pyperclip<1.10.0;python_version=='2.7' # BSD
 stestr>=2.1.0,<3.0;python_version=='2.7' # Apache-2.0
 stestr>=2.1.0;python_version>='3.0' # Apache-2.0
 testresources>=2.0.0 # Apache-2.0/BSD
