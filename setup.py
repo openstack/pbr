@@ -15,6 +15,6 @@
 
 import setuptools
 
-from pbr import util
+from pbr import setupcfg
 
-setuptools.setup(**util.setup_cfg_to_args())
+setuptools.setup(**setupcfg.setup_cfg_to_args())

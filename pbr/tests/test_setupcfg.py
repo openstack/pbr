@@ -23,8 +23,8 @@ import textwrap
 import warnings
 
 from pbr._compat.five import ConfigParser
+from pbr import setupcfg
 from pbr.tests import base
-from pbr import util
 
 
 def config_from_ini(ini):
@@ -152,7 +152,7 @@ class TestBasics(base.BaseTestCase):
         config = config_from_ini(config_text)
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter("always")
-            actual = util.setup_cfg_to_setup_kwargs(config)
+            actual = setupcfg.setup_cfg_to_setup_kwargs(config)
         self.assertDictEqual(expected, actual)
 
         # split on colon to avoid having to repeat the entire string...
@@ -198,7 +198,7 @@ class TestBasics(base.BaseTestCase):
             'install_requires': [],
         }
         config = config_from_ini(config_text)
-        actual = util.setup_cfg_to_setup_kwargs(config)
+        actual = setupcfg.setup_cfg_to_setup_kwargs(config)
         self.assertDictEqual(expected, actual)
 
         readme = os.path.join(self.temp_dir, 'README.rst')
@@ -223,7 +223,7 @@ class TestBasics(base.BaseTestCase):
             'install_requires': [],
         }
         config = config_from_ini(config_text)
-        actual = util.setup_cfg_to_setup_kwargs(config)
+        actual = setupcfg.setup_cfg_to_setup_kwargs(config)
         self.assertDictEqual(expected, actual)
 
         # check behavior with summary, long_description (old)
@@ -244,7 +244,7 @@ class TestBasics(base.BaseTestCase):
             'install_requires': [],
         }
         config = config_from_ini(config_text)
-        actual = util.setup_cfg_to_setup_kwargs(config)
+        actual = setupcfg.setup_cfg_to_setup_kwargs(config)
         self.assertDictEqual(expected, actual)
 
         # check behavior with summary, description_file (ancient)
@@ -265,7 +265,7 @@ class TestBasics(base.BaseTestCase):
             'install_requires': [],
         }
         config = config_from_ini(config_text)
-        actual = util.setup_cfg_to_setup_kwargs(config)
+        actual = setupcfg.setup_cfg_to_setup_kwargs(config)
         self.assertDictEqual(expected, actual)
 
 
@@ -323,7 +323,7 @@ class TestExtrasRequireParsingScenarios(base.BaseTestCase):
 
     def test_extras_parsing(self):
         config = config_from_ini(self.config_text)
-        kwargs = util.setup_cfg_to_setup_kwargs(config)
+        kwargs = setupcfg.setup_cfg_to_setup_kwargs(config)
 
         self.assertEqual(
             self.expected_extra_requires, kwargs['extras_require']
@@ -334,7 +334,9 @@ class TestInvalidMarkers(base.BaseTestCase):
 
     def test_invalid_marker_raises_error(self):
         config = {'extras': {'test': "foo :bad_marker>'1.0'"}}
-        self.assertRaises(SyntaxError, util.setup_cfg_to_setup_kwargs, config)
+        self.assertRaises(
+            SyntaxError, setupcfg.setup_cfg_to_setup_kwargs, config
+        )
 
 
 class TestMapFieldsParsingScenarios(base.BaseTestCase):
@@ -378,7 +380,7 @@ class TestMapFieldsParsingScenarios(base.BaseTestCase):
 
     def test_project_url_parsing(self):
         config = config_from_ini(self.config_text)
-        kwargs = util.setup_cfg_to_setup_kwargs(config)
+        kwargs = setupcfg.setup_cfg_to_setup_kwargs(config)
 
         self.assertEqual(self.expected_project_urls, kwargs['project_urls'])
 
@@ -413,7 +415,7 @@ class TestKeywordsParsingScenarios(base.BaseTestCase):
 
     def test_keywords_parsing(self):
         config = config_from_ini(self.config_text)
-        kwargs = util.setup_cfg_to_setup_kwargs(config)
+        kwargs = setupcfg.setup_cfg_to_setup_kwargs(config)
 
         self.assertEqual(self.expected_keywords, kwargs['keywords'])
 
@@ -426,7 +428,7 @@ class TestProvidesExtras(base.BaseTestCase):
                           bar
         """
         config = config_from_ini(ini)
-        kwargs = util.setup_cfg_to_setup_kwargs(config)
+        kwargs = setupcfg.setup_cfg_to_setup_kwargs(config)
         self.assertEqual(['foo', 'bar'], kwargs['provides_extras'])
 
 
@@ -458,7 +460,7 @@ class TestDataFilesParsing(base.BaseTestCase):
 
     def test_handling_of_whitespace_in_data_files(self):
         config = config_from_ini(self.config_text)
-        kwargs = util.setup_cfg_to_setup_kwargs(config)
+        kwargs = setupcfg.setup_cfg_to_setup_kwargs(config)
 
         self.assertEqual(self.data_files, kwargs['data_files'])
 
@@ -477,5 +479,5 @@ class TestUTF8DescriptionFile(base.BaseTestCase):
         with io.open(path, 'w', encoding='utf8') as f:
             f.write(unicode_description)
         config = config_from_ini(ini)
-        kwargs = util.setup_cfg_to_setup_kwargs(config)
+        kwargs = setupcfg.setup_cfg_to_setup_kwargs(config)
         self.assertEqual(unicode_description, kwargs['long_description'])

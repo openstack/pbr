@@ -73,9 +73,13 @@ from setuptools import dist as st_dist
 from setuptools import extension
 
 from pbr._compat.five import ConfigParser
-import pbr._compat.packaging
+from pbr._compat.five import integer_types
+from pbr._compat.five import string_type
+from pbr._compat import packaging as packaging_compat
 from pbr import extra_files
-import pbr.hooks
+from pbr import hooks
+
+"""Implementation of setup.cfg support."""
 
 # A simplified RE for this; just checks that the line ends with version
 # predicates in ()
@@ -360,7 +364,7 @@ def setup_cfg_to_args(path='setup.cfg', script_args=None):
                     sys.exit(1)
 
         # Run the pbr hook
-        pbr.hooks.setup_hook(config)
+        hooks.setup_hook(config)
 
         kwargs = setup_cfg_to_setup_kwargs(config, script_args)
 
@@ -492,8 +496,8 @@ def setup_cfg_to_setup_kwargs(config, script_args=None):
 
         if in_cfg_value:
             if arg in REMOVED_KEYWORDS and (
-                pbr._compat.packaging.parse_version(setuptools.__version__)
-                >= pbr._compat.packaging.parse_version(REMOVED_KEYWORDS[arg])
+                packaging_compat.parse_version(setuptools.__version__)
+                >= packaging_compat.parse_version(REMOVED_KEYWORDS[arg])
             ):
                 # deprecation warnings, if any, will already have been logged,
                 # so simply skip this
@@ -617,7 +621,7 @@ def setup_cfg_to_setup_kwargs(config, script_args=None):
                 # multiple setup.py commands at once.
                 if 'bdist_wheel' not in script_args:
                     try:
-                        if pbr._compat.packaging.evaluate_marker(
+                        if packaging_compat.evaluate_marker(
                             '(%s)' % env_marker
                         ):
                             extras_key = req_group
@@ -740,3 +744,102 @@ def split_csv(value):
         if element
     ]
     return value
+
+
+def pbr(dist, attr, value):
+    """Implements the pbr setup() keyword.
+
+    When used, this should be the only keyword in your setup() aside from
+    `setup_requires`.
+
+    If given as a string, the value of pbr is assumed to be the relative path
+    to the setup.cfg file to use.  Otherwise, if it evaluates to true, it
+    simply assumes that pbr should be used, and the default 'setup.cfg' is
+    used.
+
+    This works by reading the setup.cfg file, parsing out the supported
+    metadata and command options, and using them to rebuild the
+    `DistributionMetadata` object and set the newly added command options.
+
+    The reason for doing things this way is that a custom `Distribution` class
+    will not play nicely with setup_requires; however, this implementation may
+    not work well with distributions that do use a `Distribution` subclass.
+    """
+
+    # Distribution.finalize_options() is what calls this method. That means
+    # there is potential for recursion here. Recursion seems to be an issue
+    # particularly when using PEP517 build-system configs without
+    # setup_requires in setup.py. We can avoid the recursion by setting
+    # this canary so we don't repeat ourselves.
+    if hasattr(dist, '_pbr_initialized'):
+        return
+    dist._pbr_initialized = True
+
+    if not value:
+        return
+
+    if isinstance(value, string_type):
+        path = os.path.abspath(value)
+    else:
+        path = os.path.abspath('setup.cfg')
+
+    if not os.path.exists(path):
+        raise errors.DistutilsFileError(
+            'The setup.cfg file %s does not exist.' % path
+        )
+
+    # Converts the setup.cfg file to setup() arguments
+    try:
+        attrs = setup_cfg_to_args(path, dist.script_args)
+    except Exception:
+        e = sys.exc_info()[1]
+        # NB: This will output to the console if no explicit logging has
+        # been setup - but thats fine, this is a fatal distutils error, so
+        # being pretty isn't the #1 goal.. being diagnosable is.
+        logging.exception('Error parsing')
+        raise errors.DistutilsSetupError(
+            'Error parsing %s: %s: %s' % (path, e.__class__.__name__, e)
+        )
+
+    # There are some metadata fields that are only supported by
+    # setuptools and not distutils, and hence are not in
+    # dist.metadata.  We are OK to write these in.  For gory details
+    # see
+    #  https://github.com/pypa/setuptools/pull/1343
+    _DISTUTILS_UNSUPPORTED_METADATA = (
+        'long_description_content_type',
+        'project_urls',
+        'provides_extras',
+    )
+
+    # Repeat some of the Distribution initialization code with the newly
+    # provided attrs
+    if attrs:
+        # Skips 'options' and 'licence' support which are rarely used; may
+        # add back in later if demanded
+        for key, val in attrs.items():
+            if hasattr(dist.metadata, 'set_' + key):
+                getattr(dist.metadata, 'set_' + key)(val)
+            elif hasattr(dist.metadata, key):
+                setattr(dist.metadata, key, val)
+            elif hasattr(dist, key):
+                setattr(dist, key, val)
+            elif key in _DISTUTILS_UNSUPPORTED_METADATA:
+                setattr(dist.metadata, key, val)
+            else:
+                msg = 'Unknown distribution option: %s' % repr(key)
+                warnings.warn(msg)
+
+    # Re-finalize the underlying Distribution
+    try:
+        super(dist.__class__, dist).finalize_options()
+    except TypeError:
+        # If dist is not declared as a new-style class (with object as
+        # a subclass) then super() will not work on it. This is the case
+        # for Python 2. In that case, fall back to doing this the ugly way
+        dist.__class__.__bases__[-1].finalize_options(dist)
+
+    # This bit comes out of distribute/setuptools
+    if isinstance(dist.metadata.version, integer_types + (float,)):
+        # Some people apparently take "version number" too literally :)
+        dist.metadata.version = str(dist.metadata.version)
