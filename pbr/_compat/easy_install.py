@@ -301,7 +301,66 @@ class ScriptWriter:
 
 
 class WindowsScriptWriter(ScriptWriter):
+    template = textwrap.dedent(
+        r"""
+        # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
+        import re
+        import sys
+
+        # for compatibility with easy_install; see #2198
+        __requires__ = %(spec)r
+
+        try:
+            from importlib.metadata import distribution
+        except ImportError:
+            try:
+                from importlib_metadata import distribution
+            except ImportError:
+                from pkg_resources import load_entry_point
+
+
+        def importlib_load_entry_point(spec, group, name):
+            dist_name, _, _ = spec.partition('==')
+            matches = (
+                entry_point
+                for entry_point in distribution(dist_name).entry_points
+                if entry_point.group == group and entry_point.name == name
+            )
+            return next(matches).load()
+
+
+        globals().setdefault('load_entry_point', importlib_load_entry_point)
+
+
+        if __name__ == '__main__':
+            sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
+            sys.exit(load_entry_point(%(spec)r, %(group)r, %(name)r)())
+        """
+    ).lstrip()
+
     command_spec_class = WindowsCommandSpec
+
+    @classmethod
+    def get_args(cls, dist, header=None):
+        """
+        Yield write_script() argument tuples for a distribution's
+        console_scripts and gui_scripts entry points.
+        """
+        if header is None:
+            header = cls.get_header()
+        spec = str(dist.as_requirement())
+        for type_ in 'console', 'gui':
+            group = type_ + '_scripts'
+            for name, ep in dist.get_entry_map(group).items():
+                cls._ensure_safe_name(name)
+                script_text = cls.template % {
+                    'spec': spec,
+                    'group': group,
+                    'name': name,
+                }
+                args = cls._get_script_args(type_, name, header, script_text)
+                for res in args:
+                    yield res
 
     @classmethod
     def best(cls):
