@@ -41,7 +41,7 @@
 import pkg_resources
 import testtools
 
-from pbr._compat import commands
+from pbr._compat import easy_install
 
 
 class TestPackagingHelpers(testtools.TestCase):
@@ -58,7 +58,7 @@ class TestPackagingHelpers(testtools.TestCase):
             '%(group)s %(module_name)s %(import_target)s %(invoke_target)s'
         )
 
-        generated_script = commands.generate_script(
+        generated_script = easy_install.generate_script(
             group, entry_point, header, template
         )
 
@@ -79,7 +79,7 @@ class TestPackagingHelpers(testtools.TestCase):
         )
         self.assertRaises(
             ValueError,
-            commands.generate_script,
+            easy_install.generate_script,
             group,
             entry_point,
             header,
@@ -93,7 +93,7 @@ class TestPackagingHelpers(testtools.TestCase):
         )
         self.assertRaises(
             ValueError,
-            commands.generate_script,
+            easy_install.generate_script,
             group,
             entry_point,
             header,
