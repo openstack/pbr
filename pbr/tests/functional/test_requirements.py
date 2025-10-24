@@ -41,10 +41,57 @@
 import os
 import textwrap
 
-import pkg_resources
+import packaging.requirements
 
+from pbr._compat.five import string_type
 from pbr.tests import fixtures as pbr_fixtures
 from pbr.tests.functional import base
+
+
+# Taken from setuptools
+#
+# https://github.com/pypa/setuptools/blob/v44.1.1/pkg_resources/__init__.py#L2378-L2389
+def yield_lines(strs):
+    """Yield non-empty/non-comment lines of a string or sequence"""
+    if isinstance(strs, string_type):
+        for s in strs.splitlines():
+            s = s.strip()
+            # skip blank lines/comments
+            if s and not s.startswith('#'):
+                yield s
+    else:
+        for ss in strs:
+            for s in yield_lines(ss):
+                yield s
+
+
+# Taken from setuptools
+#
+# https://github.com/pypa/setuptools/blob/v44.1.1/pkg_resources/__init__.py#L3189-L3212
+def split_sections(s):
+    """Split a string or iterable thereof into (section, content) pairs
+
+    Each ``section`` is a stripped version of the section header ("[section]")
+    and each ``content`` is a list of stripped lines excluding blank lines and
+    comment-only lines.  If there are any such lines before the first section
+    header, they're returned in a first ``section`` of ``None``.
+    """
+    section = None
+    content = []
+    for line in yield_lines(s):
+        if line.startswith("["):
+            if line.endswith("]"):
+                if section or content:
+                    yield section, content
+                section = line[1:-1].strip()
+                content = []
+            else:
+                raise ValueError("Invalid section heading", line)
+        else:
+            content.append(line)
+
+    # wrap up last segment
+    yield section, content
 
 
 class TestRequirementParsing(base.BaseTestCase):
@@ -104,18 +151,23 @@ class TestRequirementParsing(base.BaseTestCase):
 
         requires_txt = os.path.join(egg_info, 'requires.txt')
         with open(requires_txt, 'rt') as requires:
-            generated_requirements = dict(
-                pkg_resources.split_sections(requires)
-            )
+            generated_requirements = dict(split_sections(requires))
 
         # NOTE(dhellmann): We have to spell out the comparison because
         # the rendering for version specifiers in a range is not
         # consistent across versions of setuptools.
 
         for section, expected in expected_requirements.items():
-            exp_parsed = [pkg_resources.Requirement.parse(s) for s in expected]
+            # We wrap in str since we need packaging 22.0.0 or later to do
+            # comparisons [1] and that doesn't support Python 2.7, 3.6
+            #
+            # https://github.com/pypa/packaging/commit/aebc072a06925cc0004b031e6b6f3028e5e2e686
+            # https://pypi.org/project/packaging/22.0/
+            exp_parsed = [
+                str(packaging.requirements.Requirement(s)) for s in expected
+            ]
             gen_parsed = [
-                pkg_resources.Requirement.parse(s)
+                str(packaging.requirements.Requirement(s))
                 for s in generated_requirements[section]
             ]
             self.assertEqual(exp_parsed, gen_parsed)
