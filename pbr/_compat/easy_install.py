@@ -42,6 +42,8 @@ import sys
 import textwrap
 import warnings
 
+import pbr._compat.metadata
+
 
 shebang_pattern = re.compile('^#!.*python[0-9.]*([ \t].*)?$')
 """
@@ -320,7 +322,7 @@ class ScriptWriter:
             header = cls.get_header()
 
         for group, template in ENTRY_POINTS_MAP.items():
-            for name, ep in dist.get_entry_map(group).items():
+            for name, ep in pbr._compat.metadata.get_entry_points(dist, group):
                 cls._ensure_safe_name(name)
                 yield (name, generate_script(group, ep, header, template))
 
@@ -407,7 +409,7 @@ class WindowsScriptWriter(ScriptWriter):
         spec = str(dist.as_requirement())
         for type_ in 'console', 'gui':
             group = type_ + '_scripts'
-            for name, ep in dist.get_entry_map(group).items():
+            for name, ep in pbr._compat.metadata.get_entry_points(dist, group):
                 cls._ensure_safe_name(name)
                 script_text = cls.template % {
                     'spec': spec,
