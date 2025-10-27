@@ -375,6 +375,9 @@ class TestMarkersPip(base.BaseTestCase):
                 'pip',
                 'install',
                 '--no-index',
+                # With --no-index above we can't install deps for isolated
+                # builds. Just rely on the existing installs for now.
+                '--no-build-isolation',
                 '-f',
                 repo_dir,
                 'test_markers',
