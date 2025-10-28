@@ -250,8 +250,6 @@ MAP_FIELDS = ("project_urls",)
 # setup() arguments that contain boolean values
 BOOL_FIELDS = ("zip_safe", "include_package_data")
 
-CSV_FIELDS = ()
-
 
 def shlex_split(path):
     if os.name == 'nt':
@@ -471,9 +469,6 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
                 % (alias[0], alias[1], DEPRECATED_CFG[alias]),
                 DeprecationWarning,
             )
-
-        if arg in CSV_FIELDS:
-            in_cfg_value = split_csv(in_cfg_value)
 
         if arg in MULTI_FIELDS:
             in_cfg_value = split_multiline(in_cfg_value)
