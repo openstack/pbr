@@ -266,7 +266,6 @@ def resolve_name(name):
 
     Raise ImportError if the module or name is not found.
     """
-
     parts = name.split('.')
     cursor = len(parts) - 1
     module_name = parts[:cursor]
@@ -293,19 +292,21 @@ def resolve_name(name):
     return ret
 
 
-def cfg_to_args(path='setup.cfg', script_args=()):
-    """Distutils2 to distutils1 compatibility util.
+def setup_cfg_to_args(path='setup.cfg', script_args=None):
+    """Parse setup.cfg file.
 
-    This method uses an existing setup.cfg to generate a dictionary of
-    keywords that can be used by distutils.core.setup(kwargs**).
+    Parse a setup.cfg file and tranform pbr-specific options to the underlying
+    setuptools opts.
 
-    :param path:
-        The setup.cfg path.
-    :param script_args:
-        List of commands setup.py was called with.
-    :raises DistutilsFileError:
-        When the setup.cfg file is not found.
+    :param path: The setup.cfg path.
+    :param script_args: List of commands setup.py was called with.
+    :returns: A dictionary of kwargs to set on the underlying Distribution
+        object.
+    :raises DistutilsFileError: When the setup.cfg file is not found.
     """
+    if script_args is None:
+        script_args = ()
+
     # The method source code really starts here.
     parser = ConfigParser()
 
@@ -313,11 +314,13 @@ def cfg_to_args(path='setup.cfg', script_args=()):
         raise errors.DistutilsFileError(
             "file '%s' does not exist" % os.path.abspath(path)
         )
+
     try:
         parser.read(path, encoding='utf-8')
     except TypeError:
         # Python 2 doesn't accept the encoding kwarg
         parser.read(path)
+
     config = {}
     for section in parser.sections():
         config[section] = {}
@@ -412,12 +415,14 @@ def _read_description_file(config):
     return data
 
 
-def setup_cfg_to_setup_kwargs(config, script_args=()):
+def setup_cfg_to_setup_kwargs(config, script_args=None):
     """Convert config options to kwargs.
 
     Processes the setup.cfg options and converts them to arguments accepted
     by setuptools' setup() function.
     """
+    if script_args is None:
+        script_args = ()
 
     kwargs = {}
 
@@ -501,6 +506,7 @@ def setup_cfg_to_setup_kwargs(config, script_args=()):
                     _VERSION_SPEC_RE.sub(r'\1\2', pred)
                     for pred in in_cfg_value
                 ]
+
             if arg == 'install_requires':
                 # Split install_requires into package,env_marker tuples
                 # These will be re-assembled later
@@ -718,7 +724,6 @@ def has_get_option(config, section, option):
 
 def split_multiline(value):
     """Special behaviour when we have a multi line options"""
-
     value = [
         element
         for element in (line.strip() for line in value.split('\n'))
@@ -729,7 +734,6 @@ def split_multiline(value):
 
 def split_csv(value):
     """Special behaviour when we have a comma separated options"""
-
     value = [
         element
         for element in (chunk.strip() for chunk in value.split(','))
