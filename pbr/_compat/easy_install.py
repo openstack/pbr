@@ -185,48 +185,110 @@ class WindowsCommandSpec(CommandSpec):
     split_args = dict(posix=False)
 
 
+_wsgi_text = """#PBR Generated from %(group)r
+
+import threading
+
+from %(module_name)s import %(import_target)s
+
+if __name__ == "__main__":
+    import argparse
+    import socket
+    import sys
+    import wsgiref.simple_server as wss
+
+    parser = argparse.ArgumentParser(
+        description=%(import_target)s.__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        usage='%%(prog)s [-h] [--port PORT] [--host IP] -- [passed options]')
+    parser.add_argument('--port', '-p', type=int, default=8000,
+                        help='TCP port to listen on')
+    parser.add_argument('--host', '-b', default='',
+                        help='IP to bind the server to')
+    parser.add_argument('args',
+                        nargs=argparse.REMAINDER,
+                        metavar='-- [passed options]',
+                        help="'--' is the separator of the arguments used "
+                        "to start the WSGI server and the arguments passed "
+                        "to the WSGI application.")
+    args = parser.parse_args()
+    if args.args:
+        if args.args[0] == '--':
+            args.args.pop(0)
+        else:
+            parser.error("unrecognized arguments: %%s" %% ' '.join(args.args))
+    sys.argv[1:] = args.args
+    server = wss.make_server(args.host, args.port, %(invoke_target)s())
+
+    print("*" * 80)
+    print("STARTING test server %(module_name)s.%(invoke_target)s")
+    url = "http://%%s:%%d/" %% (server.server_name, server.server_port)
+    print("Available at %%s" %% url)
+    print("DANGER! For testing only, do not use in production")
+    print("*" * 80)
+    sys.stdout.flush()
+
+    server.serve_forever()
+else:
+    application = None
+    app_lock = threading.Lock()
+
+    with app_lock:
+        if application is None:
+            application = %(invoke_target)s()
+
+"""
+
+_script_text = """# PBR Generated from %(group)r
+
+import sys
+
+from %(module_name)s import %(import_target)s
+
+
+if __name__ == "__main__":
+    sys.exit(%(invoke_target)s())
+"""
+
+# the following allows us to specify different templates per entry
+# point group when generating pbr scripts.
+ENTRY_POINTS_MAP = {
+    'console_scripts': _script_text,
+    'gui_scripts': _script_text,
+    'wsgi_scripts': _wsgi_text,
+}
+
+
+def generate_script(group, entry_point, header, template):
+    """Generate the script based on the template.
+
+    :param str group: The entry-point group name, e.g., "console_scripts".
+    :param str header: The first line of the script, e.g.,
+        "!#/usr/bin/env python".
+    :param str template: The script template.
+    :returns: The templated script content
+    :rtype: str
+    """
+    if not entry_point.attrs or len(entry_point.attrs) > 2:
+        raise ValueError(
+            "Script targets must be of the form "
+            "'func' or 'Class.class_method'."
+        )
+
+    script_text = template % {
+        'group': group,
+        'module_name': entry_point.module_name,
+        'import_target': entry_point.attrs[0],
+        'invoke_target': '.'.join(entry_point.attrs),
+    }
+    return header + script_text
+
+
 class ScriptWriter:
     """
     Encapsulates behavior around writing entry point scripts for console and
     gui apps.
     """
-
-    template = textwrap.dedent(
-        r"""
-        # EASY-INSTALL-ENTRY-SCRIPT: %(spec)r,%(group)r,%(name)r
-        import re
-        import sys
-
-        # for compatibility with easy_install; see #2198
-        __requires__ = %(spec)r
-
-        try:
-            from importlib.metadata import distribution
-        except ImportError:
-            try:
-                from importlib_metadata import distribution
-            except ImportError:
-                from pkg_resources import load_entry_point
-
-
-        def importlib_load_entry_point(spec, group, name):
-            dist_name, _, _ = spec.partition('==')
-            matches = (
-                entry_point
-                for entry_point in distribution(dist_name).entry_points
-                if entry_point.group == group and entry_point.name == name
-            )
-            return next(matches).load()
-
-
-        globals().setdefault('load_entry_point', importlib_load_entry_point)
-
-
-        if __name__ == '__main__':
-            sys.argv[0] = re.sub(r'(-script\.pyw?|\.exe)?$', '', sys.argv[0])
-            sys.exit(load_entry_point(%(spec)r, %(group)r, %(name)r)())
-        """
-    ).lstrip()
 
     command_spec_class = CommandSpec
 
@@ -252,21 +314,15 @@ class ScriptWriter:
         Yield write_script() argument tuples for a distribution's
         console_scripts and gui_scripts entry points.
         """
+        # NOTE(stephenfin): This is modified from upstream to add support for
+        # wsgi-scripts. The Windows version is unchanged.
         if header is None:
             header = cls.get_header()
-        spec = str(dist.as_requirement())
-        for type_ in 'console', 'gui':
-            group = type_ + '_scripts'
+
+        for group, template in ENTRY_POINTS_MAP.items():
             for name, ep in dist.get_entry_map(group).items():
                 cls._ensure_safe_name(name)
-                script_text = cls.template % {
-                    'spec': spec,
-                    'group': group,
-                    'name': name,
-                }
-                args = cls._get_script_args(type_, name, header, script_text)
-                for res in args:
-                    yield res
+                yield (name, generate_script(group, ep, header, template))
 
     @staticmethod
     def _ensure_safe_name(name):
