@@ -29,6 +29,7 @@ from setuptools.command import install_scripts
 from setuptools.command import sdist
 
 import pbr._compat.easy_install
+import pbr._compat.metadata
 from pbr import extra_files
 from pbr import git
 from pbr import options
@@ -56,7 +57,6 @@ class LocalInstallScripts(install_scripts.install_scripts):
 
     def run(self):
         import distutils.command.install_scripts
-        import pkg_resources
 
         self.run_command("egg_info")
         if self.distribution.scripts:
@@ -66,9 +66,9 @@ class LocalInstallScripts(install_scripts.install_scripts):
             self.outfiles = []
 
         ei_cmd = self.get_finalized_command("egg_info")
-        dist = pkg_resources.Distribution(
+        dist = pbr._compat.metadata.dist(
             ei_cmd.egg_base,
-            pkg_resources.PathMetadata(ei_cmd.egg_base, ei_cmd.egg_info),
+            ei_cmd.egg_info,
             ei_cmd.egg_name,
             ei_cmd.egg_version,
         )
@@ -85,10 +85,14 @@ class LocalInstallScripts(install_scripts.install_scripts):
             header = pbr._compat.easy_install.ScriptWriter.get_header(
                 "", executable
             )
+
             wsgi_script_template = pbr._compat.easy_install.ENTRY_POINTS_MAP[
                 'wsgi_scripts'
             ]
-            for name, ep in dist.get_entry_map('wsgi_scripts').items():
+            wsgi_scripts = pbr._compat.metadata.get_entry_points(
+                dist, 'wsgi_scripts'
+            )
+            for name, ep in wsgi_scripts:
                 content = pbr._compat.easy_install.generate_script(
                     'wsgi_scripts', ep, header, wsgi_script_template
                 )

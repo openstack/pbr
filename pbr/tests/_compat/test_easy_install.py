@@ -38,18 +38,17 @@
 # INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
 
-import pkg_resources
 import testtools
 
 from pbr._compat import easy_install
+from pbr._compat import metadata
 
 
 class TestPackagingHelpers(testtools.TestCase):
 
     def test_generate_script(self):
         group = 'console_scripts'
-        entry_point = pkg_resources.EntryPoint(
-            name='test-ep',
+        entry_point = metadata.entrypoint(
             module_name='pbr.packaging',
             attrs=('LocalInstallScripts',),
         )
@@ -70,8 +69,9 @@ class TestPackagingHelpers(testtools.TestCase):
 
     def test_generate_script_validates_expectations(self):
         group = 'console_scripts'
-        entry_point = pkg_resources.EntryPoint(
-            name='test-ep', module_name='pbr.packaging'
+        entry_point = metadata.entrypoint(
+            module_name='pbr.packaging',
+            attrs=None,
         )
         header = '#!/usr/bin/env fake-header\n'
         template = (
@@ -86,8 +86,7 @@ class TestPackagingHelpers(testtools.TestCase):
             template,
         )
 
-        entry_point = pkg_resources.EntryPoint(
-            name='test-ep',
+        entry_point = metadata.entrypoint(
             module_name='pbr.packaging',
             attrs=('attr1', 'attr2', 'attr3'),
         )

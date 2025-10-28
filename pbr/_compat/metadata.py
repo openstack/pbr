@@ -15,6 +15,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+from collections import namedtuple
 import json
 import sys
 
@@ -23,6 +24,9 @@ _metadata_lib = None
 METADATA_LIB_STDLIB = 'importlib.metadata'
 METADATA_LIB_BACKPORT = 'importlib_metadata'
 METADATA_LIB_LEGACY = 'pkg_resources'
+
+entrypoint = namedtuple('entrypoint', ['module_name', 'attrs'])
+dist = namedtuple('dist', ['egg_base', 'egg_info', 'egg_name', 'egg_version'])
 
 
 def _get_metadata_lib():
@@ -161,3 +165,94 @@ def get_version(package_name):
             return pkg_resources.get_distribution(package_name).version
         except pkg_resources.DistributionNotFound:
             raise PackageNotFound(package_name)
+
+
+def get_entry_points(dist, group):
+    metadata_lib = _get_metadata_lib()
+
+    if metadata_lib == METADATA_LIB_STDLIB:
+        import importlib.metadata
+
+        try:
+            dist = importlib.metadata.Distribution.at(dist.egg_info)
+        except importlib.metadata.PackageNotFoundError:
+            raise PackageNotFound(dist.egg_name)
+
+        # the stdlib library (!!!) changed its behavior in Python 3.10 :(
+        # https://docs.python.org/3.10/library/importlib.metadata.html#entry-points
+        if hasattr(importlib.metadata, 'EntryPoints'):
+            x = [
+                (
+                    ep.name,
+                    entrypoint(
+                        module_name=ep.module,
+                        attrs=ep.attr.split('.'),
+                    ),
+                )
+                for ep in dist.entry_points.select(group=group)
+            ]
+            return x
+        else:
+            x = [
+                (
+                    ep.name,
+                    entrypoint(
+                        module_name=ep.value.split(':')[0],
+                        attrs=ep.value.split(':')[1].split('.'),
+                    ),
+                )
+                for ep in dist.entry_points
+                if ep.group == group
+            ]
+            return x
+    elif metadata_lib == METADATA_LIB_BACKPORT:
+        import importlib_metadata
+
+        try:
+            dist = importlib_metadata.Distribution.at(dist.egg_info)
+        except importlib_metadata.PackageNotFoundError:
+            raise PackageNotFound(dist.egg_name)
+
+        # as above
+        if hasattr(importlib_metadata, 'EntryPoints'):
+            x = [
+                (
+                    ep.name,
+                    entrypoint(
+                        module_name=ep.module,
+                        attrs=ep.attr.split('.'),
+                    ),
+                )
+                for ep in dist.entry_points.select(group=group)
+            ]
+            return x
+        else:
+            x = [
+                (
+                    ep.name,
+                    entrypoint(
+                        module_name=ep.value.split(':')[0],
+                        attrs=ep.value.split(':')[1].split('.'),
+                    ),
+                )
+                for ep in dist.entry_points
+                if ep.group == group
+            ]
+            return x
+    else:  # METADATA_LIB_LEGACY
+        import pkg_resources
+
+        try:
+            dist = pkg_resources.Distribution(
+                dist.egg_base,
+                pkg_resources.PathMetadata(dist.egg_base, dist.egg_info),
+                dist.egg_name,
+                dist.egg_version,
+            )
+        except pkg_resources.DistributionNotFound:
+            raise PackageNotFound(dist.egg_name)
+
+        return [
+            (name, entrypoint(module_name=ep.module_name, attrs=ep.attrs))
+            for name, ep in dist.get_entry_map(group).items()
+        ]
