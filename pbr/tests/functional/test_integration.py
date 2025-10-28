@@ -15,11 +15,11 @@ from __future__ import absolute_import
 from __future__ import print_function
 
 import os.path
-import pkg_resources
 import shlex
 import sys
 
 import fixtures
+import packaging.utils
 import testtools
 import textwrap
 
@@ -99,7 +99,9 @@ class TestIntegration(base.BaseTestCase):
         # overheads of setup would start to beat the benefits of parallelism.
         path = os.path.join(REPODIR, self.short_name)
         setup_cfg = os.path.join(path, 'setup.cfg')
-        project_name = pkg_resources.safe_name(self.short_name).lower()
+        project_name = packaging.utils.canonicalize_name(
+            self.short_name
+        ).lower()
         # These projects should all have setup.cfg files but we'll be careful
         if os.path.exists(setup_cfg):
             config = ConfigParser()
@@ -111,7 +113,9 @@ class TestIntegration(base.BaseTestCase):
                 # Technically we should really only need to use the raw
                 # name because all our projects should be good and use
                 # normalized names but they don't...
-                project_name = pkg_resources.safe_name(raw_name).lower()
+                project_name = packaging.utils.canonicalize_name(
+                    raw_name
+                ).lower()
         constraints = os.path.join(
             REPODIR, 'requirements', 'upper-constraints.txt'
         )
@@ -124,7 +128,9 @@ class TestIntegration(base.BaseTestCase):
             with open(tmp_constraints, 'w') as dest:
                 for line in src:
                     constraint = line.split('===')[0]
-                    constraint = pkg_resources.safe_name(constraint).lower()
+                    constraint = packaging.utils.canonicalize_name(
+                        constraint
+                    ).lower()
                     if project_name != constraint:
                         dest.write(line)
         pip_cmd = PIP_CMD + ['-c', tmp_constraints]
