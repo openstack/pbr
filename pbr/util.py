@@ -58,7 +58,6 @@ except ImportError:
     pass
 import logging  # noqa
 
-from collections import defaultdict
 import io
 import os
 import re
@@ -742,13 +741,3 @@ def split_csv(value):
         if element
     ]
     return value
-
-
-# The following classes are used to hack Distribution.command_options a bit
-class DefaultGetDict(defaultdict):
-    """Like defaultdict, but get() also sets and returns the default value."""
-
-    def get(self, key, default=None):
-        if default is None:
-            default = self.default_factory()
-        return super(DefaultGetDict, self).setdefault(key, default)
