@@ -278,13 +278,13 @@ class Packages(fixtures.Fixture):
                 setup_requires=['pbr'],
                 pbr=True,
             )
-        """
+            """
         ),
         'setup.cfg': textwrap.dedent(
             u"""\
             [metadata]
             name = {pkg_name}
-        """
+            """
         ),
     }
 
@@ -292,9 +292,10 @@ class Packages(fixtures.Fixture):
         """Creates packages from dict with defaults
 
         :param packages: a dict where the keys are the package name and a
-        value that is a second dict that may be empty, containing keys of
-        filenames and a string value of the contents.
-        {'package-a': {'requirements.txt': 'string', 'setup.cfg': 'string'}
+            value that is a second dict that may be empty, containing keys of
+            filenames and a string value of the contents. ::
+
+                {'package-a': {'requirements.txt': 'string', 'setup.cfg': 'string'}
         """
         self.packages = packages
 

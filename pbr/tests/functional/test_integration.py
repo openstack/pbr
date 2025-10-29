@@ -229,6 +229,8 @@ class TestInstallWithoutPbr(base.BaseTestCase):
         os.mkdir(test_pkg_dir)
         pkgs = {
             'pkgTest': {
+                # override setup.py, setup.cfg since we don't want pbr used for
+                # this package
                 'setup.py': textwrap.dedent(
                     """\
                     #!/usr/bin/env python
@@ -239,29 +241,31 @@ class TestInstallWithoutPbr(base.BaseTestCase):
                         # avoid collisions?
                         install_requires = ['pkgReq'],
                     )
-                """
+                    """
                 ),
                 'setup.cfg': textwrap.dedent(
                     """\
                     [easy_install]
                     find_links = %s
-                """
+                    """
                     % dist_dir
                 ),
             },
             # We don't need to use PBRVERSION here because we precreate the
             # pbr sdist and point to it with find_links.
             'pkgReq': {
+                # ...but we use the standard setup.py, setup.cfg provided by
+                # the fixture since we do want pbr here, in the dependency
                 'requirements.txt': textwrap.dedent(
                     """\
                     pbr
-                """
+                    """
                 ),
                 'pkgReq/__init__.py': "",
                 'pkgReq/__main__.py': textwrap.dedent(
                     """\
                     print("FakeTest loaded and ran")
-                """
+                    """
                 ),
             },
         }
