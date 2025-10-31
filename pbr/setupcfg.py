@@ -402,6 +402,12 @@ def setup_cfg_to_args(path='setup.cfg', script_args=None):
 
 def _read_description_file(config):
     """Handle the legacy 'description_file' option."""
+    long_description = has_get_option(config, 'metadata', 'long_description')
+    if long_description:
+        # if we have a long_description then do nothing: setuptools will take
+        # care of this for us
+        return None
+
     description_files = has_get_option(config, 'metadata', 'description_file')
     if not description_files:
         return None
@@ -445,13 +451,9 @@ def setup_cfg_to_setup_kwargs(config, script_args=None):
         kwargs['description'] = has_get_option(
             config, 'metadata', 'description'
         )
-        long_description = has_get_option(
-            config, 'metadata', 'long_description'
-        )
+        long_description = _read_description_file(config)
         if long_description:
             kwargs['long_description'] = long_description
-        else:
-            kwargs['long_description'] = _read_description_file(config)
 
         skip_description_normalization = True
 

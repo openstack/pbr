@@ -193,7 +193,8 @@ class TestBasics(base.BaseTestCase):
         expected = {
             'name': u'foo',
             'description': u'A short package summary',
-            'long_description': u'file: README.rst',
+            # long_description should *not* be set: setuptools will handle this
+            # for us
             'extras_require': {},
             'install_requires': [],
         }
