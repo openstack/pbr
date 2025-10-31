@@ -22,7 +22,6 @@ import os
 import sys
 
 import setuptools
-from setuptools.command import develop
 from setuptools.command import egg_info
 from setuptools.command import install
 from setuptools.command import install_scripts
@@ -30,24 +29,30 @@ from setuptools.command import sdist
 
 import pbr._compat.easy_install
 import pbr._compat.metadata
+import pbr._compat.versions
 from pbr import extra_files
 from pbr import git
 from pbr import options
 from pbr import version
 
 
-class LocalDevelop(develop.develop):
+if pbr._compat.versions.setuptools_has_develop_command:
+    from setuptools.command import develop
 
-    command_name = 'develop'
+    class LocalDevelop(develop.develop):
 
-    def install_wrapper_scripts(self, dist):
-        if sys.platform == 'win32':
-            return develop.develop.install_wrapper_scripts(self, dist)
-        if not self.exclude_scripts:
-            for args in pbr._compat.easy_install.ScriptWriter.get_script_args(
-                dist
-            ):
-                self.write_script(*args)
+        command_name = 'develop'
+
+        def install_wrapper_scripts(self, dist):
+            if sys.platform == 'win32':
+                return develop.develop.install_wrapper_scripts(self, dist)
+            if not self.exclude_scripts:
+                for (
+                    args
+                ) in pbr._compat.easy_install.ScriptWriter.get_script_args(
+                    dist
+                ):
+                    self.write_script(*args)
 
 
 class LocalInstallScripts(install_scripts.install_scripts):
