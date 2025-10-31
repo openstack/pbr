@@ -55,7 +55,7 @@ class TestCommands(base.BaseTestCase):
         """
         self.run_setup('egg_info')
         stdout, _, _ = self.run_setup('--keywords')
-        assert stdout == 'packaging, distutils, setuptools'
+        self.assertEqual('packaging, distutils, setuptools', stdout)
 
     def test_custom_build_py_command(self):
         """Test custom build_py command.

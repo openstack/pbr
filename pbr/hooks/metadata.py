@@ -28,6 +28,9 @@ class MetadataConfig(base.BaseConfig):
         self.config['version'] = packaging.get_version(
             self.config['name'], self.config.get('version', None)
         )
+        # NOTE(stephenfin): While we are appending this to '[metadata]
+        # requires_dist' here, we immediately transform that to
+        # 'install_requires' when parsing 'setup.cfg'
         packaging.append_text_list(
             self.config, 'requires_dist', packaging.parse_requirements()
         )
