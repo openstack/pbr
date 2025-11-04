@@ -128,8 +128,7 @@
         - openstack-tox-pep8
         - build-python-release
         - openstack-tox-cover
-        - openstack-tox-py27:
-            ansible-version: '9'
+        - openstack-tox-py27
         - openstack-tox-py36:
             ansible-version: '9'
         - openstack-tox-py37:
@@ -149,8 +148,7 @@
         - openstack-tox-pep8
         - build-python-release
         - openstack-tox-cover
-        - openstack-tox-py27:
-            ansible-version: '9'
+        - openstack-tox-py27
         - openstack-tox-py36:
             ansible-version: '9'
         - openstack-tox-py37:
