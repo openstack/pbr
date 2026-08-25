@@ -26,7 +26,10 @@ to ``pyproject.toml`` to use this.
 from __future__ import absolute_import
 from __future__ import print_function
 
+import setuptools
 from setuptools import build_meta
+
+from pbr._compat import packaging as packaging_compat
 
 __all__ = [
     'get_requires_for_build_sdist',
@@ -35,9 +38,21 @@ __all__ = [
     'build_wheel',
     'build_sdist',
     'build_editable',
-    'get_requires_for_build_editable',
-    'prepare_metadata_for_build_editable',
 ]
+
+pep660_support = (
+    # setuptools has has __version__ since day 0. If it disappears in the
+    # future, we're clearly on a newer version of setuptools
+    not hasattr('setuptools', '__version__')
+    or packaging_compat.parse_version(setuptools.__version__)
+    >= packaging_compat.parse_version('64.0.0')
+)
+
+if pep660_support:
+    __all__ += [
+        'get_requires_for_build_editable',
+        'prepare_metadata_for_build_editable',
+    ]
 
 
 # PEP-517
@@ -83,30 +98,29 @@ def build_sdist(sdist_directory, config_settings=None):
 
 # PEP-660
 
+if pep660_support:
 
-def build_editable(
-    wheel_directory,
-    config_settings=None,
-    metadata_directory=None,
-):
-    return build_meta.build_editable(
+    def build_editable(
         wheel_directory,
-        config_settings=config_settings,
-        metadata_directory=metadata_directory,
-    )
+        config_settings=None,
+        metadata_directory=None,
+    ):
+        return build_meta.build_editable(
+            wheel_directory,
+            config_settings=config_settings,
+            metadata_directory=metadata_directory,
+        )
 
+    def get_requires_for_build_editable(config_settings=None):
+        return build_meta.get_requires_for_build_editable(
+            config_settings=config_settings,
+        )
 
-def get_requires_for_build_editable(config_settings=None):
-    return build_meta.get_requires_for_build_editable(
-        config_settings=config_settings,
-    )
-
-
-def prepare_metadata_for_build_editable(
-    metadata_directory,
-    config_settings=None,
-):
-    return build_meta.prepare_metadata_for_build_editable(
+    def prepare_metadata_for_build_editable(
         metadata_directory,
-        config_settings=config_settings,
-    )
+        config_settings=None,
+    ):
+        return build_meta.prepare_metadata_for_build_editable(
+            metadata_directory,
+            config_settings=config_settings,
+        )
