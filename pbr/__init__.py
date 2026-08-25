@@ -32,10 +32,10 @@ def pbr(dist):
     -- and only importing the implementation on the Python versions that can
     actually build from a pyproject.toml -- avoids that fragile late import.
     """
-    if sys.version_info < (3, 7):
-        # pyproject.toml-only builds require tomllib/tomli, which we do not
-        # support on Python 2.7 or 3.6. There is nothing to do here, and
-        # crucially we must not import pbr.pyprojecttoml in this case.
+    if sys.version_info < (3, 11):
+        # pyproject.toml-only builds require tomllib, which requires Python
+        # 3.11. Projects that still support older Python versions will just
+        # have to continue shipping a setup.cfg and setup.py file.
         return
 
     from pbr import pyprojecttoml

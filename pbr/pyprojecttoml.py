@@ -10,15 +10,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import sys
+# this code will only work on Python 3.11+ (which adds tomllib), but nothing
+# should be importing this code on older versions
 
-if sys.version_info >= (3, 11):
-    from tomllib import load as toml_load
-else:
-    try:
-        from tomli import load as toml_load
-    except ImportError:
-        from setuptools.extern.tomli import load as toml_load
+import tomllib
 
 from pbr.hooks import metadata as metadata_hooks
 from pbr.setupcfg import split_multiline
@@ -40,7 +35,7 @@ def pbr(dist):
 
     try:
         with open("pyproject.toml", "rb") as f:
-            pyproject = toml_load(f)
+            pyproject = tomllib.load(f)
     except FileNotFoundError:
         return
 
