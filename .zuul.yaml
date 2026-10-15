@@ -130,11 +130,9 @@
         - openstack-tox-cover
         - openstack-tox-py27
         - openstack-tox-py36:
-            ansible-version: '9'
             vars:
               ensure_tox_pip_version: '<22'
-        - openstack-tox-py37:
-            ansible-version: '9'
+        - openstack-tox-py37
         - openstack-tox-py38
         - openstack-tox-py39
         - openstack-tox-py310
@@ -155,11 +153,9 @@
         - openstack-tox-cover
         - openstack-tox-py27
         - openstack-tox-py36:
-            ansible-version: '9'
             vars:
               ensure_tox_pip_version: '<22'
-        - openstack-tox-py37:
-            ansible-version: '9'
+        - openstack-tox-py37
         - openstack-tox-py38
         - openstack-tox-py39
         - openstack-tox-py310
